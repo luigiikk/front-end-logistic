@@ -33,18 +33,19 @@ function Home() {
             Automatizamos processos, otimizamos rotas e fornecemos informações
             em tempo real para você ter total controle sobre sua operação.
           </p>
-          <button className="bg-white text-black font-bold py-3 px-8 rounded-full hover:bg-gray-200 transition text-lg">
+          <button className="bg-white text-black font-bold py-3 px-8 rounded-full hover:bg-gray-200 transition text-lg ">
             Saiba mais
           </button>
         </div>
       </section>
 
       <section className="py-20 bg-white">
-        <div className="container mx-auto px-6 text-center">
+        <div className="container mx-auto px-6 text-center flex flex-col justify-center items-center">
           <h2 className="text-3xl font-bold text-gray-800 mb-16">
             VANTAGENS PARA SUA EMPRESA
           </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-16">
+          <div className="flex justify-center items-center gap-30">
+            <div className="flex flex-col gap-8">
             <FeatureCard
               icon={<FiCpu />}
               title="Eficiência Operacional"
@@ -55,6 +56,8 @@ function Home() {
               title="Rastreamento e Transparência"
               description="Acompanhamento em tempo real das entregas."
             />
+            </div>
+            <div className="flex flex-col gap-8">
             <FeatureCard
               icon={<FiLock />}
               title="Segurança e Confiabilidade"
@@ -65,6 +68,7 @@ function Home() {
               title="Gestão Inteligente"
               description="Controle centralizado de transporte, cargas e estoques."
             />
+            </div>
           </div>
         </div>
       </section>

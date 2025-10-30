@@ -1,13 +1,13 @@
 function Footer() {
   return (
-    <footer className="bg-[#1E2A3A] text-white">
+    <footer className="bg-[#1B4F72] text-white">
       <div className="container mx-auto px-6 py-12 grid grid-cols-1 md:grid-cols-4 gap-8">
-        <div>
-          <h2 className="text-2xl font-bold">LogiFast</h2>
+        <div className="w-60">
+          <img src="../src/Img/logo2.png" alt="Logifast" />
         </div>
         <div>
           <h3 className="font-bold mb-4">QUEM SOMOS</h3>
-          <ul className="space-y-2 text-gray-300">
+          <ul className="space-y-2 text-white">
             <li>
               <a href="#" className="hover:underline">
                 Sobre
@@ -22,7 +22,7 @@ function Footer() {
         </div>
         <div>
           <h3 className="font-bold mb-4">NOSSAS SOLUÇÕES</h3>
-          <ul className="space-y-2 text-gray-300">
+          <ul className="space-y-2 text-white">
             <li>
               <a href="#" className="hover:underline">
                 Rastrear encomenda
@@ -47,7 +47,7 @@ function Footer() {
         </div>
         <div>
           <h3 className="font-bold mb-4">PARCERIAS</h3>
-          <ul className="space-y-2 text-gray-300">
+          <ul className="space-y-2 text-white">
             <li>
               <a href="#" className="hover:underline">
                 Seja um ponto de coleta
@@ -66,8 +66,8 @@ function Footer() {
           </ul>
         </div>
       </div>
-      <div className="bg-[#111827] py-4">
-        <p className="text-center text-gray-400 text-sm">
+      <div className="bg-[#1B4F72] py-4">
+        <p className="text-left px-4 text-white text-sm">
           © 2025 LogiFast Todos os direitos reservados
         </p>
       </div>
