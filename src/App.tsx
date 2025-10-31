@@ -1,18 +1,22 @@
-// src/App.tsx
-import Header from "./components/Header";
-import Footer from "./components/Footer";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import Login from "./pages/login";
+import Cadastro from "./pages/cadastro";
 import Home from "./pages/Home";
 
 function App() {
   return (
-    <div>
-      <Header />
-      <main>
-        <Home />
-      </main>
-      <Footer />
-    </div>
+    <BrowserRouter>
+      <Routes>
+        <Route path="/login" element={<Login />} />
+        <Route path="/cadastro" element={<Cadastro />} />
+        <Route path="/index" element={<Home />} />
+      </Routes>
+    </BrowserRouter>
+
   );
 }
 
-export default App;
+
+
+export default App;// src/App.tsx
+
