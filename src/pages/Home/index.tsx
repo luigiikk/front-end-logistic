@@ -1,3 +1,5 @@
+import Header from "../../components/header/header"
+import Footer from "../../components/Footer/index";
 import { FiCpu, FiMapPin, FiLock, FiTrendingUp } from "react-icons/fi";
 type FeatureCardProps = {
   icon: React.ReactElement;
@@ -18,6 +20,7 @@ const FeatureCard = ({ icon, title, description }: FeatureCardProps) => (
 function Home() {
   return (
     <>
+      <Header></Header>
       <section
         className="relative min-h-[550px] bg-cover bg-center flex items-center justify-center text-white"
         style={{ backgroundImage: "url('/home-bg.svg')" }}
@@ -70,8 +73,9 @@ function Home() {
             />
             </div>
           </div>
-        </div>
+        </div> 
       </section>
+      <Footer></Footer>
     </>
   );
 }
