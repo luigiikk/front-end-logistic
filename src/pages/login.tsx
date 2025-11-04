@@ -1,4 +1,4 @@
-import Header from "../components/header/header"
+import Header from "../components/Header/header"
 import Content from "../components/Content/content"
 
 function Login() {
