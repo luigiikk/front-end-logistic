@@ -53,7 +53,9 @@ function Header() {
             ENTRE
           </button>
           <button className="px-4 py-2 bg-blue-600 text-white rounded text-sm hover:bg-blue-700 transition">
+            <Link to="/cadastro">
             CADASTRE-SE
+            </Link>
           </button>
         </div>
       </nav>

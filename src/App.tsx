@@ -12,6 +12,8 @@ import ServicosPage from "./pages/Servicos";
 import RastreioPage from "./pages/Rastreio";
 import SolucoesPage from "./pages/Solucoes";
 import ContatoPage from "./pages/Contato";
+import Cadastro from "./pages/cadastro"
+import Login from "./pages/login";
 
 // --- Páginas de Admin ---
 import AdminDashboard from "./pages/Admin/Dashboard";
@@ -19,10 +21,11 @@ import AdminDashboard from "./pages/Admin/Dashboard";
 // 2. Importe a nova página do Operador
 import OperadorDashboard from "./pages/Operador/Dashboard";
 
+
 // --- 3. Definição dos Links da Sidebar ---
 // Como você disse que são iguais, vamos definir a lista uma vez
 const adminNavLinks = [
-  { name: "Usuário", path: "/admin/usuarios" },
+  { name: "Colaboradores", path: "/admin/colaboradores" },
   { name: "Cliente", path: "/admin/clientes" },
   { name: "Produtos", path: "/admin/produtos" },
   { name: "Pedido", path: "/admin/pedido" },
@@ -48,6 +51,8 @@ function App() {
         <Route path="/rastreio" element={<RastreioPage />} />
         <Route path="/solucoes" element={<SolucoesPage />} />
         <Route path="/contato" element={<ContatoPage />} />
+        <Route path="/cadastro" element={<Cadastro/>}/>
+        <Route path="/login" element={<Login/>}/>
       </Route>
 
       {/* --- Rotas de Admin --- */}

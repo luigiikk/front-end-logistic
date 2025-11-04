@@ -4,7 +4,8 @@
 
 import { Link, Outlet } from "react-router-dom";
 import { UserCircleIcon } from "@heroicons/react/24/outline";
-import React from "react"; // <-- 'React' é necessário para 'React.FC'
+import React, { useEffect, useState } from "react";
+import { api } from "../../api/lib/api";
 
 // --- Tipos para os Props ---
 type NavLink = {
@@ -32,6 +33,21 @@ const NavButton: React.FC<NavButtonProps> = ({ to, label }) => (
   </Link>
 );
 
+function getCompanyIdFromToken() {
+  const token = localStorage.getItem("token");
+  if (!token) return null;
+
+  try {
+    const [, payloadBase64] = token.split(".");
+    const payload = JSON.parse(atob(payloadBase64));
+    return payload.sub;
+  } catch (error) {
+    console.error("Erro ao decodificar token:", error);
+    return null;
+  }
+}
+
+
 // *** A MUDANÇA ESTÁ AQUI ***
 // Dizemos explicitamente ao React que este é um Componente Funcional
 const DashboardLayout: React.FC<DashboardLayoutProps> = ({
@@ -39,7 +55,31 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
   userType,
   navLinks,
 }) => {
+  const [company, setCompany] = useState<any>(null);
+
+useEffect(() => {
+    async function fetchCompany() {
+      const token = localStorage.getItem("token");
+      const companyId = getCompanyIdFromToken();
+
+      if (!token || !companyId) {
+        console.error("Token ou ID da empresa não encontrado!");
+        return;
+      }
+
+      try {
+        const response = await api.get(`/company/${companyId}`); 
+
+        setCompany(response.data);
+      } catch (error) {
+        console.error("Erro ao buscar empresa:", error);
+      }
+    }
+
+    fetchCompany();
+  }, []);
   return (
+    
     <div className="flex min-h-screen">
       {/* === 1. Sidebar (Menu Lateral) === */}
       <aside className="w-64 bg-blue-200 p-6 flex flex-col">
@@ -57,12 +97,16 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
         <header className="bg-white p-4 shadow-sm flex justify-between items-center z-10">
           <div className="flex items-center gap-2">
             <UserCircleIcon className="h-8 w-8 text-gray-600" />
-            <span className="font-medium text-gray-700">{userType}</span>
+           {company ? (
+        <span className="text-sm text-gray-500">{company.name}</span>
+      ) : (
+        <span className="text-sm text-gray-400 italic">Carregando...</span>
+      )}
           </div>
           <button className="bg-orange-500 text-white font-bold py-2 px-6 rounded-lg hover:bg-orange-600 transition">
             Sair
           </button>
-        </header>
+        </header> 
 
         <main className="flex-1 p-10 bg-gray-100">
           <Outlet />

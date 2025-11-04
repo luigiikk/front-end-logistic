@@ -1,10 +1,11 @@
 import { useState } from "react";
 import { useAuth } from "../../hooks/useAuth";
-// import { useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 export default function FormEmpresa() {
   const [CNPJ, setCnpj] = useState("");
   const [password, setPassword] = useState("");
+  const navigate = useNavigate();
 
   const { handleAuth, error, loading } = useAuth<{ id: number; name: string; CNPJ: string }>("company");
 
@@ -12,8 +13,7 @@ export default function FormEmpresa() {
     e.preventDefault();
     try {
       const data = await handleAuth(CNPJ, password);
-      console.log("Login OK:", data);
-      // useNavigate("/pagina da empresa")
+      navigate("/admin")
     } catch {}
   }
 

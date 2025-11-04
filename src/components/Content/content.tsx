@@ -4,7 +4,7 @@ import { Link } from "react-router-dom";
 import { useState } from "react";
 import FormFuncionario from "../Form/formFuncionario"
 import FormEmpresa from "../Form/formEmpresa";
-// import FormCliente from "../Form/formCliente";
+import FormCliente from "../Form/formCliente";
 
 function Content(){
      const [tipoUsuario, setTipoUsuario] = useState<"Funcionario" | "Empresa" | "Cliente">("Empresa");
@@ -39,7 +39,7 @@ function Content(){
           <div className="w-full">
           {tipoUsuario === "Funcionario" && <FormFuncionario />}
           {tipoUsuario === "Empresa" && <FormEmpresa />}
-          {/* {tipoUsuario === "Cliente" && <FormCliente />} */}
+          {tipoUsuario === "Cliente" && <FormCliente />}
           </div>
 
           
