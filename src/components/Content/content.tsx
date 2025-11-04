@@ -1,15 +1,14 @@
 import logo2 from "../../img/logo2.png"
-import ButtonForm from "../Button/buttonForm";
 import ButtonUser from "../Button/buttonUser";
 import { Link } from "react-router-dom";
 import { useState } from "react";
 import FormFuncionario from "../Form/formFuncionario"
 import FormEmpresa from "../Form/formEmpresa";
-import FormCliente from "../Form/formCliente";
+// import FormCliente from "../Form/formCliente";
 
 function Content(){
-   const [tipoUsuario, setTipoUsuario] = useState("Funcionario");
-
+     const [tipoUsuario, setTipoUsuario] = useState<"Funcionario" | "Empresa" | "Cliente">("Empresa");
+   
     return(
     <main className="flex flex-col md:flex-row w-full h-[calc(100vh-4rem)] ">
       {/* Lado esquerdo */}
@@ -32,7 +31,7 @@ function Content(){
             key={tipo}
             funcao={tipo}
             selecionado={tipoUsuario === tipo}
-            onClick={() => setTipoUsuario(tipo)}
+            onClick={() => setTipoUsuario(tipo as "Funcionario" | "Empresa" | "Cliente")}
           />
           ))}
           </div>
@@ -40,7 +39,7 @@ function Content(){
           <div className="w-full">
           {tipoUsuario === "Funcionario" && <FormFuncionario />}
           {tipoUsuario === "Empresa" && <FormEmpresa />}
-          {tipoUsuario === "Cliente" && <FormCliente />}
+          {/* {tipoUsuario === "Cliente" && <FormCliente />} */}
           </div>
 
           
@@ -52,13 +51,8 @@ function Content(){
                 Esqueceu sua senha?
               </a>
             </div>
-
             
-            <ButtonForm titulo="Entrar" />
               
-            
-
-
           {/* Cadastro */}
           <p className="text-center text-sm mt-3">
             Não é uma empresa parceira?{" "}

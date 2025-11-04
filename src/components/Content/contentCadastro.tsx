@@ -3,8 +3,9 @@ import ButtonForm from "../Button/buttonForm";
 import { Link } from "react-router-dom";
 import { useState } from "react";
 import InputField from "../Input/inputField";
+import {api} from "../../api/lib/api"
 
-function ContentCadastro(){
+export default function ContentCadastro() {
   const [formData, setFormData] = useState({
     nome: "",
     email: "",
@@ -18,6 +19,22 @@ function ContentCadastro(){
     setFormData({ ...formData, [name]: value });
   };
 
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    try {
+      await api.post("/company", {
+        name: formData.nome,
+        email: formData.email,
+        password: formData.senha,
+        CNPJ: formData.cnpj,
+        phone_number: formData.telefone,
+      });
+      alert("Cadastro realizado com sucesso! Agora faça login.");
+      setFormData({ nome: "", email: "", senha: "", cnpj: "", telefone: "" });
+    } catch (err: any) {
+      alert("Erro ao cadastrar: " + (err?.response?.data?.message || err?.message));
+    }
+  }
 
     return(
     <main className="flex flex-col md:flex-row w-full h-[calc(100vh-4rem)] ">
@@ -35,7 +52,7 @@ function ContentCadastro(){
           <h2 className="text-center text-xl font-semibold mb-6">CADASTRO</h2>
 
           {/* Campos */}
-          <form className="flex flex-col gap-4">
+          <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
             <InputField
             label="Nome completo"
             name="nome"
@@ -91,6 +108,3 @@ function ContentCadastro(){
     </main>
     )
 }
-
-
-export default ContentCadastro;
