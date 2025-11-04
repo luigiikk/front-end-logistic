@@ -1,29 +1,58 @@
-const NavLink = ({ children }: { children: React.ReactNode }) => (
-  <a href="#" className="text-black hover:text-[#3C91E6] transition-colors">
-    {children}
-  </a>
-);
+import { Link } from "react-router-dom";
+import logoHeaderImage from "../../img/logo.png";
 
 function Header() {
   return (
-    <header className="w-full bg-white border-b border-gray-200">
-      <nav className="max-w-7xl mx-auto flex items-center justify-between h-16 px-6">
-        <div className="flex items-center gap-2">
-          <img src="../src/Img/logo.png" alt="" srcSet="w-40 h-20" />
+    <header className="w-full bg-white text-black px-4 py-2 sticky top-0 z-50 border-b border-gray-200 shadow-sm">
+      <nav className="container mx-auto flex justify-between items-center">
+        <Link to="/">
+          <img
+            src={logoHeaderImage}
+            alt="LogiFast"
+            className="h-14 w-auto" // Logo h-14
+          />
+        </Link>
+
+        {/* Links */}
+        <div className="hidden md:flex space-x-6 items-center">
+          <Link to="/" className="hover:text-blue-600 text-sm font-medium">
+            HOME
+          </Link>
+          <Link to="/sobre" className="hover:text-blue-600 text-sm font-medium">
+            SOBRE
+          </Link>
+          <Link
+            to="/servicos"
+            className="hover:text-blue-600 text-sm font-medium"
+          >
+            SERVIÇOS
+          </Link>
+          <Link
+            to="/rastreio"
+            className="hover:text-blue-600 text-sm font-medium"
+          >
+            RASTREIO
+          </Link>
+          <Link
+            to="/solucoes"
+            className="hover:text-blue-600 text-sm font-medium"
+          >
+            SOLUÇÕES
+          </Link>
+          <Link
+            to="/contato"
+            className="hover:text-blue-600 text-sm font-medium"
+          >
+            CONTATO
+          </Link>
         </div>
-        <div className="hidden md:flex items-center gap-8 text-sm font-medium text-black">
-          <NavLink>HOME</NavLink>
-          <NavLink>SOBRE</NavLink>
-          <NavLink>SERVIÇOS</NavLink>
-          <NavLink>RASTREIO</NavLink>
-          <NavLink>SOLUÇÕES</NavLink>
-          <NavLink>CONTATO</NavLink>
-        </div>
-        <div className="flex items-center gap-3">
-          <button className="px-6 py-2 text-black border border-gray-300 rounded-xl hover:bg-gray-100 transition cursor-pointer">
+
+        {/* Botões */}
+        <div className="hidden md:flex space-x-2">
+          <button className="px-4 py-2 border border-blue-600 text-blue-600 rounded text-sm hover:bg-blue-50 transition">
             ENTRE
           </button>
-          <button className="px-6 py-2 bg-[#0A3D62] text-white rounded-xl hover:bg-[#3C91E6] transition cursor-pointer">
+          <button className="px-4 py-2 bg-blue-600 text-white rounded text-sm hover:bg-blue-700 transition">
             CADASTRE-SE
           </button>
         </div>

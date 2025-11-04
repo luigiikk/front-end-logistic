@@ -1,9 +1,4 @@
-// Imports dos ícones (correto)
 import { FiCpu, FiMapPin, FiLock, FiTrendingUp } from "react-icons/fi";
-
-// (REMOVEMOS os imports do Header e Footer daqui)
-
-// Componente de Card (correto)
 type FeatureCardProps = {
   icon: React.ReactElement;
   title: string;
