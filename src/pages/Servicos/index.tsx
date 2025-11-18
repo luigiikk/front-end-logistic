@@ -1,7 +1,3 @@
-/* Arquivo: src/pages/Servicos/index.tsx
-  Descrição: Página "Nossos Serviços" com a correção de tipos do TypeScript.
-*/
-
 import {
   TruckIcon,
   ArchiveBoxIcon,
@@ -10,9 +6,8 @@ import {
   WrenchScrewdriverIcon,
   ArrowUturnLeftIcon,
 } from "@heroicons/react/24/outline";
-import React from "react"; // <-- IMPORTE O REACT
+import React from "react";
 
-// --- Dados dos Cards (para facilitar) ---
 const servicos = [
   {
     icon: TruckIcon,
@@ -46,16 +41,13 @@ const servicos = [
   },
 ];
 
-// --- 1. DEFINIÇÃO DOS TIPOS (A CORREÇÃO) ---
-// Definimos como as props devem ser
+
 type ServiceCardProps = {
-  icon: React.ElementType; // O tipo para um componente de ícone
-  title: string; // O tipo para o título
-  text: string; // O tipo para o texto
+  icon: React.ElementType; 
+  title: string; 
+  text: string; 
 };
 
-// --- Componente do Card (com os tipos) ---
-// 2. APLICAMOS OS TIPOS AQUI
 function ServiceCard({ icon: Icon, title, text }: ServiceCardProps) {
   return (
     <div className="bg-[#F9A826] border-2 border-[#002347] p-6 rounded-lg text-[#002347]">
@@ -66,24 +58,18 @@ function ServiceCard({ icon: Icon, title, text }: ServiceCardProps) {
   );
 }
 
-// --- Componente Principal da Página ---
 function ServicosPage() {
   return (
     <main>
-      {/* ======================================= */}
-      {/* Seção Hero (com imagem do caminhão)     */}
-      {/* ======================================= */}
       <section className="relative bg-gray-800 text-white py-32 px-4">
         <div
           className="absolute inset-0 bg-cover bg-center opacity-30"
           style={{
-            // TODO: Substitua a URL abaixo pela imagem do caminhão
             backgroundImage:
               "url('https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?q=80&w=1887&auto=format&fit=crop')",
           }}
         ></div>
 
-        {/* Conteúdo de Texto */}
         <div className="container mx-auto max-w-6xl relative z-10">
           <h1 className="text-4xl font-bold mb-6">NOSSOS SERVIÇOS</h1>
           <p className="text-lg max-w-2xl">
@@ -95,9 +81,6 @@ function ServicosPage() {
         </div>
       </section>
 
-      {/* ======================================= */}
-      {/* Seção do Grid de Serviços              */}
-      {/* ======================================= */}
       <section className="bg-orange-50 py-20 px-4">
         <div className="container mx-auto max-w-6xl">
           <div className="grid md:grid-cols-2 gap-8">
@@ -113,9 +96,6 @@ function ServicosPage() {
         </div>
       </section>
 
-      {/* ======================================= */}
-      {/* Seção Botão "Entre em contato"         */}
-      {/* ======================================= */}
       <section className="bg-orange-50 pb-20 px-4 text-center">
         <button className="bg-white text-[#002347] border-2 border-[#002347] px-8 py-3 rounded-lg font-bold hover:bg-gray-100 transition-colors">
           Entre em contato

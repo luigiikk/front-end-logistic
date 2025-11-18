@@ -1,14 +1,7 @@
-/* Arquivo: src/pages/Solucoes/index.tsx
-  Descrição: Página de "Soluções", com o padding reduzido para 
-  diminuir o espaço em branco.
-*/
-
 import React from "react";
 
-// --- Lembre-se de importar a sua imagem ---
 import trucksImage from "../../img/caminhoesSolucoes.png";
 
-// --- Dados dos Cards (São 6 itens) ---
 const solucoes = [
   {
     title: "Rastreamento em Tempo Real",
@@ -36,16 +29,10 @@ const solucoes = [
   },
 ];
 
-// --- Componente da Página ---
 function SolucoesPage() {
   return (
     <main>
-      {/* ======================================= */}
-      {/* Seção 1: Hero (Texto + Imagem)          */}
-      {/* ======================================= */}
       <section className="grid grid-cols-1 md:grid-cols-3">
-        {/* Coluna 1: Texto (Fundo Azul) */}
-        {/* *** MUDANÇA AQUI: Padding reduzido para p-10 *** */}
         <div className="bg-blue-600 text-white p-10 flex flex-col justify-center">
           <h1 className="text-4xl font-bold mb-6">
             Soluções que otimizam sua logística
@@ -57,8 +44,6 @@ function SolucoesPage() {
           </p>
         </div>
 
-        {/* Coluna 2: Imagem */}
-        {/* *** MUDANÇA AQUI: Padding reduzido para p-10 *** */}
         <div className="md:col-span-2 bg-white p-1">
           <img
             src={trucksImage} // <-- A variável do import
@@ -68,9 +53,6 @@ function SolucoesPage() {
         </div>
       </section>
 
-      {/* ======================================= */}
-      {/* Seção 2: Grid de Soluções (6 Itens)     */}
-      {/* ======================================= */}
       <section className="bg-blue-600 py-20 px-4">
         <div className="container mx-auto max-w-6xl">
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">

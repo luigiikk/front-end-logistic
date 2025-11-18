@@ -1,22 +1,12 @@
-/* Arquivo: src/pages/Contato/index.tsx
-  Descrição: Página "Fale Conosco"
-*/
-
-import React from "react";
 import {
   MapPinIcon,
   PhoneIcon,
   EnvelopeIcon,
 } from "@heroicons/react/24/outline";
 
-// --- Componente da Página ---
 function ContatoPage() {
   return (
     <main>
-      {/* ======================================= */}
-      {/* Seção 1: Hero "Fale Conosco!"           */}
-      {/* ======================================= */}
-      {/* Na imagem, é um azul claro. Vamos usar 'bg-blue-300' */}
       <section className="bg-blue-300 text-gray-800 py-12 px-4">
         <div className="container mx-auto max-w-6xl text-center">
           <h1 className="text-4xl font-bold text-gray-900 mb-4">
@@ -31,25 +21,17 @@ function ContatoPage() {
         </div>
       </section>
 
-      {/* ======================================= */}
-      {/* Seção 2: Formulário e Informações       */}
-      {/* ======================================= */}
-      {/* Na imagem, o fundo é um cinza/azul bem claro. 'bg-gray-100' */}
       <section className="bg-gray-100 py-20 px-4">
         <div className="container mx-auto max-w-6xl">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-16 items-start">
-            {/* --- Coluna da Esquerda (Formulário) --- */}
             <div>
               <p className="text-gray-600 text-lg mb-6">
                 Horário de atendimento de segunda à sexta, das 8:00 às 18:00
               </p>
 
-              {/* O Card do Formulário */}
               <div className="bg-white p-8 rounded-lg shadow-lg">
                 <form>
-                  {/* Grid para os 4 primeiros campos */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-6">
-                    {/* Campo Nome */}
                     <div>
                       <label
                         htmlFor="nome"
@@ -64,7 +46,6 @@ function ContatoPage() {
                         className="w-full p-4 border border-gray-300 rounded-lg text-lg"
                       />
                     </div>
-                    {/* Campo Email */}
                     <div>
                       <label
                         htmlFor="email"
@@ -79,7 +60,6 @@ function ContatoPage() {
                         className="w-full p-4 border border-gray-300 rounded-lg text-lg"
                       />
                     </div>
-                    {/* Campo Telefone */}
                     <div>
                       <label
                         htmlFor="telefone"
@@ -94,7 +74,6 @@ function ContatoPage() {
                         className="w-full p-4 border border-gray-300 rounded-lg text-lg"
                       />
                     </div>
-                    {/* Campo Assunto */}
                     <div>
                       <label
                         htmlFor="assunto"
@@ -111,7 +90,6 @@ function ContatoPage() {
                     </div>
                   </div>
 
-                  {/* Campo Mensagem */}
                   <div className="mb-6">
                     <label
                       htmlFor="mensagem"
@@ -126,10 +104,7 @@ function ContatoPage() {
                       className="w-full p-4 border border-gray-300 rounded-lg text-lg"
                     ></textarea>
                   </div>
-
-                  {/* Botão Enviar */}
                   <div>
-                    {/* Cor do botão (laranja/dourado) */}
                     <button
                       type="submit"
                       className="w-full bg-yellow-500 text-gray-900 py-4 px-6 rounded-lg font-bold text-lg hover:bg-yellow-600 transition"
@@ -141,10 +116,7 @@ function ContatoPage() {
               </div>
             </div>
 
-            {/* --- Coluna da Direita (Informações) --- */}
-            {/* O 'md:pt-16' alinha visualmente com o formulário */}
             <div className="md:pt-16 space-y-12">
-              {/* Item Localização */}
               <div className="flex items-start">
                 <MapPinIcon className="h-8 w-8 text-gray-700 mt-1 mr-4 flex-shrink-0" />
                 <div>
@@ -158,7 +130,6 @@ function ContatoPage() {
                 </div>
               </div>
 
-              {/* Item Telefone */}
               <div className="flex items-start">
                 <PhoneIcon className="h-8 w-8 text-gray-700 mt-1 mr-4 flex-shrink-0" />
                 <div>
@@ -169,7 +140,6 @@ function ContatoPage() {
                 </div>
               </div>
 
-              {/* Item Email */}
               <div className="flex items-start">
                 <EnvelopeIcon className="h-8 w-8 text-gray-700 mt-1 mr-4 flex-shrink-0" />
                 <div>

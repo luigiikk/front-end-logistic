@@ -1,7 +1,3 @@
-/* Arquivo: src/pages/Rastreio/index.tsx
-  Descrição: Página de Rastreio com os tipos TypeScript corrigidos.
-*/
-
 import { useState } from "react";
 import React from "react"; // Importe o React
 import {
@@ -14,7 +10,6 @@ import {
   DocumentTextIcon,
 } from "@heroicons/react/24/outline";
 
-// --- 1. Definição dos Tipos ---
 type TrackingHistory = {
   date: string;
   time: string;
@@ -24,7 +19,7 @@ type TrackingHistory = {
 type ProgressStep = {
   name: string;
   date: string;
-  icon: React.ElementType; // Tipo para um componente
+  icon: React.ElementType; 
   completed: boolean;
 };
 
@@ -34,7 +29,6 @@ type OrderData = {
   progress: ProgressStep[];
 };
 
-// --- 2. Dados Falsos (Mock Data) com o tipo aplicado ---
 const mockTrackingData: OrderData = {
   eta: "Entrega até 07/11/25",
   history: [
@@ -100,7 +94,6 @@ const mockTrackingData: OrderData = {
   ],
 };
 
-// --- Componente da Página ---
 function RastreioPage() {
   const [trackingCode, setTrackingCode] = useState("");
 
@@ -119,9 +112,6 @@ function RastreioPage() {
 
   return (
     <main>
-      {/* ======================================= */}
-      {/* Seção 1: Formulário de Busca            */}
-      {/* ======================================= */}
       <section className="bg-[#002347] text-white py-20 px-4">
         <div className="container mx-auto max-w-6xl grid md:grid-cols-2 gap-12 items-center">
           <div className="space-y-6">
@@ -133,7 +123,6 @@ function RastreioPage() {
             </p>
             <p className="text-lg text-gray-300">
               {" "}
-              {/* <-- ERRO CORRIGIDO AQUI (era </(p>) */}
               Basta inserir o código de rastreamento no campo abaixo e pronto:
               em segundos você terá todas as informações atualizadas sobre o
               status da sua carga.
@@ -175,9 +164,6 @@ function RastreioPage() {
         </div>
       </section>
 
-      {/* ======================================= */}
-      {/* Seção 2: Resultados (Condicional)       */}
-      {/* ======================================= */}
       {orderData && (
         <section className="bg-white py-20 px-4">
           <div className="container mx-auto max-w-6xl">

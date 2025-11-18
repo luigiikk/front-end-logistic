@@ -3,9 +3,6 @@ import logoImage from "../../img/logo.png";
 function SobrePage() {
   return (
     <main>
-      {/* ======================================= */}
-      {/* Seção "A LOGIFAST" (Hero)               */}
-      {/* ======================================= */}
       <section className="bg-[#002347] text-white py-20 px-4">
         <div className="container mx-auto max-w-6xl">
           <h1 className="text-4xl font-bold mb-12 text-center">A LOGIFAST</h1>
@@ -27,13 +24,12 @@ function SobrePage() {
               </p>
             </div>
 
-            {/* **ALTERAÇÕES AQUI: Fundo branco, tamanho e padding para a logo** */}
             <div className="flex items-center justify-center min-h-[250px]">
               <div className="bg-white p-8 rounded-lg flex items-center justify-center">
                 <img
                   src={logoImage}
                   alt="Logotipo LogiFast"
-                  className="w-full max-w-sm h-auto" // Ajustado para aumentar o tamanho
+                  className="w-full max-w-sm h-auto"
                 />
               </div>
             </div>
@@ -41,9 +37,6 @@ function SobrePage() {
         </div>
       </section>
 
-      {/* ======================================= */}
-      {/* Seção "QUEM SOMOS" / "COMPROMISSO"      */}
-      {/* ======================================= */}
       <section className="py-20 px-4 bg-white">
         <div className="container mx-auto max-w-6xl grid md:grid-cols-2 gap-16 items-center">
           <div className="flex justify-center">
@@ -74,9 +67,6 @@ function SobrePage() {
         </div>
       </section>
 
-      {/* ======================================= */}
-      {/* Seção Missão, Visão, Valores (COM BORDAS) */}
-      {/* ======================================= */}
       <section className="bg-[#F9A826] py-20 px-4">
         <div className="container mx-auto max-w-6xl grid md:grid-cols-3 gap-12 text-center">
           <div className="text-[#002347]">

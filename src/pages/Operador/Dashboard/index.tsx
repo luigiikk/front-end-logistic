@@ -1,9 +1,3 @@
-/* Arquivo: src/pages/Operador/Dashboard/index.tsx
-  Descrição: A tela de "Bem-vindo" do painel do Operador.
-*/
-
-// *** 'import React from 'react';' FOI REMOVIDO DESTA LINHA ***
-
 function OperadorDashboard() {
   return (
     <div className="text-gray-800">

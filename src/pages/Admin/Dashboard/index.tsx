@@ -1,9 +1,3 @@
-/* Arquivo: src/pages/Admin/Dashboard/index.tsx
-  Descrição: A tela de "Bem-vindo" do painel de admin.
-*/
-
-import React from "react";
-
 function AdminDashboard() {
   return (
     <div className="text-gray-800">
