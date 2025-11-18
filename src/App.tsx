@@ -1,8 +1,6 @@
 import { Routes, Route } from "react-router-dom";
 
-// --- Layouts ---
 import Layout from "./components/Layout";
-// 1. Importe o NOVO layout renomeado
 import DashboardLayout from "./components/DashboardLayout";
 
 // --- Páginas Públicas ---
@@ -14,29 +12,22 @@ import SolucoesPage from "./pages/Solucoes";
 import ContatoPage from "./pages/Contato";
 import Cadastro from "./pages/cadastro"
 import Login from "./pages/login";
-
-// --- Páginas de Admin ---
 import AdminDashboard from "./pages/Admin/Dashboard";
-
-// 2. Importe a nova página do Operador
 import OperadorDashboard from "./pages/Operador/Dashboard";
 
 
-// --- 3. Definição dos Links da Sidebar ---
-// Como você disse que são iguais, vamos definir a lista uma vez
+
 const adminNavLinks = [
   { name: "Colaboradores", path: "/admin/colaboradores" },
   { name: "Cliente", path: "/admin/clientes" },
   { name: "Produtos", path: "/admin/produtos" },
-  { name: "Pedido", path: "/admin/pedido" },
+  { name: "Pedidos", path: "/admin/pedido" },
   { name: "Nota Fiscal", path: "/admin/notas" },
   { name: "Recursos", path: "/admin/recursos" },
-  { name: "Pedidos", path: "/admin/pedidos" },
+  { name: "Veículos", path: "/admin/veiculos" },
   { name: "Itens comprados", path: "/admin/itens" },
 ];
 
-// (Se o Operador tiver links diferentes, você pode criar uma nova lista)
-// Por enquanto, vamos usar a mesma, como você pediu:
 const operadorNavLinks = adminNavLinks;
 
 function App() {
@@ -44,7 +35,6 @@ function App() {
     <Routes>
       {/* --- Rotas Públicas (com o Layout principal) --- */}
       <Route element={<Layout />}>
-        {/* ... (todas as suas rotas públicas: /, /sobre, /contato, etc.) ... */}
         <Route path="/" element={<Home />} />
         <Route path="/sobre" element={<SobrePage />} />
         <Route path="/servicos" element={<ServicosPage />} />

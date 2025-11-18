@@ -1,25 +1,19 @@
-/* Arquivo: src/components/DashboardLayout/index.tsx
-  Descrição: Layout REUTILIZÁVEL para Admin, Operador, etc.
-*/
-
-import { Link, Outlet } from "react-router-dom";
+import { Link, Outlet, useNavigate } from "react-router-dom";
 import { UserCircleIcon } from "@heroicons/react/24/outline";
 import React, { useEffect, useState } from "react";
 import { api } from "../../api/lib/api";
 
-// --- Tipos para os Props ---
 type NavLink = {
   name: string;
   path: string;
 };
 
 type DashboardLayoutProps = {
-  pageTitle: string; // Ex: "Painel de Administração"
-  userType: string; // Ex: "ADMINISTRADOR"
-  navLinks: NavLink[]; // A lista de links da sidebar
+  pageTitle: string; 
+  userType: string; 
+  navLinks: NavLink[]; 
 };
 
-// Componente do Botão da Sidebar (para não repetir)
 type NavButtonProps = {
   to: string;
   label: string;
@@ -39,17 +33,15 @@ function getCompanyIdFromToken() {
 
   try {
     const [, payloadBase64] = token.split(".");
-    const payload = JSON.parse(atob(payloadBase64));
-    return payload.sub;
+    if (!payloadBase64) return null;
+    const decoded = JSON.parse(atob(payloadBase64));
+    return decoded?.sub ?? null;
   } catch (error) {
     console.error("Erro ao decodificar token:", error);
     return null;
   }
 }
 
-
-// *** A MUDANÇA ESTÁ AQUI ***
-// Dizemos explicitamente ao React que este é um Componente Funcional
 const DashboardLayout: React.FC<DashboardLayoutProps> = ({
   pageTitle,
   userType,
@@ -57,13 +49,20 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
 }) => {
   const [company, setCompany] = useState<any>(null);
 
+  const navigate = useNavigate();
+
+function handleLogout() {
+  localStorage.removeItem("token"); 
+  navigate("/login");
+}
+
 useEffect(() => {
     async function fetchCompany() {
       const token = localStorage.getItem("token");
       const companyId = getCompanyIdFromToken();
 
-      if (!token || !companyId) {
-        console.error("Token ou ID da empresa não encontrado!");
+      if (!companyId || !token) {
+        console.warn("Token ou ID da empresa não encontrado!");
         return;
       }
 
@@ -103,7 +102,9 @@ useEffect(() => {
         <span className="text-sm text-gray-400 italic">Carregando...</span>
       )}
           </div>
-          <button className="bg-orange-500 text-white font-bold py-2 px-6 rounded-lg hover:bg-orange-600 transition">
+          <button 
+          onClick={handleLogout}
+          className="bg-orange-500 text-white font-bold py-2 px-6 rounded-lg hover:bg-orange-600 transition">
             Sair
           </button>
         </header> 

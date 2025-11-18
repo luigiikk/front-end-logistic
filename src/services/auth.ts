@@ -10,6 +10,11 @@ interface AuthEmployee {
   password: string;
 }
 
+interface AuthClient {
+  cpf: string;
+  password: string;
+}
+
 export async function authCompany(data: AuthCompany) {
   const response = await api.post("/auth/company", data);
   return response.data; 
@@ -17,5 +22,10 @@ export async function authCompany(data: AuthCompany) {
 
 export async function authEmployee(data: AuthEmployee) {
   const response = await api.post("/auth/employee", data);
+  return response.data; 
+}
+
+export async function AuthClient(data: AuthClient) {
+  const response = await api.post("/auth/client", data);
   return response.data; 
 }

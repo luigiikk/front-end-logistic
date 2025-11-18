@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom";
 export default function FormEmpresa() {
   const [CNPJ, setCnpj] = useState("");
   const [password, setPassword] = useState("");
+  
   const navigate = useNavigate();
 
   const { handleAuth, error, loading } = useAuth<{ id: number; name: string; CNPJ: string }>("company");
@@ -21,7 +22,7 @@ export default function FormEmpresa() {
     <form onSubmit={onSubmit} className="flex flex-col gap-4">
       <input
         type="text"
-        placeholder="CNPJ"
+        placeholder="Digite seu CNPJ"
         value={CNPJ}
         onChange={(e) => setCnpj(e.target.value)}
         className="border p-2 rounded"

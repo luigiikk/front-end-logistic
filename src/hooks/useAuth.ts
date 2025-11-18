@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { api } from "../api/lib/api";
 
-export type UserType = "company" | "employee" ;
+export type UserType = "company" | "employee" | "client" ;
 
 export interface AuthResponse<T = any> {
   token: string;
@@ -20,22 +20,27 @@ export function useAuth<T = any>(userType: UserType) {
       const routeMap: Record<UserType, string> = {
         company: "/auth/company",
         employee: "/auth/employee",
+        client: "/auth/client"
       };
 
-      let body: any = {};
-      if (userType === "company") body = { CNPJ: identifier, password };
-      else if (userType === "employee") body = { enrollment: identifier, password };
+      const bodyMap: Record<UserType, any> = {
+        company: { CNPJ: identifier, password },
+        employee: { enrollment: identifier, password },
+        client: { cpf: identifier, password },
+      };
 
-      const response = await api.post<AuthResponse<T>>(routeMap[userType], body);
+      const response = await api.post<AuthResponse<T>>(routeMap[userType], bodyMap[userType]);
 
       localStorage.setItem("token", response.data.token);
       api.defaults.headers.common["Authorization"] = `Bearer ${response.data.token}`;
 
       console.log(`${userType} logado com sucesso:`, response.data);
       return response.data;
+
     } catch (err: any) {
       setError(err?.response?.data?.message || err?.message || "Erro ao fazer login");
       throw err;
+      
     } finally {
       setLoading(false);
     }
