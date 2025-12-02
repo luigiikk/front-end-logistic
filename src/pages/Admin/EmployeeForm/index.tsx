@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 import { LuMountain } from "react-icons/lu";
 
 export default function EmployeeForm() {
-  // Configuração dos campos
+  // Configuração dos campos para o layout de CONSULTA 
   const fields = [
     { label: "Registro", name: "registro", type: "text", value: "12345" },
     { label: "Nome Completo", name: "nome", type: "text", value: "Fulano de Tal" },
@@ -46,24 +46,25 @@ export default function EmployeeForm() {
 
           <nav className="flex flex-col gap-6 w-full px-12">
             
-            {/* Botão CADASTRO (Link para a tela de Cadastro) */}
+            {/* Link para Cadastro */}
             <Link to="/admin/colaboradores/novo" className="w-full no-underline">
               <button className="w-full bg-[#f7b94d] hover:bg-[#e6aa3e] text-black font-medium py-3 rounded-full shadow-md transition-transform hover:scale-105 cursor-pointer border-none text-base">
                 Cadastro
               </button>
             </Link>
 
-            {/* Outros botões */}
-            {["Edição", "Exclusão"].map((item) => (
-              <button 
-                key={item}
-                className="w-full bg-[#f7b94d] hover:bg-[#e6aa3e] text-black font-medium py-3 rounded-full shadow-md transition-transform hover:scale-105 cursor-pointer border-none text-base"
-              >
-                {item}
+            {/* Link para Edição (ADICIONADO) */}
+            <Link to="/admin/colaboradores/edicao" className="w-full no-underline">
+              <button className="w-full bg-[#f7b94d] hover:bg-[#e6aa3e] text-black font-medium py-3 rounded-full shadow-md transition-transform hover:scale-105 cursor-pointer border-none text-base">
+                Edição
               </button>
-            ))}
+            </Link>
 
-            {/* Botão CONSULTA (Ativo - Sem Link) */}
+            <button className="w-full bg-[#f7b94d] hover:bg-[#e6aa3e] text-black font-medium py-3 rounded-full shadow-md transition-transform hover:scale-105 cursor-pointer border-none text-base">
+              Exclusão
+            </button>
+
+            {/* Consulta ATIVO */}
             <button className="w-full bg-[#f7b94d] text-black font-medium py-3 rounded-full shadow-md scale-105 cursor-default border-none text-base ring-2 ring-[#e6aa3e]">
               Consulta
             </button>

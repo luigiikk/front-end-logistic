@@ -1,7 +1,6 @@
 import { Link } from "react-router-dom";
 import { LuSearch, LuMountain } from "react-icons/lu";
 
-// Dados simulados
 const employees = [
   "Cauane Galdino",
   "Leoman Cássio",
@@ -14,10 +13,11 @@ export default function EmployeeList() {
   const totalRows = 10;
   const emptyRows = Math.max(0, totalRows - employees.length);
 
+  
+
   return (
     <div className="flex flex-col h-screen w-full bg-gray-200 font-sans">
       
-      {/* --- CABEÇALHO --- */}
       <header className="flex justify-between items-center px-8 py-4 bg-white shadow-sm z-10">
         <Link 
           to="/admin" 
@@ -38,10 +38,8 @@ export default function EmployeeList() {
         </button>
       </header>
 
-      {/* --- CORPO DA PÁGINA --- */}
       <div className="flex flex-1 overflow-hidden">
         
-        {/* --- BARRA LATERAL --- */}
         <aside className="w-1/4 bg-[#bfdbf7] flex flex-col items-center py-10 gap-8 min-w-[250px]">
           <h2 className="text-xl font-bold text-center px-4 leading-tight text-black">
             Painel Funcionário – <br /> LogiFast
@@ -49,24 +47,26 @@ export default function EmployeeList() {
 
           <nav className="flex flex-col gap-6 w-full px-12">
             
-            {/* Botão CADASTRO -> Vai para EmployeeRegistration */}
+            {/* Link para Cadastro */}
             <Link to="/admin/colaboradores/novo" className="w-full no-underline">
               <button className="w-full bg-[#f7b94d] hover:bg-[#e6aa3e] text-black font-medium py-3 rounded-full shadow-md transition-transform hover:scale-105 cursor-pointer border-none text-base">
                 Cadastro
               </button>
             </Link>
 
-            {/* Botão Edição */}
-            <button className="w-full bg-[#f7b94d] hover:bg-[#e6aa3e] text-black font-medium py-3 rounded-full shadow-md transition-transform hover:scale-105 cursor-pointer border-none text-base">
-              Edição
-            </button>
+            {/* Link para Edição (CORRIGIDO) */}
+            <Link to="/admin/colaboradores/edicao" className="w-full no-underline">
+              <button className="w-full bg-[#f7b94d] hover:bg-[#e6aa3e] text-black font-medium py-3 rounded-full shadow-md transition-transform hover:scale-105 cursor-pointer border-none text-base">
+                Edição
+              </button>
+            </Link>
 
-            {/* Botão Exclusão */}
+            {/* Exclusão (Ainda sem rota) */}
             <button className="w-full bg-[#f7b94d] hover:bg-[#e6aa3e] text-black font-medium py-3 rounded-full shadow-md transition-transform hover:scale-105 cursor-pointer border-none text-base">
               Exclusão
             </button>
 
-            {/* Botão CONSULTA -> Vai para EmployeeForm (Visualizar) */}
+            {/* Link para Consulta */}
             <Link to="/admin/colaboradores/consulta" className="w-full no-underline">
               <button className="w-full bg-[#f7b94d] hover:bg-[#e6aa3e] text-black font-medium py-3 rounded-full shadow-md transition-transform hover:scale-105 cursor-pointer border-none text-base">
                 Consulta
@@ -76,7 +76,6 @@ export default function EmployeeList() {
           </nav>
         </aside>
 
-        {/* --- LISTA --- */}
         <main className="flex-1 p-8 flex justify-center items-start overflow-y-auto">
           <div className="bg-white w-full max-w-5xl rounded-3xl shadow-xl overflow-hidden flex flex-col min-h-[600px]">
             <div className="p-8">

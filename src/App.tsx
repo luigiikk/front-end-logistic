@@ -16,9 +16,12 @@ import Login from "./pages/login";
 
 // --- Páginas de Admin ---
 import AdminDashboard from "./pages/Admin/Dashboard";
-import EmployeeList from "./pages/Admin/EmployeeList";
-import EmployeeRegistration from "./pages/Admin/EmployeeRegistration"; // Tela de Cadastro (Inputs Cinzas)
-import EmployeeForm from "./pages/Admin/EmployeeForm"; // Tela de Consulta (Labels Cinzas)
+
+// Importação das telas do Painel de Funcionários
+import EmployeeList from "./pages/Admin/EmployeeList";           // Lista
+import EmployeeRegistration from "./pages/Admin/EmployeeRegistration"; // Cadastro
+import EmployeeForm from "./pages/Admin/EmployeeForm";           // Consulta (Era EmployeeInfo)
+import EmployeeEdit from "./pages/Admin/EmployeeEdit";           // Edição
 
 // --- Página Operador ---
 import OperadorDashboard from "./pages/Operador/Dashboard";
@@ -39,7 +42,7 @@ const operadorNavLinks = adminNavLinks;
 function App() {
   return (
     <Routes>
-      {/* Rotas Públicas */}
+      {/* --- Rotas Públicas --- */}
       <Route element={<Layout />}>
         <Route path="/" element={<Home />} />
         <Route path="/sobre" element={<SobrePage />} />
@@ -51,7 +54,7 @@ function App() {
         <Route path="/login" element={<Login />} />
       </Route>
 
-      {/* Painel Admin (Layout Padrão) */}
+      {/* --- Painel Admin --- */}
       <Route
         path="/admin"
         element={
@@ -65,18 +68,22 @@ function App() {
         <Route index element={<AdminDashboard />} />
       </Route>
 
-      {/* --- Rotas Admin Personalizadas --- */}
+      {/* --- Rotas Admin Personalizadas (Layout Exclusivo) --- */}
       
-      {/* 1. Lista de Colaboradores */}
+      {/* 1. Lista */}
       <Route path="/admin/colaboradores" element={<EmployeeList />} />
       
-      {/* 2. Cadastro (Botão Cadastro) -> Usa EmployeeRegistration */}
+      {/* 2. Cadastro */}
       <Route path="/admin/colaboradores/novo" element={<EmployeeRegistration />} />
 
-      {/* 3. Consulta (Botão Consulta) -> Usa EmployeeForm (que já existia) */}
+      {/* 3. Consulta (Usa EmployeeForm) */}
       <Route path="/admin/colaboradores/consulta" element={<EmployeeForm />} />
 
-      {/* Painel Operador */}
+      {/* 4. Edição */}
+      <Route path="/admin/colaboradores/edicao" element={<EmployeeEdit />} />
+
+
+      {/* --- Painel Operador --- */}
       <Route
         path="/operador"
         element={
