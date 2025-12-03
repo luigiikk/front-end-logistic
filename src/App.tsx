@@ -17,18 +17,26 @@ import Login from "./pages/login";
 // --- Páginas de Admin ---
 import AdminDashboard from "./pages/Admin/Dashboard";
 
-// Importação das telas do Painel de Funcionários
-import EmployeeList from "./pages/Admin/EmployeeList";           // Lista
-import EmployeeRegistration from "./pages/Admin/EmployeeRegistration"; // Cadastro
-import EmployeeForm from "./pages/Admin/EmployeeForm";           // Consulta (Era EmployeeInfo)
-import EmployeeEdit from "./pages/Admin/EmployeeEdit";           // Edição
+// Funcionários
+import EmployeeList from "./pages/Admin/EmployeeList";
+import EmployeeRegistration from "./pages/Admin/EmployeeRegistration";
+import EmployeeForm from "./pages/Admin/EmployeeForm";
+import EmployeeEdit from "./pages/Admin/EmployeeEdit";
+import EmployeeDeletion from "./pages/Admin/EmployeeDeletion";
+
+// Clientes (NOVOS IMPORTS)
+import ClientList from "./pages/Admin/ClientList";
+import ClientRegistration from "./pages/Admin/ClientRegistration";
+import ClientEdit from "./pages/Admin/ClientEdit";
+import ClientDeletion from "./pages/Admin/ClientDeletion";
+import ClientInfo from "./pages/Admin/ClientInfo";
 
 // --- Página Operador ---
 import OperadorDashboard from "./pages/Operador/Dashboard";
 
 const adminNavLinks = [
   { name: "Colaboradores", path: "/admin/colaboradores" },
-  { name: "Cliente", path: "/admin/clientes" },
+  { name: "Cliente", path: "/admin/clientes" }, // Agora essa rota existe!
   { name: "Produtos", path: "/admin/produtos" },
   { name: "Pedido", path: "/admin/pedido" },
   { name: "Nota Fiscal", path: "/admin/notas" },
@@ -42,7 +50,6 @@ const operadorNavLinks = adminNavLinks;
 function App() {
   return (
     <Routes>
-      {/* --- Rotas Públicas --- */}
       <Route element={<Layout />}>
         <Route path="/" element={<Home />} />
         <Route path="/sobre" element={<SobrePage />} />
@@ -54,7 +61,6 @@ function App() {
         <Route path="/login" element={<Login />} />
       </Route>
 
-      {/* --- Painel Admin --- */}
       <Route
         path="/admin"
         element={
@@ -68,22 +74,26 @@ function App() {
         <Route index element={<AdminDashboard />} />
       </Route>
 
-      {/* --- Rotas Admin Personalizadas (Layout Exclusivo) --- */}
-      
-      {/* 1. Lista */}
+      {/* --- Rotas de Funcionários --- */}
       <Route path="/admin/colaboradores" element={<EmployeeList />} />
-      
-      {/* 2. Cadastro */}
-      <Route path="/admin/colaboradores/novo" element={<EmployeeRegistration />} />
-
-      {/* 3. Consulta (Usa EmployeeForm) */}
+      <Route
+        path="/admin/colaboradores/novo"
+        element={<EmployeeRegistration />}
+      />
       <Route path="/admin/colaboradores/consulta" element={<EmployeeForm />} />
-
-      {/* 4. Edição */}
       <Route path="/admin/colaboradores/edicao" element={<EmployeeEdit />} />
+      <Route
+        path="/admin/colaboradores/exclusao"
+        element={<EmployeeDeletion />}
+      />
 
+      {/* --- Rotas de Clientes (NOVAS) --- */}
+      <Route path="/admin/clientes" element={<ClientList />} />
+      <Route path="/admin/clientes/novo" element={<ClientRegistration />} />
+      <Route path="/admin/clientes/edicao" element={<ClientEdit />} />
+      <Route path="/admin/clientes/exclusao" element={<ClientDeletion />} />
+      <Route path="/admin/clientes/consulta" element={<ClientInfo />} />
 
-      {/* --- Painel Operador --- */}
       <Route
         path="/operador"
         element={

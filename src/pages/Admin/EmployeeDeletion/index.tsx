@@ -1,46 +1,69 @@
 import { useState } from "react";
 import type { FormEvent } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { LuMountain, LuSearch } from "react-icons/lu";
+import { LuSearch, LuMountain } from "react-icons/lu";
 import { api } from "../../../api/lib/api";
+import { AxiosError } from "axios";
 
 type EmployeeData = {
   id: number;
   name: string;
-  email: string;
-  phone_number: string;
-  // Adicione outros campos necessários
 };
 
-export default function EmployeeForm() {
+export default function EmployeeDeletion() {
   const [searchTerm, setSearchTerm] = useState("");
-  const [employee, setEmployee] = useState<EmployeeData | null>(null);
+  const [foundEmployee, setFoundEmployee] = useState<EmployeeData | null>(null);
   const location = useLocation();
 
+  // --- 1. BUSCA O FUNCIONÁRIO ---
   const handleSearch = async (e: FormEvent) => {
     e.preventDefault();
     if (searchTerm.trim() === "") return;
 
     try {
       const response = await api.get(`/employees?search=${searchTerm}`);
+
       if (
         response.data &&
         Array.isArray(response.data) &&
         response.data.length > 0
       ) {
-        setEmployee(response.data[0]);
+        setFoundEmployee(response.data[0]);
       } else {
-        alert("Funcionário não encontrado");
-        setEmployee(null);
+        alert("Funcionário não encontrado.");
+        setFoundEmployee(null);
       }
-    } catch (error) {
-      console.error(error);
-      alert("Erro na busca");
+    } catch (err) {
+      console.error("Erro na busca:", err);
+      alert("Erro ao buscar funcionário.");
+    }
+  };
+
+  // --- 2. DELETA O FUNCIONÁRIO ---
+  const handleDelete = async () => {
+    if (!foundEmployee) return;
+
+    const confirm = window.confirm(
+      `Tem certeza que deseja excluir ${foundEmployee.name}?`
+    );
+    if (!confirm) return;
+
+    try {
+      await api.delete(`/employees/${foundEmployee.id}`);
+      alert("Funcionário excluído com sucesso!");
+      setFoundEmployee(null);
+      setSearchTerm("");
+    } catch (err) {
+      const error = err as AxiosError<{ message: string }>;
+      alert(
+        "Erro ao excluir: " + (error.response?.data?.message || error.message)
+      );
     }
   };
 
   return (
     <div className="flex flex-col h-screen w-full bg-gray-200 font-sans">
+      {/* HEADER */}
       <header className="flex justify-between items-center px-8 py-4 bg-white shadow-sm z-10">
         <Link
           to="/admin/colaboradores"
@@ -62,6 +85,7 @@ export default function EmployeeForm() {
       </header>
 
       <div className="flex flex-1 overflow-hidden">
+        {/* SIDEBAR */}
         <aside className="w-1/4 bg-[#bfdbf7] flex flex-col items-center py-10 gap-8 min-w-[250px]">
           <h2 className="text-xl font-bold text-center px-4 leading-tight text-black">
             Painel Funcionário – <br /> LogiFast
@@ -129,74 +153,49 @@ export default function EmployeeForm() {
           </nav>
         </aside>
 
+        {/* MAIN CONTENT */}
         <main className="flex-1 p-8 flex justify-center items-center overflow-y-auto">
-          <div className="bg-white w-full max-w-4xl rounded-3xl shadow-xl p-10 flex flex-col justify-center min-h-[500px]">
-            <h1 className="text-3xl text-center mb-6 font-normal text-black">
-              Informações do(a) Funcionário(a)
-            </h1>
+          <div className="bg-white w-full max-w-4xl rounded-3xl shadow-xl p-12 flex flex-col min-h-[600px]">
+            <p className="text-xl text-black text-center mb-12 px-8 leading-relaxed">
+              Para excluir um funcionário, insira o nome ou o registro no campo
+              de busca, selecione o funcionário desejado e confirme a exclusão.
+            </p>
 
-            {/* Barra de Busca para Consulta */}
+            {/* Formulário de Busca */}
             <form
               onSubmit={handleSearch}
-              className="flex gap-4 mb-8 w-full px-4 md:px-10 justify-center"
+              className="flex flex-col md:flex-row justify-center items-center gap-4 mb-12"
             >
               <input
                 type="text"
-                placeholder="Buscar por nome ou ID..."
+                placeholder="Insira aqui o nome ou registro"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="flex-1 border border-gray-400 p-2 rounded-lg"
+                className="w-full md:w-3/5 border border-black rounded-lg py-3 px-4 text-lg text-black outline-none focus:ring-1 focus:ring-black"
               />
               <button
                 type="submit"
-                className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg flex items-center gap-2"
+                className="flex items-center gap-2 border border-black rounded-lg px-6 py-3 bg-white hover:bg-gray-100 text-black cursor-pointer shadow-sm transition-colors"
               >
-                <LuSearch /> Buscar
+                <LuSearch className="w-5 h-5" />
+                <span className="text-lg font-medium">Pesquisar</span>
               </button>
             </form>
 
-            {employee ? (
-              <div className="flex flex-col gap-5 w-full px-4 md:px-10">
-                <div className="flex flex-col md:flex-row gap-4 items-center">
-                  <div className="w-full md:w-1/3 bg-[#d9d9d9] text-black text-lg py-3 px-6 rounded-xl flex items-center shadow-sm font-medium">
-                    Nome Completo
-                  </div>
-                  <input
-                    type="text"
-                    value={employee.name}
-                    readOnly
-                    className="w-full md:w-2/3 border border-gray-500 rounded-xl py-3 px-4 text-lg bg-white outline-none text-gray-700 shadow-inner"
-                  />
+            {/* Resultado e Botão Excluir */}
+            {foundEmployee && (
+              <div className="w-full flex flex-col items-center gap-12 animate-pulse-once">
+                <div className="w-full md:w-4/5 bg-[#d9d9d9] py-4 px-6 text-xl text-black rounded-sm shadow-sm">
+                  {foundEmployee.name},{" "}
+                  {String(foundEmployee.id).padStart(3, "0")}
                 </div>
-                <div className="flex flex-col md:flex-row gap-4 items-center">
-                  <div className="w-full md:w-1/3 bg-[#d9d9d9] text-black text-lg py-3 px-6 rounded-xl flex items-center shadow-sm font-medium">
-                    Email
-                  </div>
-                  <input
-                    type="text"
-                    value={employee.email}
-                    readOnly
-                    className="w-full md:w-2/3 border border-gray-500 rounded-xl py-3 px-4 text-lg bg-white outline-none text-gray-700 shadow-inner"
-                  />
-                </div>
-                <div className="flex flex-col md:flex-row gap-4 items-center">
-                  <div className="w-full md:w-1/3 bg-[#d9d9d9] text-black text-lg py-3 px-6 rounded-xl flex items-center shadow-sm font-medium">
-                    Telefone
-                  </div>
-                  <input
-                    type="text"
-                    value={employee.phone_number}
-                    readOnly
-                    className="w-full md:w-2/3 border border-gray-500 rounded-xl py-3 px-4 text-lg bg-white outline-none text-gray-700 shadow-inner"
-                  />
-                </div>
-              </div>
-            ) : (
-              <div className="text-center text-gray-500 mt-10">
-                <p>Nenhum funcionário selecionado.</p>
-                <p className="text-sm">
-                  Use a busca acima para encontrar um colaborador.
-                </p>
+
+                <button
+                  onClick={handleDelete}
+                  className="bg-[#cfcfcf] border border-black text-black font-bold py-3 px-20 rounded-xl hover:bg-[#b0b0b0] transition-colors shadow-md cursor-pointer text-lg"
+                >
+                  Excluir
+                </button>
               </div>
             )}
           </div>
