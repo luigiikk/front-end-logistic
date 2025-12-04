@@ -24,19 +24,27 @@ import EmployeeForm from "./pages/Admin/EmployeeForm";
 import EmployeeEdit from "./pages/Admin/EmployeeEdit";
 import EmployeeDeletion from "./pages/Admin/EmployeeDeletion";
 
-// Clientes (NOVOS IMPORTS)
+// Clientes
 import ClientList from "./pages/Admin/ClientList";
 import ClientRegistration from "./pages/Admin/ClientRegistration";
 import ClientEdit from "./pages/Admin/ClientEdit";
 import ClientDeletion from "./pages/Admin/ClientDeletion";
 import ClientInfo from "./pages/Admin/ClientInfo";
 
-// --- Página Operador ---
-import OperadorDashboard from "./pages/Operador/Dashboard";
+// Produtos
+import ProductList from "./pages/Admin/ProductList";
+import ProductRegistration from "./pages/Admin/ProductRegistration";
+import ProductEdit from "./pages/Admin/ProductEdit";
+import ProductDeletion from "./pages/Admin/ProductDeletion";
+import ProductInfo from "./pages/Admin/ProductInfo";
 
+// --- Página Operador ---
+import OperadorDashboard from "./pages/Operador/Dashboard"; // <--- Importação Crítica
+
+// Links de navegação
 const adminNavLinks = [
   { name: "Colaboradores", path: "/admin/colaboradores" },
-  { name: "Cliente", path: "/admin/clientes" }, // Agora essa rota existe!
+  { name: "Cliente", path: "/admin/clientes" },
   { name: "Produtos", path: "/admin/produtos" },
   { name: "Pedido", path: "/admin/pedido" },
   { name: "Nota Fiscal", path: "/admin/notas" },
@@ -50,6 +58,7 @@ const operadorNavLinks = adminNavLinks;
 function App() {
   return (
     <Routes>
+      {/* Rotas Públicas */}
       <Route element={<Layout />}>
         <Route path="/" element={<Home />} />
         <Route path="/sobre" element={<SobrePage />} />
@@ -61,6 +70,7 @@ function App() {
         <Route path="/login" element={<Login />} />
       </Route>
 
+      {/* Admin Dashboard */}
       <Route
         path="/admin"
         element={
@@ -74,7 +84,7 @@ function App() {
         <Route index element={<AdminDashboard />} />
       </Route>
 
-      {/* --- Rotas de Funcionários --- */}
+      {/* Rotas Admin Personalizadas - Funcionários */}
       <Route path="/admin/colaboradores" element={<EmployeeList />} />
       <Route
         path="/admin/colaboradores/novo"
@@ -87,13 +97,21 @@ function App() {
         element={<EmployeeDeletion />}
       />
 
-      {/* --- Rotas de Clientes (NOVAS) --- */}
+      {/* Rotas Admin Personalizadas - Clientes */}
       <Route path="/admin/clientes" element={<ClientList />} />
       <Route path="/admin/clientes/novo" element={<ClientRegistration />} />
       <Route path="/admin/clientes/edicao" element={<ClientEdit />} />
       <Route path="/admin/clientes/exclusao" element={<ClientDeletion />} />
       <Route path="/admin/clientes/consulta" element={<ClientInfo />} />
 
+      {/* Rotas Admin Personalizadas - Produtos */}
+      <Route path="/admin/produtos" element={<ProductList />} />
+      <Route path="/admin/produtos/novo" element={<ProductRegistration />} />
+      <Route path="/admin/produtos/edicao" element={<ProductEdit />} />
+      <Route path="/admin/produtos/exclusao" element={<ProductDeletion />} />
+      <Route path="/admin/produtos/consulta" element={<ProductInfo />} />
+
+      {/* Painel Operador */}
       <Route
         path="/operador"
         element={

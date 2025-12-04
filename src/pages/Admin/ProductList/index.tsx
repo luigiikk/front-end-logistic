@@ -3,31 +3,33 @@ import { Link } from "react-router-dom";
 import { LuSearch, LuMountain } from "react-icons/lu";
 import { api } from "../../../api/lib/api";
 
-type Client = {
+type ProductListItem = {
   id: number;
   name: string;
+  tracking_code: string;
+  quantity: number;
 };
 
-export default function ClientList() {
-  const [clients, setClients] = useState<Client[]>([]);
+export default function ProductList() {
+  const [products, setProducts] = useState<ProductListItem[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    async function fetchClients() {
+    async function fetchProducts() {
       try {
-        const response = await api.get("/clients");
-        setClients(response.data);
+        const response = await api.get("/products");
+        setProducts(response.data);
       } catch (error) {
-        console.error("Erro ao buscar clientes:", error);
+        console.error("Erro ao buscar produtos:", error);
       } finally {
         setLoading(false);
       }
     }
-    fetchClients();
+    fetchProducts();
   }, []);
 
   const totalRows = 10;
-  const emptyRows = Math.max(0, totalRows - clients.length);
+  const emptyRows = Math.max(0, totalRows - products.length);
 
   return (
     <div className="flex flex-col h-screen w-full bg-gray-200 font-sans">
@@ -54,25 +56,25 @@ export default function ClientList() {
       <div className="flex flex-1 overflow-hidden">
         <aside className="w-1/4 bg-[#bfdbf7] flex flex-col items-center py-10 gap-8 min-w-[250px]">
           <h2 className="text-xl font-bold text-center px-4 leading-tight text-black">
-            Painel Cliente – <br /> LogiFast
+            Painel Produtos – <br /> LogiFast
           </h2>
           <nav className="flex flex-col gap-6 w-full px-12">
-            <Link to="/admin/clientes/novo" className="w-full no-underline">
+            <Link to="/admin/produtos/novo" className="w-full no-underline">
               <button className="w-full bg-[#f7b94d] hover:bg-[#e6aa3e] text-black font-medium py-3 rounded-full shadow-md transition-transform hover:scale-105 cursor-pointer border-none text-base">
                 Cadastro
               </button>
             </Link>
-            <Link to="/admin/clientes/edicao" className="w-full no-underline">
+            <Link to="/admin/produtos/edicao" className="w-full no-underline">
               <button className="w-full bg-[#f7b94d] hover:bg-[#e6aa3e] text-black font-medium py-3 rounded-full shadow-md transition-transform hover:scale-105 cursor-pointer border-none text-base">
                 Edição
               </button>
             </Link>
-            <Link to="/admin/clientes/exclusao" className="w-full no-underline">
+            <Link to="/admin/produtos/exclusao" className="w-full no-underline">
               <button className="w-full bg-[#f7b94d] hover:bg-[#e6aa3e] text-black font-medium py-3 rounded-full shadow-md transition-transform hover:scale-105 cursor-pointer border-none text-base">
                 Exclusão
               </button>
             </Link>
-            <Link to="/admin/clientes/consulta" className="w-full no-underline">
+            <Link to="/admin/produtos/consulta" className="w-full no-underline">
               <button className="w-full bg-[#f7b94d] hover:bg-[#e6aa3e] text-black font-medium py-3 rounded-full shadow-md transition-transform hover:scale-105 cursor-pointer border-none text-base">
                 Consulta
               </button>
@@ -84,7 +86,7 @@ export default function ClientList() {
           <div className="bg-white w-full max-w-5xl rounded-3xl shadow-xl overflow-hidden flex flex-col min-h-[600px]">
             <div className="p-8">
               <h1 className="text-3xl text-center mb-8 font-normal text-black">
-                Lista de Clientes
+                Lista de Produtos
               </h1>
 
               <div className="flex justify-end mb-4">
@@ -102,12 +104,12 @@ export default function ClientList() {
                     Carregando...
                   </p>
                 ) : (
-                  clients.map((client) => (
+                  products.map((prod) => (
                     <div
-                      key={client.id}
+                      key={prod.id}
                       className="border-b border-black py-3 px-4 text-lg text-gray-800 hover:bg-gray-50 transition-colors"
                     >
-                      {client.name}
+                      {prod.name}
                     </div>
                   ))
                 )}
