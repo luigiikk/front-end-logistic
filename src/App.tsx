@@ -2,7 +2,6 @@ import { Routes, Route } from "react-router-dom";
 
 // --- Layouts ---
 import Layout from "./components/Layout";
-// 1. Importe o NOVO layout renomeado
 import DashboardLayout from "./components/DashboardLayout";
 
 // --- Páginas Públicas ---
@@ -12,21 +11,32 @@ import ServicosPage from "./pages/Servicos";
 import RastreioPage from "./pages/Rastreio";
 import SolucoesPage from "./pages/Solucoes";
 import ContatoPage from "./pages/Contato";
-import Cadastro from "./pages/cadastro"
+import Cadastro from "./pages/cadastro";
 import Login from "./pages/login";
 
 // --- Páginas de Admin ---
 import AdminDashboard from "./pages/Admin/Dashboard";
 
-// 2. Importe a nova página do Operador
+// Funcionários
+import EmployeeList from "./pages/Admin/EmployeeList";
+import EmployeeRegistration from "./pages/Admin/EmployeeRegistration";
+import EmployeeForm from "./pages/Admin/EmployeeForm";
+import EmployeeEdit from "./pages/Admin/EmployeeEdit";
+import EmployeeDeletion from "./pages/Admin/EmployeeDeletion";
+
+// Clientes (NOVOS IMPORTS)
+import ClientList from "./pages/Admin/ClientList";
+import ClientRegistration from "./pages/Admin/ClientRegistration";
+import ClientEdit from "./pages/Admin/ClientEdit";
+import ClientDeletion from "./pages/Admin/ClientDeletion";
+import ClientInfo from "./pages/Admin/ClientInfo";
+
+// --- Página Operador ---
 import OperadorDashboard from "./pages/Operador/Dashboard";
 
-
-// --- 3. Definição dos Links da Sidebar ---
-// Como você disse que são iguais, vamos definir a lista uma vez
 const adminNavLinks = [
   { name: "Colaboradores", path: "/admin/colaboradores" },
-  { name: "Cliente", path: "/admin/clientes" },
+  { name: "Cliente", path: "/admin/clientes" }, // Agora essa rota existe!
   { name: "Produtos", path: "/admin/produtos" },
   { name: "Pedido", path: "/admin/pedido" },
   { name: "Nota Fiscal", path: "/admin/notas" },
@@ -35,28 +45,22 @@ const adminNavLinks = [
   { name: "Itens comprados", path: "/admin/itens" },
 ];
 
-// (Se o Operador tiver links diferentes, você pode criar uma nova lista)
-// Por enquanto, vamos usar a mesma, como você pediu:
 const operadorNavLinks = adminNavLinks;
 
 function App() {
   return (
     <Routes>
-      {/* --- Rotas Públicas (com o Layout principal) --- */}
       <Route element={<Layout />}>
-        {/* ... (todas as suas rotas públicas: /, /sobre, /contato, etc.) ... */}
         <Route path="/" element={<Home />} />
         <Route path="/sobre" element={<SobrePage />} />
         <Route path="/servicos" element={<ServicosPage />} />
         <Route path="/rastreio" element={<RastreioPage />} />
         <Route path="/solucoes" element={<SolucoesPage />} />
         <Route path="/contato" element={<ContatoPage />} />
-        <Route path="/cadastro" element={<Cadastro/>}/>
-        <Route path="/login" element={<Login/>}/>
+        <Route path="/cadastro" element={<Cadastro />} />
+        <Route path="/login" element={<Login />} />
       </Route>
 
-      {/* --- Rotas de Admin --- */}
-      {/* 4. Usamos o DashboardLayout e passamos os props de ADMIN */}
       <Route
         path="/admin"
         element={
@@ -68,23 +72,39 @@ function App() {
         }
       >
         <Route index element={<AdminDashboard />} />
-        {/* <Route path="usuarios" element={<PaginaDeUsuarios />} /> */}
       </Route>
 
-      {/* --- Rotas de Operador --- */}
-      {/* 5. Usamos O MESMO DashboardLayout e passamos os props de OPERADOR */}
+      {/* --- Rotas de Funcionários --- */}
+      <Route path="/admin/colaboradores" element={<EmployeeList />} />
+      <Route
+        path="/admin/colaboradores/novo"
+        element={<EmployeeRegistration />}
+      />
+      <Route path="/admin/colaboradores/consulta" element={<EmployeeForm />} />
+      <Route path="/admin/colaboradores/edicao" element={<EmployeeEdit />} />
+      <Route
+        path="/admin/colaboradores/exclusao"
+        element={<EmployeeDeletion />}
+      />
+
+      {/* --- Rotas de Clientes (NOVAS) --- */}
+      <Route path="/admin/clientes" element={<ClientList />} />
+      <Route path="/admin/clientes/novo" element={<ClientRegistration />} />
+      <Route path="/admin/clientes/edicao" element={<ClientEdit />} />
+      <Route path="/admin/clientes/exclusao" element={<ClientDeletion />} />
+      <Route path="/admin/clientes/consulta" element={<ClientInfo />} />
+
       <Route
         path="/operador"
         element={
           <DashboardLayout
             pageTitle="Painel do Operador"
             userType="OPERADOR"
-            navLinks={operadorNavLinks} // Usando a mesma lista por enquanto
+            navLinks={operadorNavLinks}
           />
         }
       >
         <Route index element={<OperadorDashboard />} />
-        {/* <Route path="pedidos" element={<PaginaDePedidos />} /> */}
       </Route>
     </Routes>
   );
