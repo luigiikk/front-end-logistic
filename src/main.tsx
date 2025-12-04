@@ -8,7 +8,6 @@ createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <BrowserRouter>
       {" "}
-      {/* 3. Envolva o <App> com ele */}
       <App />
     </BrowserRouter>
   </StrictMode>

@@ -1,25 +1,19 @@
 import { Outlet } from "react-router-dom";
+import Header from "./Header/index";
+import Footer from "./Footer/index";
 
-// 1. Importe os componentes que acabamos de criar
-import Header from "../Header";
-import Footer from "../Footer";
-
-function Layout() {
+export default function Layout() {
   return (
-    <div className="bg-white min-h-screen flex flex-col">
-      {/* 2. Use o componente Header */}
+    <div className="min-h-screen flex flex-col bg-white">
+      
       <Header />
 
-      {/* 3. O Outlet renderiza o conteúdo da página (Home, Sobre) */}
-      {/* Note que adicionei <main> para semântica, o que é uma boa prática */}
       <main className="flex-grow">
         <Outlet />
       </main>
 
-      {/* 4. Use o componente Footer */}
       <Footer />
+
     </div>
   );
 }
-
-export default Layout;

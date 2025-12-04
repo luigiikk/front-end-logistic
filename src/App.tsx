@@ -1,113 +1,13 @@
-import { Routes, Route } from "react-router-dom";
+import { Routes } from "react-router-dom";
+import { PublicRoutes } from "./routes/publicRoutes";
+import { CompanyRoutes } from "./routes/companyRoutes";
+// import { EmployeeRoutes } from "./routes/employeeRoutes";
 
-// --- Layouts ---
-import Layout from "./components/Layout";
-import DashboardLayout from "./components/DashboardLayout";
-
-// --- Páginas Públicas ---
-import Home from "./pages/Home";
-import SobrePage from "./pages/Sobre";
-import ServicosPage from "./pages/Servicos";
-import RastreioPage from "./pages/Rastreio";
-import SolucoesPage from "./pages/Solucoes";
-import ContatoPage from "./pages/Contato";
-import Cadastro from "./pages/cadastro";
-import Login from "./pages/login";
-
-// --- Páginas de Admin ---
-import AdminDashboard from "./pages/Admin/Dashboard";
-
-// Funcionários
-import EmployeeList from "./pages/Admin/EmployeeList";
-import EmployeeRegistration from "./pages/Admin/EmployeeRegistration";
-import EmployeeForm from "./pages/Admin/EmployeeForm";
-import EmployeeEdit from "./pages/Admin/EmployeeEdit";
-import EmployeeDeletion from "./pages/Admin/EmployeeDeletion";
-
-// Clientes (NOVOS IMPORTS)
-import ClientList from "./pages/Admin/ClientList";
-import ClientRegistration from "./pages/Admin/ClientRegistration";
-import ClientEdit from "./pages/Admin/ClientEdit";
-import ClientDeletion from "./pages/Admin/ClientDeletion";
-import ClientInfo from "./pages/Admin/ClientInfo";
-
-// --- Página Operador ---
-import OperadorDashboard from "./pages/Operador/Dashboard";
-
-const adminNavLinks = [
-  { name: "Colaboradores", path: "/admin/colaboradores" },
-  { name: "Cliente", path: "/admin/clientes" }, // Agora essa rota existe!
-  { name: "Produtos", path: "/admin/produtos" },
-  { name: "Pedido", path: "/admin/pedido" },
-  { name: "Nota Fiscal", path: "/admin/notas" },
-  { name: "Recursos", path: "/admin/recursos" },
-  { name: "Pedidos", path: "/admin/pedidos" },
-  { name: "Itens comprados", path: "/admin/itens" },
-];
-
-const operadorNavLinks = adminNavLinks;
-
-function App() {
+export default function App() {
   return (
     <Routes>
-      <Route element={<Layout />}>
-        <Route path="/" element={<Home />} />
-        <Route path="/sobre" element={<SobrePage />} />
-        <Route path="/servicos" element={<ServicosPage />} />
-        <Route path="/rastreio" element={<RastreioPage />} />
-        <Route path="/solucoes" element={<SolucoesPage />} />
-        <Route path="/contato" element={<ContatoPage />} />
-        <Route path="/cadastro" element={<Cadastro />} />
-        <Route path="/login" element={<Login />} />
-      </Route>
-
-      <Route
-        path="/admin"
-        element={
-          <DashboardLayout
-            pageTitle="Painel de Administração"
-            userType="ADMINISTRADOR"
-            navLinks={adminNavLinks}
-          />
-        }
-      >
-        <Route index element={<AdminDashboard />} />
-      </Route>
-
-      {/* --- Rotas de Funcionários --- */}
-      <Route path="/admin/colaboradores" element={<EmployeeList />} />
-      <Route
-        path="/admin/colaboradores/novo"
-        element={<EmployeeRegistration />}
-      />
-      <Route path="/admin/colaboradores/consulta" element={<EmployeeForm />} />
-      <Route path="/admin/colaboradores/edicao" element={<EmployeeEdit />} />
-      <Route
-        path="/admin/colaboradores/exclusao"
-        element={<EmployeeDeletion />}
-      />
-
-      {/* --- Rotas de Clientes (NOVAS) --- */}
-      <Route path="/admin/clientes" element={<ClientList />} />
-      <Route path="/admin/clientes/novo" element={<ClientRegistration />} />
-      <Route path="/admin/clientes/edicao" element={<ClientEdit />} />
-      <Route path="/admin/clientes/exclusao" element={<ClientDeletion />} />
-      <Route path="/admin/clientes/consulta" element={<ClientInfo />} />
-
-      <Route
-        path="/operador"
-        element={
-          <DashboardLayout
-            pageTitle="Painel do Operador"
-            userType="OPERADOR"
-            navLinks={operadorNavLinks}
-          />
-        }
-      >
-        <Route index element={<OperadorDashboard />} />
-      </Route>
+      {PublicRoutes()}
+      {CompanyRoutes()}
     </Routes>
   );
 }
-
-export default App;

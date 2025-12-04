@@ -5,6 +5,9 @@ import { useAuth } from "../../hooks/useAuth";
 export default function FormFuncionario() {
 const [enrollment, setEnrollment] = useState("");
   const [password, setPassword] = useState("");
+
+  // const navigate = useNavigate();
+
   const { handleAuth, error, loading } = useAuth<{ id: number; name: string; enrollment: string }>("employee");
 
   async function onSubmit(e: React.FormEvent) {
@@ -16,7 +19,6 @@ const [enrollment, setEnrollment] = useState("");
     } catch {}
   }
 
-  
   return (
     <form onSubmit={onSubmit} className="flex flex-col gap-4">
       <input
