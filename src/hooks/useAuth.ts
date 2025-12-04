@@ -18,9 +18,9 @@ export function useAuth<T = any>(userType: UserType) {
 
     try {
       const routeMap: Record<UserType, string> = {
-        company: "/auth/company",
-        employee: "/auth/employee",
-        client: "/auth/client"
+        company: "/company/auth",
+        employee: "/employee/auth",
+        client: "/client/auth"
       };
 
       const bodyMap: Record<UserType, any> = {

@@ -14,7 +14,7 @@ export default function FormEmpresa() {
     e.preventDefault();
     try {
       const data = await handleAuth(CNPJ, password);
-      navigate("/admin")
+      navigate("/company")
     } catch {}
   }
 
