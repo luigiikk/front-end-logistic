@@ -4,6 +4,8 @@ import logo2 from "../../../Img/logo2.png";
 import ButtonForm from "../../../components/ui/Button/buttonForm";
 import InputField from "../../../components/ui/Input/inputField";
 import { api } from "../../../api/lib/api"
+import { AddressFields } from "../../../components/Form/addresField";
+
 
 export default function ContentCadastro() {
   const initialForm = {
@@ -13,6 +15,15 @@ export default function ContentCadastro() {
     cnpj: "",
     telefone: "",
   };
+  const [address, setAddress] = useState({
+    country: "",
+    state: "",
+    city: "",
+    street: "",
+    number: "",
+    zip: "",
+    complement: "",
+  });
 
   const [formData, setFormData] = useState(initialForm);
 
@@ -39,6 +50,15 @@ export default function ContentCadastro() {
 
       alert("Cadastro realizado com sucesso! Agora faça login.");
       setFormData(initialForm);
+      setAddress({
+        country: "",
+        state: "",
+        city: "",
+        street: "",
+        number: "",
+        zip: "",
+        complement: "",
+      });
     } catch (err: any) {
       const message =
         err?.response?.data?.message || err?.message || "Erro inesperado";
@@ -108,6 +128,7 @@ export default function ContentCadastro() {
               value={formData.senha}
               onChange={handleChange}
             />
+            <AddressFields address={address} setAddress={setAddress} />
 
             <ButtonForm titulo="Cadastre-se" />
           </form>
