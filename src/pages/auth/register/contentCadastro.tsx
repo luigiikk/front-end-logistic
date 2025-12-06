@@ -83,10 +83,10 @@ export default function ContentCadastro() {
 
       {/* Lado direito */}
       <div className="bg-[#94C0E0] flex justify-center items-center w-full md:w-3/5 px-6 md:px-12">
-        <div className="bg-white rounded-2xl shadow-md w-full max-w-md p-8">
-          <h2 className="text-center text-xl font-semibold mb-6">CADASTRO</h2>
+        <div className="bg-white grid rounded-2xl shadow-md w-full md:w-4/5 p-8 ">
+          <h2 className="text-center text-xl font-semibold mb-3">CADASTRO</h2>
 
-          <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
+          <form className="flex flex-col gap-3" onSubmit={handleSubmit}>
             <InputField
               label="Nome completo"
               name="nome"

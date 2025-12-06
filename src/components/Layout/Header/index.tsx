@@ -41,14 +41,14 @@ export default function Header() {
         <div className="hidden md:flex space-x-2">
           <Link
             to="/login"
-            className="px-4 py-2 border border-blue-600 text-blue-600 rounded text-sm hover:bg-blue-50 transition"
+            className="px-4 py-2 border border-[#0A3D62] text-black rounded text-sm hover:bg-[#C8DEEE] transition"
           >
             ENTRE
           </Link>
 
           <Link
             to="/cadastro"
-            className="px-4 py-2 bg-blue-600 text-white rounded text-sm hover:bg-blue-700 transition"
+            className="px-4 py-2 bg-[#0A3D62] text-white rounded text-sm hover:bg-[#1B4F72] transition"
           >
             CADASTRE-SE
           </Link>

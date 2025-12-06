@@ -33,7 +33,7 @@ function SolucoesPage() {
   return (
     <main>
       <section className="grid grid-cols-1 md:grid-cols-3">
-        <div className="bg-blue-600 text-white p-10 flex flex-col justify-center">
+        <div className="bg-[#478BBC] text-white p-10 flex flex-col justify-center">
           <h1 className="text-4xl font-bold mb-6">
             Soluções que otimizam sua logística
           </h1>
@@ -53,7 +53,7 @@ function SolucoesPage() {
         </div>
       </section>
 
-      <section className="bg-blue-600 py-20 px-4">
+      <section className="bg-[#478BBC] py-20 px-4">
         <div className="container mx-auto max-w-6xl">
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
             {solucoes.map((solucao) => (

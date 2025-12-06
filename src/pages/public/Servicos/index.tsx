@@ -50,7 +50,7 @@ type ServiceCardProps = {
 
 function ServiceCard({ icon: Icon, title, text }: ServiceCardProps) {
   return (
-    <div className="bg-[#F9A826] border-2 border-[#002347] p-6 rounded-lg text-[#002347]">
+    <div className="bg-[#F6BD61] border-2 border-[#002347] p-6 rounded-lg text-[#002347]">
       <Icon className="h-12 w-12 mb-4" strokeWidth={2} />
       <h3 className="text-xl font-bold mb-2">{title}</h3>
       <p className="text-base leading-relaxed">{text}</p>

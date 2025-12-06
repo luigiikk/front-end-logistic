@@ -1,9 +1,7 @@
-import logoImage from "../../../Img/logo.png";
-
 function SobrePage() {
   return (
     <main>
-      <section className="bg-[#002347] text-white py-20 px-4">
+      <section className="bg-[#0F4F7E] text-white py-20 px-4">
         <div className="container mx-auto max-w-6xl">
           <h1 className="text-4xl font-bold mb-12 text-center">A LOGIFAST</h1>
           <div className="grid md:grid-cols-2 gap-12 items-center">
@@ -13,10 +11,7 @@ function SobrePage() {
                 é uma empresa de logística integrada que atua no mercado há mais
                 de 10 anos, oferecendo soluções completas e personalizadas para
                 seus clientes. Nosso objetivo é garantir a eficiência e a
-                segurança no{" "}
-                <strong className="font-bold text-[#F9A826]">transporte</strong>
-                , armazenagem e distribuição de cargas, com agilidade e
-                confiabilidade.
+                segurança no transporte, armazenagem e distribuição de cargas, com agilidade e confiabilidade.
               </p>
               <p>
                 Contamos com uma equipe qualificada e experiente, além de uma
@@ -25,11 +20,11 @@ function SobrePage() {
             </div>
 
             <div className="flex items-center justify-center min-h-[250px]">
-              <div className="bg-white p-8 rounded-lg flex items-center justify-center">
-                <img
-                  src={logoImage}
-                  alt="Logotipo LogiFast"
-                  className="w-full max-w-sm h-auto"
+              <div className="p-8 rounded-lg flex items-center justify-center">
+                <img  
+                src="src\img\logo2.png"
+                alt="Logo"
+                className="w-full max-w-sm h-auto" 
                 />
               </div>
             </div>
@@ -40,9 +35,9 @@ function SobrePage() {
       <section className="py-20 px-4 bg-white">
         <div className="container mx-auto max-w-6xl grid md:grid-cols-2 gap-16 items-center">
           <div className="flex justify-center">
-            <div className="w-full max-w-lg h-72 bg-gray-100 rounded-lg flex items-center justify-center">
+            <div className="w-full max-w-lg h-72 bg-white rounded-lg flex items-center justify-center">
               <span className="text-gray-500 text-lg">
-                Ilustração (Placeholder)
+                <img src="src\img\sobre.png" alt="Ilustração" />
               </span>
             </div>
           </div>
@@ -67,7 +62,7 @@ function SobrePage() {
         </div>
       </section>
 
-      <section className="bg-[#F9A826] py-20 px-4">
+      <section className="bg-[#F6BD61] py-20 px-4">
         <div className="container mx-auto max-w-6xl grid md:grid-cols-3 gap-12 text-center">
           <div className="text-[#002347]">
             <h3 className="text-2xl font-bold mb-4">NOSSA MISSÃO</h3>

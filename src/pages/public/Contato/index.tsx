@@ -107,7 +107,7 @@ function ContatoPage() {
                   <div>
                     <button
                       type="submit"
-                      className="w-full bg-yellow-500 text-gray-900 py-4 px-6 rounded-lg font-bold text-lg hover:bg-yellow-600 transition"
+                      className="w-full bg-[#F6BD61] text-gray-900 py-4 px-6 rounded-lg font-bold text-lg hover:bg-[#F6BD61] transition"
                     >
                       Enviar mensagem
                     </button>
