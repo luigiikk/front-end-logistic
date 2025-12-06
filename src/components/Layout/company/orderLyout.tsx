@@ -1,20 +1,19 @@
-/* EmployeeLayout.tsx */
 import React from "react";
 import type { ReactNode } from "react";
 import { EntityLayout } from "./entity";
 
-interface EmployeeLayoutProps {
+interface OrderLayoutProps {
   children: ReactNode;
   backLink?: string;
 }
 
-export const EmployeeLayout: React.FC<EmployeeLayoutProps> = ({
+export const OrderLayout: React.FC<OrderLayoutProps> = ({
   children,
   backLink,
 }) => (
   <EntityLayout
-    backLink={backLink || "/company/employee"}
-    title="Painel Funcionário - LogiFast"
+    backLink={backLink || "/company/order"}
+    title="Painel Pedidos - LogiFast"
   >
     {children}
   </EntityLayout>
