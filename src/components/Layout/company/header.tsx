@@ -23,13 +23,6 @@ export const HeaderLayout: React.FC<HeaderLayoutProps> = ({ backLink, title = "E
         </div>
         <span className="font-bold text-lg tracking-wide text-black">{title}</span>
       </div>
-
-      <Link
-        to="/company"
-        className="bg-[#f7b94d] hover:bg-[#e6aa3e] text-black px-8 py-2 rounded-full font-medium transition-colors shadow-sm cursor-pointer"
-      >
-        Sair
-      </Link>
     </header>
   );
 };
