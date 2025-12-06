@@ -3,15 +3,14 @@ import { Link } from "react-router-dom";
 import { LuMountain } from "react-icons/lu";
 
 interface HeaderLayoutProps {
-  backLink: string;
   title?: string; 
 }
 
-export const HeaderLayout: React.FC<HeaderLayoutProps> = ({ backLink, title = "EMPRESA" }) => {
+export const HeaderLayout: React.FC<HeaderLayoutProps> = ({ title = "EMPRESA" }) => {
   return (
     <header className="flex justify-between items-center px-8 py-4 bg-white shadow-sm z-10">
       <Link
-        to={backLink}
+        to={"/company"}
         className="bg-[#f7b94d] hover:bg-[#e6aa3e] text-black px-8 py-2 rounded-full font-medium transition-colors shadow-sm cursor-pointer no-underline flex items-center justify-center"
       >
         Voltar

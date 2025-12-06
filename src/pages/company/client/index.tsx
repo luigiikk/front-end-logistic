@@ -3,7 +3,7 @@
 }
 import { useEffect, useState } from "react";
 import { api } from "../../../api/lib/api";
-import { ClientLayout } from "../../../components/Layout/company/clientLayout";
+import { GenericPanelLayout } from "../../../components/Layout/company/layoutOption";
 import { LuSearch, LuTrash2, LuPencil, LuPlus } from "react-icons/lu";
 
 type Client = {
@@ -181,7 +181,7 @@ export default function ClientManager() {
   };
 
   return (
-    <ClientLayout backLink="/company">
+    <GenericPanelLayout panel="cliente" >
       <div className="bg-white max-w-5xl w-full rounded-3xl shadow-xl p-10 min-h-[600px]">
         <h1 className="text-3xl text-center mb-8">Clientes</h1>
 
@@ -373,6 +373,6 @@ export default function ClientManager() {
           </div>
         )}
       </div>
-    </ClientLayout>
+    </GenericPanelLayout>
   );
 }

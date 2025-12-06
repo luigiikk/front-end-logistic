@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import { api } from "../../../api/lib/api";
 import { LuSearch, LuTrash2, LuPencil, LuPlus } from "react-icons/lu";
-import { ProductLayout } from "../../../components/Layout/company/productLayout";
+import { GenericPanelLayout } from "../../../components/Layout/company/layoutOption";
 
 type Product = {
   id: number;
@@ -117,7 +117,7 @@ export default function ProductManager() {
   };
 
   return (
-    <ProductLayout backLink="/company">
+    <GenericPanelLayout panel="produto">
       <div className="bg-white max-w-5xl w-full rounded-3xl shadow-xl p-10 min-h-[600px]">
         <h1 className="text-3xl text-center mb-8">Produtos</h1>
 
@@ -269,6 +269,6 @@ export default function ProductManager() {
           </div>
         )}
       </div>
-    </ProductLayout>
+    </GenericPanelLayout>
   );
 }

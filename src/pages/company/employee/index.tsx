@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { api } from "../../../api/lib/api";
-import { EmployeeLayout } from "../../../components/Layout/company/employeeLayout";
+import { GenericPanelLayout } from "../../../components/Layout/company/layoutOption";
 import { LuSearch, LuTrash2, LuPencil, LuPlus } from "react-icons/lu";
 
 type Employee = {
@@ -189,7 +189,7 @@ export default function EmployeeManager() {
   };
 
   return (
-    <EmployeeLayout backLink="/company">
+    <GenericPanelLayout panel="funcionario">
       <div className="bg-white max-w-5xl w-full rounded-3xl shadow-xl p-10 min-h-[600px]">
         <h1 className="text-3xl text-center mb-8">Funcionários</h1>
 
@@ -502,6 +502,6 @@ export default function EmployeeManager() {
           </div>
         )}
       </div>
-    </EmployeeLayout>
+    </GenericPanelLayout>
   );
 }
