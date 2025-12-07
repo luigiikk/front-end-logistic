@@ -1,7 +1,7 @@
 /* ProductManager.tsx */
 import { useEffect, useState } from "react";
 import { api } from "../../../api/lib/api";
-import { LuSearch } from "react-icons/lu";
+import { LuSearch, LuTrash2 } from "react-icons/lu";
 import { GenericPanelLayout } from "../../../components/Layout/company/layoutOption";
 
 type Product = {
@@ -11,7 +11,6 @@ type Product = {
   quantity: number;
   order_id: number;
 };
-
 
 export default function ProductManager() {
   const [products, setProducts] = useState<Product[]>([]);
@@ -39,23 +38,24 @@ export default function ProductManager() {
     loadData();
   }, []);
 
+  // Carregar pedidos para lookup
   useEffect(() => {
-  async function loadOrders() {
-    try {
-      const res = await api.get("/order");
-      const lookup: { [id: number]: string } = {};
-      res.data.forEach((o: any) => {
-        lookup[o.id] = o.code; // <-- id do pedido para code
-      });
-      setOrdersLookup(lookup);
-    } catch (err) {
-      console.error(err);
+    async function loadOrders() {
+      try {
+        const res = await api.get("/order");
+        const lookup: { [id: number]: string } = {};
+        res.data.forEach((o: any) => {
+          lookup[o.id] = o.code;
+        });
+        setOrdersLookup(lookup);
+      } catch (err) {
+        console.error(err);
+      }
     }
-  }
-  loadOrders();
-}, []);
+    loadOrders();
+  }, []);
 
-
+  // Filtrar produtos
   const handleSearch = (value: string) => {
     setSearchTerm(value);
     setFiltered(
@@ -71,10 +71,23 @@ export default function ProductManager() {
 
   // Atualizar filtro quando ordersLookup mudar
   useEffect(() => {
-    if (searchTerm) {
-      handleSearch(searchTerm);
-    }
+    if (searchTerm) handleSearch(searchTerm);
   }, [ordersLookup]);
+
+  // Excluir produto
+  const handleDeleteProduct = async (productId: number) => {
+    if (!confirm("Tem certeza que deseja excluir este produto?")) return;
+
+    try {
+      await api.delete(`/product/${productId}`);
+      setProducts((prev) => prev.filter((p) => p.id !== productId));
+      setFiltered((prev) => prev.filter((p) => p.id !== productId));
+      alert("Produto excluído com sucesso!");
+    } catch (err: any) {
+      console.error("Erro ao excluir produto:", err.response?.data || err.message);
+      alert(err.response?.data?.message || "Erro ao excluir produto");
+    }
+  };
 
   return (
     <GenericPanelLayout panel="produto">
@@ -113,12 +126,17 @@ export default function ProductManager() {
                   <p className="font-semibold text-lg">{p.name}</p>
                   <p className="text-sm text-gray-600">{p.description}</p>
                   <p className="text-sm text-gray-500">
-                    <p className="text-sm text-gray-500">
-                      <b>Quantidade</b> {p.quantity} — <b>Pedido:</b>{" "}
-                      {ordersLookup[p.order_id] ?? "-----"}
-                    </p>
+                    <b>Quantidade:</b> {p.quantity} — <b>Pedido:</b>{" "}
+                    {ordersLookup[p.order_id] ?? "-----"}
                   </p>
                 </div>
+                {/* Botão de excluir produto */}
+                <button
+                  onClick={() => handleDeleteProduct(p.id)}
+                  className="text-red-600 text-2xl hover:text-red-800"
+                >
+                  <LuTrash2 />
+                </button>
               </div>
             ))
           )}

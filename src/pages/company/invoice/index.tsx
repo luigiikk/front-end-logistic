@@ -142,16 +142,8 @@ export default function InvoiceManager() {
         <h1 className="text-3xl text-center mb-8 flex items-center justify-center gap-3">
           <LuFileText /> Gestão de Faturas
         </h1>
-
         {/* Header: Botão Criar + Busca */}
         <div className="flex justify-between mb-6">
-          <button
-            onClick={() => setCreating(true)}
-            className="flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition"
-          >
-            <LuPlus /> Gerar Fatura
-          </button>
-
           <div className="flex items-center gap-2 border border-black rounded-lg px-4 py-2">
             <LuSearch />
             <input
@@ -254,62 +246,6 @@ export default function InvoiceManager() {
                 </button>
                 <button onClick={handleSave} className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
                   Salvar
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* --- MODAL CRIAR --- */}
-        {creating && (
-          <div className="fixed top-0 left-0 w-full h-full bg-black/40 flex justify-center items-center z-[1000]">
-            <div className="bg-white w-[500px] p-6 rounded-2xl shadow-xl z-[1001]">
-              <h2 className="text-2xl font-semibold mb-4">Gerar Nova Fatura</h2>
-              
-              <div className="flex flex-col gap-3">
-                <label className="text-sm font-bold">ID do Pedido</label>
-                <input
-                  type="number"
-                  placeholder="Ex: 10"
-                  value={newInvoice.order_id}
-                  onChange={(e) => setNewInvoice({ ...newInvoice, order_id: e.target.value })}
-                  className="border p-2 rounded"
-                />
-
-                <label className="text-sm font-bold">Valor (R$)</label>
-                <input
-                  type="number"
-                  placeholder="0.00"
-                  value={newInvoice.amount}
-                  onChange={(e) => setNewInvoice({ ...newInvoice, amount: e.target.value })}
-                  className="border p-2 rounded"
-                />
-
-                <label className="text-sm font-bold">Status</label>
-                <select
-                  value={newInvoice.status}
-                  onChange={(e) => setNewInvoice({ ...newInvoice, status: e.target.value })}
-                  className="border p-2 rounded bg-white"
-                >
-                  <option value="Pendente">Pendente</option>
-                  <option value="Pago">Pago</option>
-                </select>
-
-                <label className="text-sm font-bold">Data de Vencimento</label>
-                <input
-                  type="date"
-                  value={newInvoice.due_date}
-                  onChange={(e) => setNewInvoice({ ...newInvoice, due_date: e.target.value })}
-                  className="border p-2 rounded"
-                />
-              </div>
-
-              <div className="flex justify-end gap-3 mt-6">
-                <button onClick={() => setCreating(false)} className="text-gray-600 hover:underline">
-                  Cancelar
-                </button>
-                <button onClick={handleCreate} className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700">
-                  Gerar
                 </button>
               </div>
             </div>

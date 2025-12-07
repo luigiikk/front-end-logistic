@@ -17,6 +17,7 @@ const companyNavLinks = [
   { name: "Produtos", path: "/company/product" },
   { name: "Pedidos", path: "/company/order" },
   { name: "Faturas", path: "/company/invoice" },
+  { name: "Itens comprados", path: "/company/purchased" },
 
 ];
 
@@ -39,6 +40,7 @@ export function CompanyRoutes() {
       <Route path="product" element={<ProductManager />} />
       <Route path="order" element={<OrderManager />} />
       <Route path="invoice" element={<InvoiceManager />} />
+      <Route path="purchased_item" element={<PurchasedItemManager/>} />
 
 
     </Route>,

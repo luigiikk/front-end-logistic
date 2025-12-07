@@ -257,160 +257,167 @@ export default function OrderManager() {
         </div>
 
         {/* MODAL DE CRIAÇÃO */}
-        {creating && (
-          <div className="fixed top-0 left-0 w-full h-full bg-black/40 flex justify-center items-center z-[1000]">
-            <div className="bg-white w-[650px] p-6 rounded-2xl shadow-xl max-h-[90vh] overflow-auto z-[1001]">
-              <h2 className="text-2xl font-semibold mb-4">Criar Pedido</h2>
+{creating && (
+  <div className="fixed top-0 left-0 w-full h-full bg-black/40 flex justify-center items-center z-[1000]">
+    <div className="bg-white w-[650px] p-6 rounded-2xl shadow-xl max-h-[90vh] overflow-auto z-[1001]">
+      <h2 className="text-2xl font-semibold mb-4">Criar Pedido</h2>
 
-              {/* Veículo */}
-              <label className="block mb-1">Veículo</label>
-              <select
-                value={vehicleId}
-                onChange={(e) => {
-                  const id = Number(e.target.value);
-                  setVehicleId(id);
-                  setNewOrder({ ...newOrder, vehicle_id: id });
-                }}
-                className="border p-2 rounded w-full mb-4"
-              >
-                <option value="">Selecione um veículo</option>
-                {vehicles.map((v) => (
-                  <option key={v.id} value={v.id}>
-                    {v.plate} - {v.model}
-                  </option>
-                ))}
-              </select>
+      {/* Veículo */}
+      <label className="block mb-1">Veículo</label>
+      <select
+        value={vehicleId}
+        onChange={(e) => {
+          const id = Number(e.target.value);
+          setVehicleId(id);
+          setNewOrder({ ...newOrder, vehicle_id: id });
+        }}
+        className="border p-2 rounded w-full mb-4"
+      >
+        <option value="">Selecione um veículo</option>
+        {vehicles.map((v) => (
+          <option key={v.id} value={v.id}>
+            {v.plate} - {v.model}
+          </option>
+        ))}
+      </select>
 
-              {/* Destinatário */}
-              <h3 className="font-semibold text-lg mt-4 mb-2">Destinatário</h3>
-              {["name", "cpf", "email"].map((key) => (
-                <div key={key} className="mb-3">
-                  <label className="block mb-1">{key.toUpperCase()}</label>
-                  <input
-                    className="border p-2 rounded w-full"
-                    value={(newOrder.recipient as any)[key]}
-                    onChange={(e) =>
-                      setNewOrder({
-                        ...newOrder,
-                        recipient: {
-                          ...newOrder.recipient,
-                          [key]: e.target.value,
-                        },
-                      })
-                    }
-                  />
-                </div>
-              ))}
+      {/* Destinatário */}
+      <h3 className="text-xl font-semibold mt-4 mb-2">Destinatário</h3>
+      {[
+        { label: "Nome", key: "name" },
+        { label: "CPF", key: "cpf" },
+        { label: "E-mail", key: "email" },
+      ].map(({ label, key }) => (
+        <div key={key} className="mb-3">
+          <label className="block mb-1">{label}</label>
+          <input
+            type="text"
+            value={(newOrder.recipient as any)[key] || ""}
+            onChange={(e) =>
+              setNewOrder({
+                ...newOrder,
+                recipient: {
+                  ...newOrder.recipient,
+                  [key]: e.target.value,
+                },
+              })
+            }
+            className="w-full border p-2 rounded"
+          />
+        </div>
+      ))}
 
-              {/* Endereço */}
-              <h3 className="font-semibold text-lg mt-4 mb-2">Endereço</h3>
-              {[
-                "street",
-                "number",
-                "complement",
-                "city",
-                "state",
-                "country",
-                "zipcode",
-              ].map((key) => (
-                <div key={key} className="mb-3">
-                  <label className="block mb-1">{key.toUpperCase()}</label>
-                  <input
-                    className="border p-2 rounded w-full"
-                    value={(newOrder.recipient.address as any)[key]}
-                    onChange={(e) =>
-                      setNewOrder({
-                        ...newOrder,
-                        recipient: {
-                          ...newOrder.recipient,
-                          address: {
-                            ...newOrder.recipient.address,
-                            [key]:
-                              key === "number"
-                                ? Number(e.target.value)
-                                : e.target.value,
-                          },
-                        },
-                      })
-                    }
-                  />
-                </div>
-              ))}
+      {/* Campos de Endereço */}
+      <h3 className="text-xl font-semibold mt-4 mb-2">Endereço</h3>
+      {[
+        { label: "Rua", key: "street" },
+        { label: "Número", key: "number", type: "number" },
+        { label: "Complemento", key: "complement" },
+        { label: "Cidade", key: "city" },
+        { label: "Estado", key: "state" },
+        { label: "País", key: "country" },
+        { label: "CEP", key: "zipcode" },
+      ].map(({ label, key, type }) => (
+        <div className="mb-3" key={key}>
+          <label className="block mb-1">{label}</label>
+          <input
+            type={type || "text"}
+            value={(newOrder.recipient.address as any)?.[key] || ""}
+            onChange={(e) =>
+              setNewOrder({
+                ...newOrder,
+                recipient: {
+                  ...newOrder.recipient,
+                  address: {
+                    ...newOrder.recipient.address,
+                    [key]:
+                      type === "number"
+                        ? Number(e.target.value)
+                        : e.target.value,
+                  },
+                },
+              })
+            }
+            className="w-full border p-2 rounded"
+          />
+        </div>
+      ))}
 
-              {/* Produtos */}
-              <h3 className="font-semibold text-lg mt-4 mb-2">Produtos</h3>
-              {newOrder.products.map((p, index) => (
-                <div key={index} className="border p-3 rounded mb-3">
-                  <div className="grid grid-cols-3 gap-3">
-                    <input
-                      placeholder="Nome"
-                      className="border p-2 rounded"
-                      value={p.name}
-                      onChange={(e) => {
-                        const updated = [...newOrder.products];
-                        updated[index].name = e.target.value;
-                        setNewOrder({ ...newOrder, products: updated });
-                      }}
-                    />
-                    <input
-                      placeholder="Descrição"
-                      className="border p-2 rounded"
-                      value={p.description}
-                      onChange={(e) => {
-                        const updated = [...newOrder.products];
-                        updated[index].description = e.target.value;
-                        setNewOrder({ ...newOrder, products: updated });
-                      }}
-                    />
-                    <input
-                      type="number"
-                      placeholder="Qtd"
-                      className="border p-2 rounded"
-                      value={p.quantity}
-                      onChange={(e) => {
-                        const updated = [...newOrder.products];
-                        updated[index].quantity = Number(e.target.value);
-                        setNewOrder({ ...newOrder, products: updated });
-                      }}
-                    />
-                  </div>
-
-                  {index > 0 && (
-                    <button
-                      onClick={() => handleRemoveProduct(index)}
-                      className="text-red-600 mt-2 hover:underline"
-                    >
-                      Remover Produto
-                    </button>
-                  )}
-                </div>
-              ))}
-
-              <button
-                onClick={handleAddProduct}
-                className="text-blue-600 hover:underline my-2"
-              >
-                + Adicionar Produto
-              </button>
-
-              {/* Botões */}
-              <div className="flex justify-end gap-3 mt-4">
-                <button
-                  onClick={() => setCreating(false)}
-                  className="text-gray-600 hover:underline"
-                >
-                  Cancelar
-                </button>
-                <button
-                  onClick={handleCreateProductWithOrder}
-                  className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700"
-                >
-                  Criar Pedido
-                </button>
-              </div>
-            </div>
+      {/* Produtos */}
+      <h3 className="text-xl font-semibold mt-4 mb-2">Produtos</h3>
+      {newOrder.products.map((p, index) => (
+        <div key={index} className="border p-3 rounded mb-3">
+          <div className="grid grid-cols-3 gap-3">
+            <input
+              placeholder="Nome"
+              className="border p-2 rounded"
+              value={p.name}
+              onChange={(e) => {
+                const updated = [...newOrder.products];
+                updated[index].name = e.target.value;
+                setNewOrder({ ...newOrder, products: updated });
+              }}
+            />
+            <input
+              placeholder="Descrição"
+              className="border p-2 rounded"
+              value={p.description}
+              onChange={(e) => {
+                const updated = [...newOrder.products];
+                updated[index].description = e.target.value;
+                setNewOrder({ ...newOrder, products: updated });
+              }}
+            />
+            <input
+              type="number"
+              placeholder="Qtd"
+              className="border p-2 rounded"
+              value={p.quantity}
+              onChange={(e) => {
+                const updated = [...newOrder.products];
+                updated[index].quantity = Number(e.target.value);
+                setNewOrder({ ...newOrder, products: updated });
+              }}
+            />
           </div>
-        )}
+
+          {index > 0 && (
+            <button
+              onClick={() => handleRemoveProduct(index)}
+              className="text-red-600 mt-2 hover:underline"
+            >
+              Remover Produto
+            </button>
+          )}
+        </div>
+      ))}
+
+      <button
+        onClick={handleAddProduct}
+        className="text-blue-600 hover:underline my-2"
+      >
+        + Adicionar Produto
+      </button>
+
+      {/* Botões */}
+      <div className="flex justify-end gap-3 mt-4">
+        <button
+          onClick={() => setCreating(false)}
+          className="text-gray-600 hover:underline"
+        >
+          Cancelar
+        </button>
+        <button
+          onClick={handleCreateProductWithOrder}
+          className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700"
+        >
+          Criar Pedido
+        </button>
+      </div>
+    </div>
+  </div>
+)}
+
       </div>
     </GenericPanelLayout>
   );

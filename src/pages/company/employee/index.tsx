@@ -19,13 +19,13 @@ type Role = {
 };
 
 type Addres = {
-  street: string;
-  state: string;
-  country: string;
-  city: string;
-  zip_code: string;
-  number: number;
-  complement: string;
+  street?: string;
+  state?: string;
+  country?: string;
+  city?: string;
+  zip_code?: string;
+  number?: number;
+  complement?: string;
 };
 
 export default function EmployeeManager() {
@@ -39,19 +39,34 @@ export default function EmployeeManager() {
   const [creating, setCreating] = useState(false);
 
   const [newEmployee, setNewEmployee] = useState({
-    name: "",
-    role: "",
-    email: "",
-    phone_number: "",
-    password: "",
-    country: "",
-    state: "",
-    city: "",
-    street: "",
-    number: "",
-    zipcode: "",
-    complement: "",
-  });
+  name: "",
+  role: "",
+  email: "",
+  phone_number: "",
+  password: "",
+  country: "",
+  state: "",
+  city: "",
+  street: "",
+  number: "",
+  zip_code: "",
+  complement: "",
+});
+
+const fields = [
+  { label: "Nome", key: "name", type: "text" },
+  { label: "Cargo", key: "role", type: "select" },
+  { label: "Email", key: "email", type: "text" },
+  { label: "Telefone", key: "phone_number", type: "text" },
+  { label: "Senha", key: "password", type: "password" },
+  { label: "País", key: "country", type: "text" },
+  { label: "Estado", key: "state", type: "text" },
+  { label: "Cidade", key: "city", type: "text" },
+  { label: "Rua", key: "street", type: "text" },
+  { label: "Número", key: "number", type: "number" },
+  { label: "CEP", key: "zip_code", type: "text" },
+  { label: "Complemento", key: "complement", type: "text" },
+];
 
   useEffect(() => {
     async function loadData() {
@@ -107,10 +122,10 @@ export default function EmployeeManager() {
     if (!editing) return;
     try {
     const payload = {
-    name: editing.name,
-    email: editing.email,
-    employee_roles: editing.role?.id,
-    phone_number: editing.phone_number,
+  name: editing.name,
+  email: editing.email,
+  phone_number: editing.phone_number,
+  employee_roles: editing.role?.id,
   addressData: {
     country: editing.addres?.country || "",
     state: editing.addres?.state || "",
@@ -142,50 +157,59 @@ export default function EmployeeManager() {
   };
 
   const handleCreate = async () => {
-    try {
-      const payload = {
-        name: newEmployee.name,
-        email: newEmployee.email,
-        phone_number: newEmployee.phone_number,
-        password: newEmployee.password,
-        employee_roles: Number(newEmployee.role),
-        addressData: {
-          country: newEmployee.country,
-          state: newEmployee.state,
-          city: newEmployee.city,
-          street: newEmployee.street,
-          number:
-            newEmployee.number === "" || isNaN(Number(newEmployee.number))
-              ? null
-              : Number(newEmployee.number),
-          zipcode: newEmployee.zipcode,
-          complement: newEmployee.complement,
-        },
-      };
-      await api.post("/employee", payload);
-      const list = await api.get("/employee");
-      setEmployees(list.data);
-      setFiltered(list.data);
-      setCreating(false);
-      setNewEmployee({
-        name: "",
-        role: "",
-        email: "",
-        phone_number: "",
-        password: "",
-        country: "",
-        state: "",
-        city: "",
-        street: "",
-        number: "",
-        zipcode: "",
-        complement: "",
-      });
-      alert("Funcionário cadastrado com sucesso!");
-    } catch {
-      alert("Erro ao cadastrar funcionário. Verifique os dados.");
-    }
-  };
+  try {
+    const payload = {
+  name: newEmployee.name,
+  email: newEmployee.email,
+  phone_number: newEmployee.phone_number,
+  password: newEmployee.password,
+  employee_roles: Number(newEmployee.role),
+  addressData: {
+    street: newEmployee.street || "",
+    number:
+      newEmployee.number === "" || isNaN(Number(newEmployee.number))
+        ? 0
+        : Number(newEmployee.number),
+    complement: newEmployee.complement || "", // sempre string
+    city: newEmployee.city || "",
+    state: newEmployee.state || "",
+    country: newEmployee.country || "",
+    zipcode: newEmployee.zip_code || "",
+  },
+};
+
+
+
+    console.log("Payload para criação:", payload);
+    await api.post("/employee", payload);
+
+    const list = await api.get("/employee");
+    setEmployees(list.data);
+    setFiltered(list.data);
+    setCreating(false);
+
+    // Reset
+    setNewEmployee({
+      name: "",
+      role: "",
+      email: "",
+      phone_number: "",
+      password: "",
+      country: "",
+      state: "",
+      city: "",
+      street: "",
+      number: "",
+      zip_code: "",
+      complement: "",
+    });
+
+    alert("Funcionário cadastrado com sucesso!");
+  } catch (err: any) {
+    console.error(err);
+    alert("Erro ao cadastrar funcionário. Verifique os dados.");
+  }
+};
 
   return (
     <GenericPanelLayout panel="funcionario">
@@ -317,6 +341,39 @@ export default function EmployeeManager() {
         </select>
       </div>
 
+      {/* Campos de Endereço */}
+      <h3 className="text-xl font-semibold mt-4 mb-2">Endereço</h3>
+      {[
+        { label: "Rua", key: "street" },
+        { label: "Número", key: "number", type: "number" },
+        { label: "Complemento", key: "complement" },
+        { label: "Cidade", key: "city" },
+        { label: "Estado", key: "state" },
+        { label: "País", key: "country" },
+        { label: "CEP", key: "zipcode" },
+      ].map(({ label, key, type }) => (
+        <div className="mb-3" key={key}>
+          <label className="block mb-1">{label}</label>
+          <input
+            type={type || "text"}
+            value={(editing.addres as any)?.[key] || ""}
+            onChange={(e) =>
+              setEditing({
+                ...editing,
+                addres: {
+                  ...editing.addres,
+                  [key]:
+                    type === "number"
+                      ? Number(e.target.value)
+                      : e.target.value,
+                },
+              })
+            }
+            className="w-full border p-2 rounded"
+          />
+        </div>
+      ))}
+
       {/* Botões */}
       <div className="flex justify-end gap-3 mt-4">
         <button
@@ -336,91 +393,88 @@ export default function EmployeeManager() {
   </div>
 )}
 
+
         {/* MODAL CRIAÇÃO */}
         {creating && (
-          <div className="fixed top-0 left-0 w-full h-full bg-black/40 flex justify-center items-center z-[1000]">
-            <div className="bg-white w-[600px] p-6 rounded-2xl shadow-xl max-h-[85vh] overflow-auto z-[1001]">
-              <h2 className="text-2xl font-semibold mb-4">
-                Cadastrar Funcionário
-              </h2>
-              <div className="grid grid-cols-2 gap-3">
-                {[
-                  "Nome",
-                  "Cargo",
-                  "Email",
-                  "Telefone",
-                  "Senha",
-                  "País",
-                  "Estado",
-                  "Cidade",
-                  "Rua",
-                  "Número",
-                  "CEP",
-                  "Complemento",
-                ].map((field) => (
-                  <div key={field}>
-                    <label className="block mb-1">
-                      {field.replace("_", " ")}
-                    </label>
+  <div className="fixed top-0 left-0 w-full h-full bg-black/40 flex justify-center items-center z-[1000]">
+    <div className="bg-white w-[600px] p-6 rounded-2xl shadow-xl max-h-[85vh] overflow-auto z-[1001]">
+      <h2 className="text-2xl font-semibold mb-4">
+        Cadastrar Funcionário
+      </h2>
 
-                    {field === "Cargo" ? (
-                      <select
-                        value={(newEmployee as any).role || ""}
-                        onChange={(e) =>
-                          setNewEmployee({
-                            ...newEmployee,
-                            role: e.target.value,
-                          })
-                        }
-                        className="border p-2 rounded w-full"
-                      >
-                        <option value="">Selecione o cargo</option>
-                        {roles.map((r) => (
-                          <option key={r.id} value={r.id}>
-                            {r.name}
-                          </option>
-                        ))}
-                      </select>
-                    ) : (
-                      <input
-                        type={
-                          field === "Senha"
-                            ? "password"
-                            : field === "Número"
-                            ? "number"
-                            : "text"
-                        }
-                        value={(newEmployee as any)[field.toLowerCase()] || ""}
-                        onChange={(e) =>
-                          setNewEmployee({
-                            ...newEmployee,
-                            [field.toLowerCase()]: e.target.value,
-                          })
-                        }
-                        className="border p-2 rounded w-full"
-                      />
-                    )}
-                  </div>
+      <div className="grid grid-cols-2 gap-3">
+        {[
+          { label: "Nome", key: "name", type: "text" },
+          { label: "Cargo", key: "role", type: "select" },
+          { label: "Email", key: "email", type: "text" },
+          { label: "Telefone", key: "phone_number", type: "text" },
+          { label: "Senha", key: "password", type: "password" },
+          { label: "País", key: "country", type: "text" },
+          { label: "Estado", key: "state", type: "text" },
+          { label: "Cidade", key: "city", type: "text" },
+          { label: "Rua", key: "street", type: "text" },
+          { label: "Número", key: "number", type: "number" },
+          { label: "CEP", key: "zip_code", type: "text" },
+          { label: "Complemento", key: "complement", type: "text" },
+        ].map(({ label, key, type }) => (
+          <div key={key}>
+            <label className="block mb-1">{label}</label>
+
+            {key === "role" ? (
+              <select
+                value={(newEmployee as any)[key] || ""}
+                onChange={(e) =>
+                  setNewEmployee({
+                    ...newEmployee,
+                    [key]: e.target.value,
+                  })
+                }
+                className="border p-2 rounded w-full"
+              >
+                <option value="">Selecione o cargo</option>
+                {roles.map((r) => (
+                  <option key={r.id} value={r.id}>
+                    {r.name}
+                  </option>
                 ))}
-              </div>
-
-              <div className="flex justify-end gap-3 mt-4">
-                <button
-                  onClick={() => setCreating(false)}
-                  className="text-gray-600 hover:underline"
-                >
-                  Cancelar
-                </button>
-                <button
-                  onClick={handleCreate}
-                  className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700"
-                >
-                  Cadastrar
-                </button>
-              </div>
-            </div>
+              </select>
+            ) : (
+              <input
+                type={type}
+                value={(newEmployee as any)[key] || ""}
+                onChange={(e) =>
+                  setNewEmployee({
+                    ...newEmployee,
+                    [key]:
+                      type === "number"
+                        ? Number(e.target.value)
+                        : e.target.value,
+                  })
+                }
+                className="border p-2 rounded w-full"
+              />
+            )}
           </div>
-        )}
+        ))}
+      </div>
+
+      <div className="flex justify-end gap-3 mt-4">
+        <button
+          onClick={() => setCreating(false)}
+          className="text-gray-600 hover:underline"
+        >
+          Cancelar
+        </button>
+        <button
+          onClick={handleCreate}
+          className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700"
+        >
+          Cadastrar
+        </button>
+      </div>
+    </div>
+  </div>
+)}
       </div>
     </GenericPanelLayout>
   );

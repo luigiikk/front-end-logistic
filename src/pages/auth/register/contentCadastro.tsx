@@ -37,35 +37,41 @@ export default function ContentCadastro() {
   };
 
   async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
+  e.preventDefault();
 
-    try {
-      await api.post("/company", {
-        name: formData.nome,
-        email: formData.email,
-        password: formData.senha,
-        CNPJ: formData.cnpj,
-        phone_number: formData.telefone,
-      });
+  try {
+    await api.post("/company", {
+      name: formData.nome,
+      email: formData.email,
+      password: formData.senha,
+      CNPJ: formData.cnpj,
+      phone_number: formData.telefone,
+      street: address.street || null,
+      number: address.number ? Number(address.number) : null,
+      complement: address.complement || null,
+      city: address.city || null,
+      state: address.state || null,
+      country: address.country || null,
+      zipcode: address.zip || null,
+    });
 
-      alert("Cadastro realizado com sucesso! Agora faça login.");
-      setFormData(initialForm);
-      setAddress({
-        country: "",
-        state: "",
-        city: "",
-        street: "",
-        number: "",
-        zip: "",
-        complement: "",
-      });
-    } catch (err: any) {
-      const message =
-        err?.response?.data?.message || err?.message || "Erro inesperado";
-      alert("Erro ao cadastrar: " + message);
-    }
+    alert("Cadastro realizado com sucesso! Agora faça login.");
+    setFormData(initialForm);
+    setAddress({
+      country: "",
+      state: "",
+      city: "",
+      street: "",
+      number: "",
+      zip: "",
+      complement: "",
+    });
+  } catch (err: any) {
+    const message =
+      err?.response?.data?.message || err?.message || "Erro inesperado";
+    alert("Erro ao cadastrar: " + message);
   }
-
+}
   return (
     <>
       <Header />
