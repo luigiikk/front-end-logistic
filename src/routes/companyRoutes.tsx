@@ -5,6 +5,8 @@ import EmployeeManager from "../pages/company/employee";
 import ClientManager from "../pages/company/client";
 import ProductManager from "../pages/company/product";
 import OrderManager from "../pages/company/order";
+import InvoiceManager from "../pages/company/invoice";
+import PurchasedItemManager from "../pages/company/purchasedItem";
 
 
 
@@ -14,6 +16,8 @@ const companyNavLinks = [
   { name: "Cliente", path: "/company/client" },
   { name: "Produtos", path: "/company/product" },
   { name: "Pedidos", path: "/company/order" },
+  { name: "Faturas", path: "/company/invoice" },
+
 ];
 
 export function CompanyRoutes() {
@@ -34,6 +38,8 @@ export function CompanyRoutes() {
       <Route path="client" element={<ClientManager />} />
       <Route path="product" element={<ProductManager />} />
       <Route path="order" element={<OrderManager />} />
+      <Route path="invoice" element={<InvoiceManager />} />
+
 
     </Route>,
   ];
