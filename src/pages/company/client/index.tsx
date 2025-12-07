@@ -1,6 +1,3 @@
-{
-  /* ClientManager.tsx */
-}
 import { useEffect, useState } from "react";
 import { api } from "../../../api/lib/api";
 import { GenericPanelLayout } from "../../../components/Layout/company/layoutOption";
@@ -180,6 +177,21 @@ export default function ClientManager() {
     }
   };
 
+  const campos = [
+    { key: "name", label: "Nome" },
+    { key: "email", label: "E-mail" },
+    { key: "phone_number", label: "Telefone" },
+    { key: "CNPJ", label: "CNPJ" },
+    { key: "password", label: "Senha" },
+    { key: "street", label: "Rua" },
+    { key: "number", label: "Número" },
+    { key: "complement", label: "Complemento" },
+    { key: "city", label: "Cidade" },
+    { key: "state", label: "Estado" },
+    { key: "country", label: "País" },
+    { key: "zipcode", label: "CEP" },
+  ];
+
   return (
     <GenericPanelLayout panel="cliente" >
       <div className="bg-white max-w-5xl w-full rounded-3xl shadow-xl p-10 min-h-[600px]">
@@ -200,7 +212,7 @@ export default function ClientManager() {
               type="text"
               value={searchTerm}
               onChange={(e) => handleSearch(e.target.value)}
-              placeholder="Buscar por nome ou ID..."
+              placeholder="Buscar por nome..."
               className="outline-none"
             />
           </div>
@@ -219,9 +231,9 @@ export default function ClientManager() {
                 <div>
                   <p className="font-semibold text-lg">{c.name}</p>
                   <p className="text-sm text-gray-600">
-                    {c.email} — {c.phone_number}
+                    {c.email} — <b>Telefone:</b> {c.phone_number}
                   </p>
-                  <p className="text-sm text-gray-500">{c.CNPJ}</p>
+                  <p className="text-sm text-gray-500"><b>CNPJ: </b>{c.CNPJ}</p>
                 </div>
 
                 <div className="flex gap-4">
@@ -243,37 +255,23 @@ export default function ClientManager() {
           )}
         </div>
 
-        {/* MODAL EDIÇÃO CLIENT */}
+        {/* MODAL EDIÇÃO CLIENTE */}
         {editing && (
           <div className="fixed top-0 left-0 w-full h-full bg-black/40 flex justify-center items-center z-[1000]">
             <div className="bg-white w-[600px] p-6 rounded-2xl shadow-xl max-h-[85vh] overflow-auto z-[1001]">
               <h2 className="text-2xl font-semibold mb-4">Editar Cliente</h2>
               <div className="grid grid-cols-2 gap-4">
-                {[
-                  "name",
-                  "email",
-                  "phone_number",
-                  "CNPJ",
-                  "street",
-                  "number",
-                  "complement",
-                  "city",
-                  "state",
-                  "country",
-                  "zipcode",
-                ].map((field) => (
-                  <div key={field}>
-                    <label className="block mb-1">
-                      {field.replace("_", " ")}
-                    </label>
+                {campos.map(({ key, label }) => (
+                  <div key={key}>
+                    <label className="block mb-1">{label}</label>
                     <input
-                      type={field === "number" ? "number" : "text"}
-                      value={(editing as any)[field] ?? ""}
+                      type={key === "number" ? "number" : key === "password" ? "password" : "text"}
+                      value={(editing as any)[key] ?? ""}
                       onChange={(e) =>
                         setEditing({
                           ...editing,
-                          [field]:
-                            field === "number"
+                          [key]:
+                            key === "number"
                               ? e.target.value === ""
                                 ? null
                                 : Number(e.target.value)
@@ -304,45 +302,23 @@ export default function ClientManager() {
           </div>
         )}
 
-        {/* MODAL CRIAÇÃO CLIENT */}
+        {/* MODAL CRIAÇÃO CLIENTE */}
         {creating && (
           <div className="fixed top-0 left-0 w-full h-full bg-black/40 flex justify-center items-center z-[1000]">
             <div className="bg-white w-[600px] p-6 rounded-2xl shadow-xl max-h-[85vh] overflow-auto z-[1001]">
               <h2 className="text-2xl font-semibold mb-4">Cadastrar Cliente</h2>
               <div className="grid grid-cols-2 gap-4">
-                {[
-                  "name",
-                  "email",
-                  "phone_number",
-                  "CNPJ",
-                  "password",
-                  "street",
-                  "number",
-                  "complement",
-                  "city",
-                  "state",
-                  "country",
-                  "zipcode",
-                ].map((field) => (
-                  <div key={field}>
-                    <label className="block mb-1">
-                      {field.replace("_", " ")}
-                    </label>
+                {campos.map(({ key, label }) => (
+                  <div key={key}>
+                    <label className="block mb-1">{label}</label>
                     <input
-                      // Lógica para definir o tipo do input
-                      type={
-                        field === "number"
-                          ? "number"
-                          : field === "password"
-                          ? "password" // Adicione essa linha
-                          : "text"
-                      }
-                      value={(newClient as any)[field] ?? ""}
+                      type={key === "number" ? "number" : key === "password" ? "password" : "text"}
+                      value={(newClient as any)[key] ?? ""}
                       onChange={(e) =>
                         setNewClient({
                           ...newClient,
-                          [field]:
-                            field === "number"
+                          [key]:
+                            key === "number"
                               ? e.target.value === ""
                                 ? null
                                 : Number(e.target.value)

@@ -35,7 +35,6 @@ export default function EmployeeManager() {
   const [searchTerm, setSearchTerm] = useState("");
 
   const [roles, setRoles] = useState<Role[]>([]);
-  const [addres, setAddres] = useState<Addres[]>([]);
   const [editing, setEditing] = useState<Employee | null>(null);
   const [creating, setCreating] = useState(false);
 
@@ -208,7 +207,7 @@ export default function EmployeeManager() {
               type="text"
               value={searchTerm}
               onChange={(e) => handleSearch(e.target.value)}
-              placeholder="Buscar por nome ou ID..."
+              placeholder="Buscar por nome..."
               className="outline-none"
             />
           </div>
@@ -226,7 +225,7 @@ export default function EmployeeManager() {
                 <div>
                   <p className="font-semibold text-lg">{emp.name}</p>
                   <p className="text-sm text-gray-600">
-                    Registro: {String(emp.enrollment).padStart(3, "0")} —{" "}
+                    <b>Registro: </b> {String(emp.enrollment).padStart(3, "0")} —{" "}
                     {emp.email}
                   </p>
                   <p className="text-sm text-gray-500">{emp.role?.name}</p>
@@ -317,85 +316,6 @@ export default function EmployeeManager() {
           ))}
         </select>
       </div>
-
-      {/* Campos do Endereço
-      <div className="mb-3">
-        <label className="block mb-1">País</label>
-        <input
-          value={editing.addres?.country || ""}
-          onChange={(e) =>
-            setEditing({ ...editing, country: e.target.value })
-          }
-          className="w-full border p-2 rounded"
-        />
-      </div>
-
-      <div className="mb-3">
-        <label className="block mb-1">Estado</label>
-        <input
-          value={editing.state || ""}
-          onChange={(e) =>
-            setEditing({ ...editing, state: e.target.value })
-          }
-          className="w-full border p-2 rounded"
-        />
-      </div>
-
-      <div className="mb-3">
-        <label className="block mb-1">Cidade</label>
-        <input
-          value={editing.city || ""}
-          onChange={(e) =>
-            setEditing({ ...editing, city: e.target.value })
-          }
-          className="w-full border p-2 rounded"
-        />
-      </div>
-
-      <div className="mb-3">
-        <label className="block mb-1">Rua</label>
-        <input
-          value={editing.street || ""}
-          onChange={(e) =>
-            setEditing({ ...editing, street: e.target.value })
-          }
-          className="w-full border p-2 rounded"
-        />
-      </div>
-
-      <div className="mb-3">
-        <label className="block mb-1">Número</label>
-        <input
-          type="number"
-          value={editing.number || 0}
-          onChange={(e) =>
-            setEditing({ ...editing, number: Number(e.target.value) })
-          }
-          className="w-full border p-2 rounded"
-        />
-      </div>
-
-      <div className="mb-3">
-        <label className="block mb-1">CEP</label>
-        <input
-          value={editing.zip_code || ""}
-          onChange={(e) =>
-            setEditing({ ...editing, zip_code: e.target.value })
-          }
-          className="w-full border p-2 rounded"
-        />
-      </div>
-
-      <div className="mb-3">
-        <label className="block mb-1">Complemento</label>
-        <input
-          value={editing.complement || ""}
-          onChange={(e) =>
-            setEditing({ ...editing, complement: e.target.value })
-          }
-          className="w-full border p-2 rounded"
-        />
-      </div> */}
 
       {/* Botões */}
       <div className="flex justify-end gap-3 mt-4">

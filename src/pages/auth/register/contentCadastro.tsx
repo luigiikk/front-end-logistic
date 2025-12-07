@@ -69,7 +69,7 @@ export default function ContentCadastro() {
   return (
     <>
       <Header />
-    <main className="flex flex-col md:flex-row w-full h-full">
+    <main className="flex flex-col md:flex-row w-full min-h-[calc(100vh-4rem)]">
       {/* Lado esquerdo */}
       <div className="bg-[#384A6C] text-white flex flex-col justify-center items-center md:items-start px-6 md:px-12 w-full md:w-2/5">
         <img
