@@ -14,13 +14,17 @@ export function PublicRoutes() {
   return [
     <Route element={<Layout />} key="public-layout">
       <Route path="/" element={<Home />} />
-      <Route path="/login" element={<Login />} />
-      <Route path="/cadastro" element={<Cadastro />} />
       <Route path="/sobre" element={<SobrePage />} />
       <Route path="/servicos" element={<ServicosPage />} />
       <Route path="/rastreio" element={<RastreioPage />} />
       <Route path="/solucoes" element={<SolucoesPage />} />
       <Route path="/contato" element={<ContatoPage />} />
     </Route>,
+
+    <Route>
+      <Route path="/login" element={<Login />} />
+      <Route path="/cadastro" element={<Cadastro />} />
+    </Route>
   ];
+
 }

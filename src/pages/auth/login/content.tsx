@@ -6,6 +6,7 @@ import FormFuncionario from "../../../components/Form/formFuncionario"
 import FormEmpresa from "../../../components/Form/formEmpresa";
 import FormCliente from "../../../components/Form/formCliente";
 import type { UserType } from "../../../hooks/useAuth";
+import Header from "../../../components/Layout/Header";
 
 const type: UserType[] = ["employee", "company", "client"];
 
@@ -24,6 +25,8 @@ export default function Content() {
   };
 
   return (
+    <>
+    <Header />
     <main className="flex flex-col md:flex-row w-full h-[calc(100vh-4rem)]">
       {/* Lado esquerdo */}
       <div className="bg-[#384A6C] text-white flex flex-col justify-center 
@@ -72,5 +75,6 @@ export default function Content() {
         </div>
       </div>
     </main>
+    </>
   );
 }

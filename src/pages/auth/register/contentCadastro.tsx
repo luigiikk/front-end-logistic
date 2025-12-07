@@ -5,7 +5,7 @@ import ButtonForm from "../../../components/ui/Button/buttonForm";
 import InputField from "../../../components/ui/Input/inputField";
 import { api } from "../../../api/lib/api"
 import { AddressFields } from "../../../components/Form/addresField";
-
+import Header from "../../../components/Layout/Header";
 
 export default function ContentCadastro() {
   const initialForm = {
@@ -67,7 +67,9 @@ export default function ContentCadastro() {
   }
 
   return (
-    <main className="flex flex-col md:flex-row w-full h-[calc(100vh-4rem)]">
+    <>
+      <Header />
+    <main className="flex flex-col md:flex-row w-full h-full">
       {/* Lado esquerdo */}
       <div className="bg-[#384A6C] text-white flex flex-col justify-center items-center md:items-start px-6 md:px-12 w-full md:w-2/5">
         <img
@@ -145,5 +147,6 @@ export default function ContentCadastro() {
         </div>
       </div>
     </main>
+    </>
   );
 }
