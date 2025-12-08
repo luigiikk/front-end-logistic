@@ -4,7 +4,7 @@ import { EntityLayout } from "./entity";
 
 interface GenericPanelLayoutProps {
   children: ReactNode;
-  panel: "cliente" | "funcionario" | "produto" | "pedido" | "empresa" | "invoice" | "pedido_de_compra" | "item_compra" | "veiculo"  ;
+  panel: "cliente" | "funcionario" | "produto" | "pedido" | "empresa" | "invoice" | "pedido_de_compra" | "item_compra" | "veiculo"| "fornecedor" | "armazem" | "recurso"  ;
 }
 
 export const GenericPanelLayout: React.FC<GenericPanelLayoutProps> = ({
@@ -20,7 +20,10 @@ export const GenericPanelLayout: React.FC<GenericPanelLayoutProps> = ({
     invoice: "Painel de Faturas - LogiFast",
     pedido_de_compra: "Painel de pedido de compra - LogiFast",
     item_compra: "Painel de Itens Comprados - LogiFast",
-    veiculo: "Painel de Veículos - Logifast"
+    veiculo: "Painel de Veículos - Logifast",
+    fornecedor: "Painel de Fornecedores - Logifast",
+    armazem: "Painel de Armazens - Logifast",
+    recurso: "Painel de Recursos - Logifast"
   };
 
   return <EntityLayout title={panelTitles[panel]}>{children}</EntityLayout>;

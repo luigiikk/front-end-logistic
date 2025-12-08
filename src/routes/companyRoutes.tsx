@@ -8,6 +8,12 @@ import OrderManager from "../pages/company/order";
 import InvoiceManager from "../pages/company/invoice";
 import PurchasedItemManager from "../pages/company/purchase-item";
 import PurchaseOrderManager from "../pages/company/purchase-orders";
+import VehicleManager from "../pages/company/vehicle";
+import SupplierManager from "../pages/company/supplier";
+import WarehouseManager from "../pages/company/warhouse";
+import ResourceManager from "../pages/company/resource";
+
+
 
 
 const companyNavLinks = [
@@ -18,7 +24,10 @@ const companyNavLinks = [
   { name: "Faturas", path: "/company/invoice" },
   { name: "Itens comprados", path: "/company/purchase_item" },
   { name: "Pedido de compra", path: "/company/purchase_order" },
-
+  { name: "Veículo", path: "/company/vehicle" },
+  { name: "Armazém", path: "/company/warehouse" },
+  { name: "Fornecedor", path: "/company/supplier" },
+  { name: "Recursos", path: "/company/resource" },
 ];
 
 export function CompanyRoutes() {
@@ -42,8 +51,10 @@ export function CompanyRoutes() {
       <Route path="invoice" element={<InvoiceManager />} />
       <Route path="purchase_item" element={<PurchasedItemManager/>} />
       <Route path="purchase_order" element={<PurchaseOrderManager/>} />
-
-
+      <Route path="vehicle" element={<VehicleManager/>} />
+      <Route path="supplier" element={<SupplierManager/>} />
+      <Route path="warehouse" element={<WarehouseManager/>} />
+      <Route path="resource" element={<ResourceManager/>} />
     </Route>,
   ];
 }
