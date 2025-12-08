@@ -6,9 +6,8 @@ import ClientManager from "../pages/company/client";
 import ProductManager from "../pages/company/product";
 import OrderManager from "../pages/company/order";
 import InvoiceManager from "../pages/company/invoice";
-import PurchasedItemManager from "../pages/company/purchasedItem";
-
-
+import PurchasedItemManager from "../pages/company/purchase-item";
+import PurchaseOrderManager from "../pages/company/purchase-orders";
 
 
 const companyNavLinks = [
@@ -17,7 +16,8 @@ const companyNavLinks = [
   { name: "Produtos", path: "/company/product" },
   { name: "Pedidos", path: "/company/order" },
   { name: "Faturas", path: "/company/invoice" },
-  { name: "Itens comprados", path: "/company/purchased" },
+  { name: "Itens comprados", path: "/company/purchase_item" },
+  { name: "Pedido de compra", path: "/company/purchase_order" },
 
 ];
 
@@ -40,7 +40,8 @@ export function CompanyRoutes() {
       <Route path="product" element={<ProductManager />} />
       <Route path="order" element={<OrderManager />} />
       <Route path="invoice" element={<InvoiceManager />} />
-      <Route path="purchased_item" element={<PurchasedItemManager/>} />
+      <Route path="purchase_item" element={<PurchasedItemManager/>} />
+      <Route path="purchase_order" element={<PurchaseOrderManager/>} />
 
 
     </Route>,

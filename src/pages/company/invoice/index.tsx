@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { api } from "../../../api/lib/api";
 import { GenericPanelLayout } from "../../../components/Layout/company/layoutOption";
-import { LuSearch, LuTrash2, LuPencil, LuPlus, LuFileText } from "react-icons/lu";
+import { LuSearch, LuTrash2, LuPencil, LuFileText } from "react-icons/lu";
 
 // Definição do tipo Invoice (Fatura)
 type Invoice = {
@@ -20,15 +20,6 @@ export default function InvoiceManager() {
 
   // Modais
   const [editing, setEditing] = useState<Invoice | null>(null);
-  const [creating, setCreating] = useState(false);
-
-  // Estado para nova fatura (Corrigido de GWInvoice para setNewInvoice)
-  const [newInvoice, setNewInvoice] = useState({
-    order_id: "",
-    amount: "",
-    status: "Pendente",
-    due_date: "",
-  });
 
   // 1. Carregar dados da API
   useEffect(() => {
@@ -105,32 +96,6 @@ export default function InvoiceManager() {
     } catch (error) {
       console.error(error);
       alert("Erro ao atualizar fatura.");
-    }
-  };
-
-  // 6. Criar Fatura
-  const handleCreate = async () => {
-    try {
-      const payload = {
-        order_id: Number(newInvoice.order_id),
-        amount: Number(newInvoice.amount),
-        status: newInvoice.status,
-        due_date: newInvoice.due_date,
-      };
-
-      await api.post("/invoice", payload);
-      
-      // Recarrega lista completa
-      const list = await api.get("/invoice");
-      setInvoices(list.data);
-      setFiltered(list.data);
-
-      setCreating(false);
-      setNewInvoice({ order_id: "", amount: "", status: "Pendente", due_date: "" });
-      alert("Fatura gerada com sucesso!");
-    } catch (err) {
-      console.error(err);
-      alert("Erro ao gerar fatura.");
     }
   };
 

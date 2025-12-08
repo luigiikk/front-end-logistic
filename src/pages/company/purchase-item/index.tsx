@@ -132,7 +132,6 @@ export default function PurchasedItemManager() {
   };
 
   return (
-    // @ts-ignore
     <GenericPanelLayout panel="item_compra">
       <div className="bg-white max-w-5xl w-full rounded-3xl shadow-xl p-10 min-h-[600px]">
         <h1 className="text-3xl text-center mb-8 flex items-center justify-center gap-3">

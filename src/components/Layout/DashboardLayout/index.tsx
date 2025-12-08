@@ -51,7 +51,6 @@ function getCompanyIdFromToken() {
 
 const DashboardLayout: React.FC<DashboardLayoutProps> = ({
   pageTitle,
-  userType,
   navLinks,
 }) => {
   const [company, setCompany] = useState<any>(null);
