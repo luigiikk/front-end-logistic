@@ -90,7 +90,6 @@ export default function PurchaseOrderManager() {
       setOrders(extractData(ordersRes.data));
     } catch (err: any) {
       console.error("Erro ao carregar dados iniciais:", err);
-      alert("Erro ao carregar dados. Verifique o console.");
     } finally {
       setLoading(false);
     }
