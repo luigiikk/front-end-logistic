@@ -1,12 +1,12 @@
 import { useState } from "react";
 import { useAuth } from "../../hooks/useAuth";
-// import { useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 export default function FormFuncionario() {
 const [enrollment, setEnrollment] = useState("");
   const [password, setPassword] = useState("");
 
-  // const navigate = useNavigate();
+  const navigate = useNavigate();
 
   const { handleAuth, error, loading } = useAuth<{ id: number; name: string; enrollment: string }>("employee");
 
@@ -15,7 +15,7 @@ const [enrollment, setEnrollment] = useState("");
     try {
       const data = await handleAuth(enrollment, password);
       console.log("Funcionário logado:", data);
-      // useNavigate("/pagina da empresa")
+      navigate("/employee")
     } catch {}
   }
 

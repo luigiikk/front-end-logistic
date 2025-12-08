@@ -53,21 +53,6 @@ export default function EmployeeManager() {
   complement: "",
 });
 
-const fields = [
-  { label: "Nome", key: "name", type: "text" },
-  { label: "Cargo", key: "role", type: "select" },
-  { label: "Email", key: "email", type: "text" },
-  { label: "Telefone", key: "phone_number", type: "text" },
-  { label: "Senha", key: "password", type: "password" },
-  { label: "País", key: "country", type: "text" },
-  { label: "Estado", key: "state", type: "text" },
-  { label: "Cidade", key: "city", type: "text" },
-  { label: "Rua", key: "street", type: "text" },
-  { label: "Número", key: "number", type: "number" },
-  { label: "CEP", key: "zip_code", type: "text" },
-  { label: "Complemento", key: "complement", type: "text" },
-];
-
   useEffect(() => {
     async function loadData() {
       try {
@@ -87,6 +72,7 @@ const fields = [
     async function loadRoles() {
       try {
         const res = await api.get("/roules");
+        console.log(res.data)
         setRoles(res.data);
       } catch (err) {
         console.error("Erro ao carregar roles", err);
