@@ -26,7 +26,7 @@ export function useAuth<T = any>(userType: UserType) {
       const bodyMap: Record<UserType, any> = {
         company: { CNPJ: identifier, password },
         employee: { enrollment: identifier, password },
-        client: { cpf: identifier, password },
+        client: { CNPJ: identifier, password },
       };
 
       const response = await api.post<AuthResponse<T>>(routeMap[userType], bodyMap[userType]);
