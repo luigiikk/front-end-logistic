@@ -107,9 +107,10 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
       {/* ── Sidebar ── */}
       <aside
         className={`
-          fixed top-0 left-0 h-full w-64 bg-[#384A6C] flex flex-col z-30 transition-transform duration-300
+          fixed inset-y-0 left-0 w-64 bg-[#384A6C]
+          flex flex-col z-30 transition-transform duration-300
           ${menuOpen ? "translate-x-0" : "-translate-x-full"}
-          md:relative md:translate-x-0 md:flex
+          md:relative md:translate-x-0 md:min-h-screen
         `}
       >
         {/* Logo + fechar (mobile) */}
