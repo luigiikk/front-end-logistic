@@ -1,9 +1,18 @@
 import { useEffect, useState } from "react";
 import { api } from "../../../api/lib/api";
 import { GenericPanelLayout } from "../../../components/Layout/company/layoutOption";
-import { LuSearch, LuTrash2, LuPlus, LuPencil, LuX, LuPackage } from "react-icons/lu";
+import {
+  LuSearch,
+  LuTrash2,
+  LuPlus,
+  LuPencil,
+  LuX,
+  LuPackage,
+  LuBoxes,
+} from "react-icons/lu";
 
-// Tipagens
+// ─── Types ────────────────────────────────────────────────────────────────────
+
 type Category = {
   id: number;
   name: string;
@@ -15,9 +24,7 @@ type Resource = {
   description: string;
   quantity: number;
   category_id: number;
-  // O back-end pode retornar a categoria populada ou não. 
-  // Vamos tratar isso no front.
-  category?: { name: string }; 
+  category?: { name: string };
 };
 
 type ResourceForm = {
@@ -27,40 +34,66 @@ type ResourceForm = {
   category_id: number | "";
 };
 
+// ─── Constants ────────────────────────────────────────────────────────────────
+
+const initialForm: ResourceForm = {
+  name: "",
+  description: "",
+  quantity: 0,
+  category_id: "",
+};
+
+// ─── Field ────────────────────────────────────────────────────────────────────
+
+function Field({
+  label,
+  className = "",
+  ...props
+}: React.InputHTMLAttributes<HTMLInputElement> & {
+  label: string;
+  className?: string;
+}) {
+  return (
+    <div className={`flex flex-col gap-1 ${className}`}>
+      <label className="text-[10px] font-bold text-[#384A6C] uppercase tracking-widest">
+        {label}
+      </label>
+      <input
+        {...props}
+        className="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm text-gray-800 placeholder-gray-300 bg-white
+          focus:outline-none focus:ring-2 focus:ring-[#94C0E0] focus:border-transparent transition-all"
+      />
+    </div>
+  );
+}
+
+// ─── Main ─────────────────────────────────────────────────────────────────────
+
 export default function ResourceManager() {
-  const [loading, setLoading] = useState(true);
-  
-  // Dados
   const [resources, setResources] = useState<Resource[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [filtered, setFiltered] = useState<Resource[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
 
-  // Modal e Formulário
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
-  const [formData, setFormData] = useState<ResourceForm>({
-    name: "",
-    description: "",
-    quantity: 0,
-    category_id: ""
-  });
-
-  useEffect(() => {
-    loadData();
-  }, []);
+  const [formData, setFormData] = useState<ResourceForm>(initialForm);
+  const [deleteTarget, setDeleteTarget] = useState<{ id: number; name: string } | null>(null);
 
   const loadData = async () => {
     try {
       setLoading(true);
-      // Busca Recursos e Categorias ao mesmo tempo
       const [resourcesRes, categoriesRes] = await Promise.all([
-        api.get("/resource"), 
-        api.get("/category-resource")  
+        api.get("/resource"),
+        api.get("/category-resource"),
       ]);
-
-      setResources(resourcesRes.data);
-      setFiltered(resourcesRes.data);
+      const data: Resource[] = Array.isArray(resourcesRes.data)
+        ? resourcesRes.data
+        : resourcesRes.data.data ?? [];
+      setResources(data);
+      setFiltered(data);
       setCategories(categoriesRes.data);
     } catch (err) {
       console.error("Erro ao carregar dados:", err);
@@ -69,78 +102,79 @@ export default function ResourceManager() {
     }
   };
 
-  const handleSearch = (text: string) => {
-    setSearchTerm(text);
-    const lower = text.toLowerCase();
-    setFiltered(resources.filter(r => 
-      r.name.toLowerCase().includes(lower) || 
-      String(r.id).includes(lower)
-    ));
+  useEffect(() => {
+    loadData();
+  }, []);
+
+  const handleSearch = (value: string) => {
+    setSearchTerm(value);
+    const lower = value.toLowerCase();
+    setFiltered(
+      resources.filter(
+        (r) =>
+          r.name.toLowerCase().includes(lower) ||
+          String(r.id).includes(value)
+      )
+    );
   };
 
-  // --- Ações de Salvar (Create/Update) ---
   const handleSave = async () => {
-    try {
-      // Validação básica
-      if (!formData.name || !formData.category_id) {
-        return alert("Preencha o Nome e selecione uma Categoria.");
-      }
+    if (!formData.name || !formData.category_id) {
+      alert("Preencha o Nome e selecione uma Categoria.");
+      return;
+    }
 
-      // Payload preparado
+    try {
+      setSaving(true);
       const payload = {
         name: formData.name,
         description: formData.description,
         quantity: Number(formData.quantity),
-        category_id: Number(formData.category_id)
+        category_id: Number(formData.category_id),
       };
 
       if (editingId) {
-        // EDIÇÃO
         await api.put(`/resource/${editingId}`, payload);
-        alert("Recurso atualizado com sucesso!");
       } else {
-        await api.post("/resource", payload); 
-        alert("Recurso criado com sucesso!");
+        await api.post("/resource", payload);
       }
 
       closeModal();
-      loadData(); // Recarrega a lista
+      await loadData();
     } catch (err: any) {
       console.error(err);
       alert(err.response?.data?.message || "Erro ao salvar recurso.");
+    } finally {
+      setSaving(false);
     }
   };
 
-  // --- Ação de Excluir ---
-  const handleDelete = async (id: number) => {
-    if (!confirm("Tem certeza que deseja excluir este recurso?")) return;
-
+  const handleDelete = async () => {
+    if (!deleteTarget) return;
     try {
-      await api.delete(`/resource/${id}`);
-      // Remove da lista localmente para não precisar recarregar tudo
-      setResources(prev => prev.filter(r => r.id !== id));
-      setFiltered(prev => prev.filter(r => r.id !== id));
-      alert("Recurso excluído.");
-    } catch (err: any) {
-      console.error(err);
+      await api.delete(`/resource/${deleteTarget.id}`);
+      setResources((prev) => prev.filter((r) => r.id !== deleteTarget.id));
+      setFiltered((prev) => prev.filter((r) => r.id !== deleteTarget.id));
+    } catch {
       alert("Erro ao excluir. O recurso pode estar vinculado a um pedido.");
+    } finally {
+      setDeleteTarget(null);
     }
   };
 
-  // --- Controle do Modal ---
   const openNew = () => {
     setEditingId(null);
-    setFormData({ name: "", description: "", quantity: 0, category_id: "" });
+    setFormData(initialForm);
     setIsModalOpen(true);
   };
 
-  const openEdit = (item: Resource) => {
-    setEditingId(item.id);
+  const openEdit = (r: Resource) => {
+    setEditingId(r.id);
     setFormData({
-      name: item.name,
-      description: item.description || "",
-      quantity: item.quantity,
-      category_id: item.category_id
+      name: r.name,
+      description: r.description ?? "",
+      quantity: r.quantity,
+      category_id: r.category_id,
     });
     setIsModalOpen(true);
   };
@@ -148,177 +182,269 @@ export default function ResourceManager() {
   const closeModal = () => {
     setIsModalOpen(false);
     setEditingId(null);
+    setFormData(initialForm);
   };
+
+  const resolveCategoryName = (r: Resource) =>
+    categories.find((c) => c.id === r.category_id)?.name ??
+    r.category?.name ??
+    "Sem Categoria";
 
   return (
     <GenericPanelLayout panel="recurso">
-      <div className="bg-white max-w-5xl w-full rounded-3xl shadow-xl p-10 min-h-[600px]">
-        <h1 className="text-3xl text-center mb-8 font-bold text-gray-800">Gerenciar Recursos</h1>
+      <div className="w-full max-w-5xl mx-auto space-y-6">
 
-        {/* Header da Tabela */}
-        <div className="flex justify-between mb-6">
-          <button 
-            onClick={openNew}
-            className="flex items-center gap-2 bg-orange-600 text-white px-5 py-2 rounded-lg hover:bg-orange-700 transition shadow-sm"
-          >
-            <LuPlus size={20} /> Novo Recurso
-          </button>
+        {/* ── Header ── */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <h1 className="text-2xl font-extrabold text-[#384A6C] tracking-tight flex items-center gap-2">
+              <LuPackage size={22} /> Recursos
+            </h1>
+            <p className="text-sm text-gray-400 mt-0.5">
+              {filtered.length} recurso{filtered.length !== 1 ? "s" : ""} encontrado
+              {filtered.length !== 1 ? "s" : ""}
+            </p>
+          </div>
 
-          <div className="flex items-center gap-2 border border-gray-300 rounded-lg px-4 py-2 bg-gray-50 focus-within:ring-2 ring-orange-200">
-            <LuSearch className="text-gray-500" />
-            <input 
-              value={searchTerm}
-              onChange={(e) => handleSearch(e.target.value)}
-              type="text" 
-              placeholder="Buscar recurso..." 
-              className="bg-transparent outline-none w-64" 
-            />
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 bg-white border border-gray-200 rounded-xl px-4 py-2.5 shadow-sm">
+              <LuSearch size={15} className="text-gray-400 shrink-0" />
+              <input
+                type="text"
+                value={searchTerm}
+                onChange={(e) => handleSearch(e.target.value)}
+                placeholder="Buscar por nome ou ID..."
+                className="outline-none text-sm text-gray-700 placeholder-gray-300 w-48"
+              />
+            </div>
+            <button
+              onClick={openNew}
+              className="flex items-center gap-2 bg-[#384A6C] hover:bg-[#2f3e5c] active:scale-95 text-white text-sm font-bold px-5 py-2.5 rounded-xl shadow-sm transition-all"
+            >
+              <LuPlus size={16} /> Novo Recurso
+            </button>
           </div>
         </div>
 
-        {/* Tabela */}
-        <div className="overflow-x-auto border rounded-xl shadow-sm">
-          <table className="w-full text-left border-collapse">
-            <thead className="bg-gray-100">
-              <tr className="text-gray-600 text-xs uppercase font-bold tracking-wider">
-                <th className="py-4 px-6">Nome</th>
-                <th className="py-4 px-6">Categoria</th>
-                <th className="py-4 px-6">Descrição</th>
-                <th className="py-4 px-6 text-center">Estoque Atual</th>
-                <th className="py-4 px-6 text-right">Ações</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-200">
-              {loading ? (
-                <tr><td colSpan={5} className="text-center py-8 text-gray-500">Carregando...</td></tr>
-              ) : filtered.length === 0 ? (
-                <tr><td colSpan={5} className="text-center py-8 text-gray-500">Nenhum recurso encontrado.</td></tr>
-              ) : filtered.map((r) => {
-                // Tenta encontrar o nome da categoria no array de categorias carregado
-                const catName = categories.find(c => c.id === r.category_id)?.name || r.category?.name || "Sem Categoria";
-
-                return (
-                  <tr key={r.id} className="hover:bg-gray-50 transition">
-                    <td className="py-4 px-6 font-medium text-gray-800 flex items-center gap-2">
-                      <div className="bg-orange-100 p-2 rounded text-orange-600"><LuPackage /></div>
-                      {r.name}
-                    </td>
-                    <td className="py-4 px-6">
-                      <span className="bg-gray-200 text-gray-700 py-1 px-3 rounded-full text-xs font-semibold">
-                        {catName}
-                      </span>
-                    </td>
-                    <td className="py-4 px-6 text-gray-500 text-sm max-w-xs truncate">{r.description}</td>
-                    <td className="py-4 px-6 text-center font-bold text-gray-700">{r.quantity}</td>
-                    <td className="py-4 px-6 flex justify-end gap-3">
-                      <button onClick={() => openEdit(r)} className="text-blue-500 hover:bg-blue-50 p-2 rounded-full transition" title="Editar">
-                        <LuPencil size={18} />
-                      </button>
-                      <button onClick={() => handleDelete(r.id)} className="text-red-500 hover:bg-red-50 p-2 rounded-full transition" title="Excluir">
-                        <LuTrash2 size={18} />
-                      </button>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
-
-        {/* Modal Create/Edit */}
-        {isModalOpen && (
-          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex justify-center items-center z-50 p-4">
-            <div className="bg-white w-full max-w-lg rounded-2xl shadow-2xl overflow-hidden animate-fadeIn">
-              
-              {/* Header Modal */}
-              <div className="bg-gray-50 px-6 py-4 border-b flex justify-between items-center">
-                <h2 className="text-xl font-bold text-gray-800">
-                  {editingId ? "Editar Recurso" : "Novo Recurso"}
-                </h2>
-                <button onClick={closeModal} className="text-gray-400 hover:text-red-500 transition">
-                  <LuX size={24} />
-                </button>
-              </div>
-
-              {/* Body Modal */}
-              <div className="p-6 space-y-4">
-                
-                {/* Nome */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Nome do Recurso</label>
-                  <input 
-                    className="w-full border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-orange-500 outline-none transition"
-                    placeholder="Ex: Cimento CP-II"
-                    value={formData.name}
-                    onChange={(e) => setFormData({...formData, name: e.target.value})}
-                  />
-                </div>
-
-                {/* Categoria (Select) */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Categoria</label>
-                  <select 
-                    className="w-full border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-orange-500 outline-none transition bg-white"
-                    value={formData.category_id}
-                    onChange={(e) => {
-                      const val = e.target.value;
-                      setFormData({...formData, category_id: val === "" ? "" : Number(val)});
-                    }}
-                  >
-                    <option value="">Selecione uma categoria...</option>
-                    {categories.map((cat) => (
-                      <option key={cat.id} value={cat.id}>{cat.name}</option>
+        {/* ── Tabela ── */}
+        <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
+          {loading ? (
+            <div className="flex flex-col items-center justify-center py-20 gap-3">
+              <svg className="animate-spin h-6 w-6 text-[#94C0E0]" viewBox="0 0 24 24" fill="none">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
+              </svg>
+              <p className="text-sm text-gray-400">Carregando recursos...</p>
+            </div>
+          ) : filtered.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-20 gap-2 text-gray-400">
+              <LuBoxes size={32} className="opacity-30" />
+              <p className="text-sm font-medium">Nenhum recurso encontrado.</p>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-left">
+                <thead>
+                  <tr className="border-b border-gray-100 bg-[#EEF5FB]">
+                    {["Nome", "Categoria", "Descrição", "Estoque", ""].map((h) => (
+                      <th
+                        key={h}
+                        className="py-3 px-6 text-[10px] font-bold text-[#384A6C] uppercase tracking-widest whitespace-nowrap last:text-right"
+                      >
+                        {h}
+                      </th>
                     ))}
-                  </select>
-                </div>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-50">
+                  {filtered.map((r) => (
+                    <tr key={r.id} className="hover:bg-[#EEF5FB]/60 transition-colors">
 
-                {/* Descrição */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Descrição</label>
-                  <textarea 
-                    className="w-full border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-orange-500 outline-none transition resize-none h-24"
-                    placeholder="Detalhes técnicos..."
-                    value={formData.description}
-                    onChange={(e) => setFormData({...formData, description: e.target.value})}
-                  />
-                </div>
+                      {/* Nome */}
+                      <td className="py-4 px-6">
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 rounded-full bg-[#384A6C]/10 flex items-center justify-center text-[#384A6C] shrink-0">
+                            <LuPackage size={14} />
+                          </div>
+                          <span className="font-semibold text-sm text-gray-800">{r.name}</span>
+                        </div>
+                      </td>
 
-                {/* Quantidade Inicial */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Estoque Inicial (Opcional)</label>
-                  <input 
-                    type="number"
-                    min="0"
-                    className="w-full border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-orange-500 outline-none transition"
-                    value={formData.quantity}
-                    onChange={(e) => setFormData({...formData, quantity: Number(e.target.value)})}
-                  />
-                  <p className="text-xs text-gray-500 mt-1">Geralmente 0. Use pedidos de compra para adicionar estoque posteriormente.</p>
-                </div>
+                      {/* Categoria */}
+                      <td className="py-4 px-6">
+                        <span className="inline-flex items-center text-xs font-semibold text-[#384A6C] bg-[#384A6C]/10 px-2.5 py-1 rounded-full">
+                          {resolveCategoryName(r)}
+                        </span>
+                      </td>
 
+                      {/* Descrição */}
+                      <td className="py-4 px-6 text-sm text-gray-500 max-w-xs truncate">
+                        {r.description || <span className="text-gray-300">—</span>}
+                      </td>
+
+                      {/* Estoque */}
+                      <td className="py-4 px-6">
+                        <span className="text-sm font-bold text-[#384A6C]">{r.quantity}</span>
+                      </td>
+
+                      {/* Ações */}
+                      <td className="py-4 px-6">
+                        <div className="flex justify-end gap-2">
+                          <button
+                            onClick={() => openEdit(r)}
+                            className="p-2 rounded-xl text-[#384A6C] hover:bg-[#384A6C]/10 transition"
+                            title="Editar"
+                          >
+                            <LuPencil size={15} />
+                          </button>
+                          <button
+                            onClick={() => setDeleteTarget({ id: r.id, name: r.name })}
+                            className="p-2 rounded-xl text-red-400 hover:bg-red-50 transition"
+                            title="Excluir"
+                          >
+                            <LuTrash2 size={15} />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* ── Modal Edição / Criação ── */}
+      {isModalOpen && (
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex justify-center items-center z-50 p-4">
+          <div className="bg-white w-full max-w-lg rounded-3xl shadow-2xl flex flex-col max-h-[90vh]">
+
+            {/* Header */}
+            <div className="flex items-center justify-between px-8 pt-7 pb-4 border-b border-gray-100">
+              <h2 className="text-xl font-extrabold text-[#384A6C] tracking-tight flex items-center gap-2">
+                <LuPackage size={18} />
+                {editingId ? "Editar Recurso" : "Novo Recurso"}
+              </h2>
+              <button
+                onClick={closeModal}
+                className="text-gray-400 hover:text-gray-600 transition p-1 rounded-lg hover:bg-gray-100"
+              >
+                <LuX size={20} />
+              </button>
+            </div>
+
+            {/* Body */}
+            <div className="px-8 py-6 overflow-y-auto space-y-4">
+              <Field
+                label="Nome do Recurso *"
+                placeholder="Ex: Cimento CP-II"
+                value={formData.name}
+                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+              />
+
+              {/* Categoria (select estilizado) */}
+              <div className="flex flex-col gap-1">
+                <label className="text-[10px] font-bold text-[#384A6C] uppercase tracking-widest">
+                  Categoria *
+                </label>
+                <select
+                  value={formData.category_id}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      category_id: e.target.value === "" ? "" : Number(e.target.value),
+                    })
+                  }
+                  className="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm text-gray-800 bg-white
+                    focus:outline-none focus:ring-2 focus:ring-[#94C0E0] focus:border-transparent transition-all"
+                >
+                  <option value="">Selecione uma categoria...</option>
+                  {categories.map((cat) => (
+                    <option key={cat.id} value={cat.id}>{cat.name}</option>
+                  ))}
+                </select>
               </div>
 
-              {/* Footer Modal */}
-              <div className="bg-gray-50 px-6 py-4 flex justify-end gap-3 border-t">
-                <button 
-                  onClick={closeModal} 
-                  className="px-4 py-2 text-gray-600 hover:bg-gray-200 rounded-lg font-medium transition"
-                >
-                  Cancelar
-                </button>
-                <button 
-                  onClick={handleSave} 
-                  className="px-6 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 font-medium shadow-md transition transform active:scale-95"
-                >
-                  {editingId ? "Salvar Alterações" : "Criar Recurso"}
-                </button>
+              {/* Descrição (textarea estilizado) */}
+              <div className="flex flex-col gap-1">
+                <label className="text-[10px] font-bold text-[#384A6C] uppercase tracking-widest">
+                  Descrição
+                </label>
+                <textarea
+                  rows={3}
+                  placeholder="Detalhes técnicos..."
+                  value={formData.description}
+                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                  className="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm text-gray-800 placeholder-gray-300 bg-white
+                    focus:outline-none focus:ring-2 focus:ring-[#94C0E0] focus:border-transparent transition-all resize-none"
+                />
               </div>
 
+              <Field
+                label="Estoque inicial"
+                type="number"
+                min={0}
+                value={formData.quantity}
+                onChange={(e) => setFormData({ ...formData, quantity: Number(e.target.value) })}
+              />
+
+              <p className="text-xs text-gray-400">
+                Geralmente 0. Use pedidos de compra para adicionar estoque posteriormente.
+              </p>
+            </div>
+
+            {/* Footer */}
+            <div className="flex justify-end gap-3 px-8 py-5 border-t border-gray-100">
+              <button
+                onClick={closeModal}
+                className="px-5 py-2.5 rounded-xl border border-gray-200 text-sm font-semibold text-gray-500 hover:bg-gray-50 transition"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={handleSave}
+                disabled={saving}
+                className="px-6 py-2.5 rounded-xl text-sm font-bold text-white bg-[#384A6C] hover:bg-[#2f3e5c] active:scale-95 transition-all disabled:opacity-60"
+              >
+                {saving ? "Salvando..." : editingId ? "Salvar alterações" : "Criar Recurso"}
+              </button>
             </div>
           </div>
-        )}
+        </div>
+      )}
 
-      </div>
+      {/* ── Modal Exclusão ── */}
+      {deleteTarget && (
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex justify-center items-center z-50 p-4">
+          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-sm p-8 flex flex-col items-center text-center gap-4">
+            <div className="w-14 h-14 rounded-full bg-red-50 flex items-center justify-center">
+              <LuTrash2 size={24} className="text-red-400" />
+            </div>
+            <div>
+              <h3 className="text-lg font-extrabold text-gray-800">Excluir recurso?</h3>
+              <p className="text-sm text-gray-400 mt-1">
+                <span className="font-semibold text-gray-600">{deleteTarget.name}</span> será
+                removido. Verifique se não está vinculado a pedidos.
+              </p>
+            </div>
+            <div className="flex gap-3 w-full mt-2">
+              <button
+                onClick={() => setDeleteTarget(null)}
+                className="flex-1 py-2.5 rounded-xl border border-gray-200 text-sm font-semibold text-gray-500 hover:bg-gray-50 transition"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={handleDelete}
+                className="flex-1 py-2.5 rounded-xl bg-red-500 text-white text-sm font-bold hover:bg-red-600 active:scale-95 transition-all"
+              >
+                Excluir
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </GenericPanelLayout>
   );
 }

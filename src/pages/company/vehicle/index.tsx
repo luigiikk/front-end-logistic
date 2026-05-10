@@ -1,7 +1,17 @@
 import { useEffect, useState } from "react";
 import { api } from "../../../api/lib/api";
 import { GenericPanelLayout } from "../../../components/Layout/company/layoutOption";
-import { LuSearch, LuTrash2, LuPencil, LuPlus } from "react-icons/lu";
+import {
+  LuSearch,
+  LuTrash2,
+  LuPencil,
+  LuPlus,
+  LuX,
+  LuTruck,
+  LuGauge,
+} from "react-icons/lu";
+
+// ─── Types ────────────────────────────────────────────────────────────────────
 
 type Vehicle = {
   id: number;
@@ -25,383 +35,410 @@ type VehicleForm = {
   status_id: number;
 };
 
+const EMPTY_FORM: VehicleForm = { plate: "", model: "", capacity: 0, status_id: 0 };
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+function getInitials(model: string) {
+  return model.split(" ").slice(0, 2).map((w) => w[0]).join("").toUpperCase();
+}
+
+function maskPlate(v: string) {
+  return v.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 7);
+}
+
+// ─── Field / Select ───────────────────────────────────────────────────────────
+
+function Field({
+  label,
+  className = "",
+  ...props
+}: React.InputHTMLAttributes<HTMLInputElement> & { label: string; className?: string }) {
+  return (
+    <div className={`flex flex-col gap-1 ${className}`}>
+      <label className="text-[10px] font-bold text-[#384A6C] uppercase tracking-widest">{label}</label>
+      <input
+        {...props}
+        className="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm text-gray-800 placeholder-gray-300 bg-white
+          focus:outline-none focus:ring-2 focus:ring-[#94C0E0] focus:border-transparent transition-all"
+      />
+    </div>
+  );
+}
+
+function SelectField({
+  label,
+  className = "",
+  children,
+  ...props
+}: React.SelectHTMLAttributes<HTMLSelectElement> & { label: string; className?: string }) {
+  return (
+    <div className={`flex flex-col gap-1 ${className}`}>
+      <label className="text-[10px] font-bold text-[#384A6C] uppercase tracking-widest">{label}</label>
+      <select
+        {...props}
+        className="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm text-gray-800 bg-white appearance-none
+          focus:outline-none focus:ring-2 focus:ring-[#94C0E0] focus:border-transparent transition-all"
+      >
+        {children}
+      </select>
+    </div>
+  );
+}
+
+// ─── Modal ────────────────────────────────────────────────────────────────────
+
+type ModalProps = {
+  title: string;
+  form: VehicleForm;
+  statuses: Status[];
+  onChange: (f: VehicleForm) => void;
+  onConfirm: () => void;
+  onClose: () => void;
+  confirmLabel: string;
+  loading: boolean;
+};
+
+function VehicleModal({ title, form, statuses, onChange, onConfirm, onClose, confirmLabel, loading }: ModalProps) {
+  return (
+    <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex justify-center items-center z-50 p-4">
+      <div className="bg-white w-full max-w-md rounded-3xl shadow-2xl">
+        <div className="flex items-center justify-between px-8 pt-7 pb-4 border-b border-gray-100">
+          <h2 className="text-xl font-extrabold text-[#384A6C] tracking-tight">{title}</h2>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 transition p-1 rounded-lg hover:bg-gray-100">
+            <LuX size={20} />
+          </button>
+        </div>
+
+        <div className="px-8 py-6 space-y-4">
+          <div className="grid grid-cols-2 gap-3">
+            <Field
+              label="Placa"
+              placeholder="ABC1D23"
+              value={form.plate}
+              onChange={(e) => onChange({ ...form, plate: maskPlate(e.target.value) })}
+            />
+            <Field
+              label="Modelo"
+              placeholder="Ex: Fiat Ducato"
+              value={form.model}
+              onChange={(e) => onChange({ ...form, model: e.target.value })}
+            />
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <Field
+              label="Capacidade (kg)"
+              type="number"
+              min={0}
+              placeholder="0"
+              value={form.capacity || ""}
+              onChange={(e) => onChange({ ...form, capacity: Number(e.target.value) })}
+            />
+            <SelectField
+              label="Status"
+              value={form.status_id}
+              onChange={(e) => onChange({ ...form, status_id: Number(e.target.value) })}
+            >
+              <option value={0}>Selecione...</option>
+              {statuses.map((s) => (
+                <option key={s.id} value={s.id}>{s.description ?? s.name}</option>
+              ))}
+            </SelectField>
+          </div>
+        </div>
+
+        <div className="flex justify-end gap-3 px-8 py-5 border-t border-gray-100">
+          <button
+            onClick={onClose}
+            className="px-5 py-2.5 rounded-xl border border-gray-200 text-sm font-semibold text-gray-500 hover:bg-gray-50 transition"
+          >
+            Cancelar
+          </button>
+          <button
+            onClick={onConfirm}
+            disabled={loading}
+            className="px-6 py-2.5 rounded-xl text-sm font-bold text-white bg-[#384A6C] hover:bg-[#2f3e5c] active:scale-95 transition-all disabled:opacity-60"
+          >
+            {loading ? "Salvando..." : confirmLabel}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── Main ─────────────────────────────────────────────────────────────────────
+
 export default function VehicleManager() {
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [filtered, setFiltered] = useState<Vehicle[]>([]);
   const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
   const [search, setSearch] = useState("");
   const [statuses, setStatuses] = useState<Status[]>([]);
 
-  const [editing, setEditing] = useState<Vehicle | null>(null);
+  const [editingVehicle, setEditingVehicle] = useState<Vehicle | null>(null);
+  const [editForm, setEditForm] = useState<VehicleForm>(EMPTY_FORM);
   const [creating, setCreating] = useState(false);
-
-  const [editVehicle, setEditVehicle] = useState<VehicleForm>({
-    plate: "",
-    model: "",
-    capacity: 0,
-    status_id: 0,
-  });
-
-  // Estado de criação
-  const [newVehicle, setNewVehicle] = useState<VehicleForm>({
-    plate: "",
-    model: "",
-    capacity: 0,
-    status_id: 0,
-  });
-
-  // Carregar lista
-  useEffect(() => {
-    async function loadVehicles() {
-      try {
-        const res = await api.get("/vehicle");
-        setVehicles(res.data);
-        setFiltered(res.data);
-      } catch (err) {
-        console.error("Erro ao carregar veículos", err);
-      } finally {
-        setLoading(false);
-      }
-    }
-    loadVehicles();
-  }, []);
+  const [newForm, setNewForm] = useState<VehicleForm>(EMPTY_FORM);
+  const [deleteTarget, setDeleteTarget] = useState<{ id: number; plate: string } | null>(null);
 
   useEffect(() => {
-    async function loadStatus() {
-      try {
-        const res = await api.get("/status/vehicle");
-        setStatuses(res.data);
-      } catch (err) {
-        console.error("Erro ao carregar status", err);
-      }
-    }
-
-    loadStatus();
+    Promise.all([api.get("/vehicle"), api.get("/status/vehicle")])
+      .then(([vRes, sRes]) => {
+        setVehicles(vRes.data);
+        setFiltered(vRes.data);
+        setStatuses(sRes.data);
+      })
+      .catch(console.error)
+      .finally(() => setLoading(false));
   }, []);
 
-  // Buscar
   const handleSearch = (value: string) => {
     setSearch(value);
+    const lower = value.toLowerCase();
     setFiltered(
       vehicles.filter(
         (v) =>
-          v.plate.toLowerCase().includes(value.toLowerCase()) ||
-          v.model.toLowerCase().includes(value.toLowerCase()) ||
-          v.status.toLowerCase().includes(value.toLowerCase()) ||
+          v.plate.toLowerCase().includes(lower) ||
+          v.model.toLowerCase().includes(lower) ||
+          v.status.toLowerCase().includes(lower) ||
           String(v.capacity).includes(value)
       )
     );
   };
 
-  // Deletar
-  const handleDelete = async (id: number, label: string) => {
-    if (!confirm(`Deseja realmente excluir o veículo ${label}?`)) return;
+  const handleDelete = async () => {
+    if (!deleteTarget) return;
     try {
-      await api.delete(`/vehicle/${id}`);
-      setVehicles(vehicles.filter((v) => v.id !== id));
-      setFiltered(filtered.filter((v) => v.id !== id));
-      alert("Veículo deletado com sucesso!");
+      await api.delete(`/vehicle/${deleteTarget.id}`);
+      const next = vehicles.filter((v) => v.id !== deleteTarget.id);
+      setVehicles(next);
+      setFiltered(next.filter((v) =>
+        v.plate.toLowerCase().includes(search.toLowerCase()) ||
+        v.model.toLowerCase().includes(search.toLowerCase())
+      ));
     } catch {
-      alert("Erro ao deletar veículo.");
+      alert("Erro ao excluir veículo.");
+    } finally {
+      setDeleteTarget(null);
     }
   };
 
-  // Salvar edição
+  const handleOpenEdit = (v: Vehicle) => {
+    setEditingVehicle(v);
+    setEditForm({ plate: v.plate, model: v.model, capacity: v.capacity, status_id: 0 });
+  };
+
   const handleSave = async () => {
-    if (!editing) return;
-
+    if (!editingVehicle) return;
     try {
+      setSaving(true);
       const payload = {
-        plate: editing.plate,
-        model: editing.model,
-        capacity: Number(editing.capacity),
-        status_id: editVehicle.status_id, // usar status_id selecionado
+        plate: editForm.plate,
+        model: editForm.model,
+        capacity: Number(editForm.capacity),
+        status_id: editForm.status_id,
       };
-
-      await api.put(`/vehicle/${editing.id}`, payload);
-
-      // Atualizar lista local
-      setVehicles(
-        vehicles.map((v) => (v.id === editing.id ? { ...v, ...payload } : v))
+      await api.put(`/vehicle/${editingVehicle.id}`, payload);
+      const next = vehicles.map((v) =>
+        v.id === editingVehicle.id ? { ...v, ...payload } : v
       );
-      setFiltered(
-        filtered.map((v) => (v.id === editing.id ? { ...v, ...payload } : v))
-      );
-
-      alert("Veículo atualizado!");
-      setEditing(null);
-    } catch (err) {
-      console.error(err);
-      alert("Erro ao atualizar veículo");
+      setVehicles(next);
+      setFiltered(next);
+      setEditingVehicle(null);
+    } catch {
+      alert("Erro ao atualizar veículo.");
+    } finally {
+      setSaving(false);
     }
   };
 
-  // Criar novo
   const handleCreate = async () => {
     try {
-      const payload = {
-        plate: newVehicle.plate,
-        model: newVehicle.model,
-        capacity: Number(newVehicle.capacity),
-        status_id: newVehicle.status_id, // usar status_id selecionado
-      };
-
-      await api.post("/vehicle", payload);
-
+      setSaving(true);
+      await api.post("/vehicle", {
+        plate: newForm.plate,
+        model: newForm.model,
+        capacity: Number(newForm.capacity),
+        status_id: newForm.status_id,
+      });
       const list = await api.get("/vehicle");
       setVehicles(list.data);
       setFiltered(list.data);
       setCreating(false);
-
-      // reset form
-      setNewVehicle({
-        plate: "",
-        model: "",
-        capacity: 0,
-        status_id: 0,
-      });
-
-      alert("Veículo cadastrado com sucesso!");
-    } catch (err) {
-      console.error(err);
+      setNewForm(EMPTY_FORM);
+    } catch {
       alert("Erro ao cadastrar veículo.");
+    } finally {
+      setSaving(false);
     }
   };
 
   return (
     <GenericPanelLayout panel="veiculo">
-      <div className="bg-white max-w-5xl w-full rounded-3xl shadow-xl p-10 min-h-[600px]">
-        <h1 className="text-3xl text-center mb-8">Veículos</h1>
+      <div className="w-full max-w-5xl mx-auto space-y-6">
 
-        {/* Barra de busca + botão */}
-        <div className="flex justify-between mb-6">
-          <button
-            onClick={() => setCreating(true)}
-            className="flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700"
-          >
-            <LuPlus /> Cadastrar Veículo
-          </button>
+        {/* ── Header ── */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <h1 className="text-2xl font-extrabold text-[#384A6C] tracking-tight flex items-center gap-2">
+              <LuTruck size={22} /> Veículos
+            </h1>
+            <p className="text-sm text-gray-400 mt-0.5">
+              {filtered.length} veículo{filtered.length !== 1 ? "s" : ""} encontrado{filtered.length !== 1 ? "s" : ""}
+            </p>
+          </div>
 
-          <div className="flex items-center gap-2 border border-black rounded-lg px-4 py-2">
-            <LuSearch />
-            <input
-              type="text"
-              placeholder="Buscar veículo..."
-              value={search}
-              onChange={(e) => handleSearch(e.target.value)}
-              className="outline-none"
-            />
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 bg-white border border-gray-200 rounded-xl px-4 py-2.5 shadow-sm">
+              <LuSearch size={15} className="text-gray-400 shrink-0" />
+              <input
+                type="text"
+                placeholder="Buscar por placa, modelo ou status..."
+                value={search}
+                onChange={(e) => handleSearch(e.target.value)}
+                className="outline-none text-sm text-gray-700 placeholder-gray-300 w-52"
+              />
+            </div>
+            <button
+              onClick={() => setCreating(true)}
+              className="flex items-center gap-2 bg-[#384A6C] text-white px-4 py-2.5 rounded-xl text-sm font-bold
+                hover:bg-[#2f3e5c] active:scale-95 transition-all shadow-sm"
+            >
+              <LuPlus size={16} /> Novo veículo
+            </button>
           </div>
         </div>
 
-        {/* Lista */}
-        <div className="border-t border-black">
+        {/* ── Lista ── */}
+        <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
           {loading ? (
-            <p className="text-center py-4 text-gray-500">Carregando...</p>
+            <div className="flex flex-col items-center justify-center py-20 gap-3">
+              <svg className="animate-spin h-6 w-6 text-[#94C0E0]" viewBox="0 0 24 24" fill="none">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
+              </svg>
+              <p className="text-sm text-gray-400">Carregando veículos...</p>
+            </div>
+          ) : filtered.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-20 gap-2 text-gray-400">
+              <LuTruck size={32} className="opacity-30" />
+              <p className="text-sm font-medium">Nenhum veículo encontrado.</p>
+            </div>
           ) : (
-            filtered.map((v) => (
-              <div
-                key={v.id}
-                className="flex justify-between border-b border-black py-4 items-center px-4 hover:bg-gray-50"
-              >
-                <div>
-                  <p className="font-semibold text-lg">
-                    {v.plate} — {v.model}
-                  </p>
-                  <p className="text-sm text-gray-600">
-                    Capacidade: {v.capacity} • Status: {v.status}
-                  </p>
-                </div>
+            <ul className="divide-y divide-gray-50">
+              {filtered.map((v) => (
+                <li
+                  key={v.id}
+                  className="flex items-center justify-between px-6 py-4 hover:bg-[#EEF5FB]/60 transition-colors"
+                >
+                  <div className="flex items-center gap-4">
+                    <div className="w-10 h-10 rounded-full bg-[#384A6C]/10 flex items-center justify-center text-[#384A6C] text-xs font-bold shrink-0">
+                      {getInitials(v.model)}
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <p className="font-semibold text-gray-800 text-sm">
+                          {v.plate}
+                        </p>
+                        <span className="text-gray-400 text-xs">—</span>
+                        <p className="text-sm text-gray-600">{v.model}</p>
+                      </div>
+                      <div className="flex items-center gap-3 text-xs text-gray-400 mt-0.5 flex-wrap">
+                        <span className="flex items-center gap-1">
+                          <LuGauge size={11} />
+                          Capacidade:{" "}
+                          <span className="font-semibold text-gray-600">{v.capacity} kg</span>
+                        </span>
+                        <span className="inline-flex items-center text-xs font-semibold px-2.5 py-0.5 rounded-full border bg-[#384A6C]/10 text-[#384A6C] border-[#384A6C]/20">
+                          {v.status}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
 
-                <div className="flex gap-4">
-                  <button
-                    onClick={() => setEditing(v)}
-                    className="text-blue-600 text-2xl hover:text-blue-800"
-                  >
-                    <LuPencil />
-                  </button>
-
-                  <button
-                    onClick={() => handleDelete(v.id, v.plate)}
-                    className="text-red-600 text-2xl hover:text-red-800"
-                  >
-                    <LuTrash2 />
-                  </button>
-                </div>
-              </div>
-            ))
+                  <div className="flex items-center gap-2 shrink-0 ml-4">
+                    <button
+                      onClick={() => handleOpenEdit(v)}
+                      className="p-2 rounded-xl text-[#384A6C] hover:bg-[#384A6C]/10 transition"
+                      title="Editar"
+                    >
+                      <LuPencil size={16} />
+                    </button>
+                    <button
+                      onClick={() => setDeleteTarget({ id: v.id, plate: v.plate })}
+                      className="p-2 rounded-xl text-red-400 hover:bg-red-50 transition"
+                      title="Excluir"
+                    >
+                      <LuTrash2 size={16} />
+                    </button>
+                  </div>
+                </li>
+              ))}
+            </ul>
           )}
         </div>
-
-        {/* MODAL EDITAR */}
-        {editing && (
-          <div className="fixed top-0 left-0 w-full h-full bg-black/40 flex justify-center items-center z-[1000]">
-            <div className="bg-white w-[450px] p-6 rounded-2xl shadow-xl">
-              <h2 className="text-2xl font-semibold mb-4">Editar Veículo</h2>
-
-              {/* Placa */}
-              <div className="mb-3">
-                <label className="block mb-1">Placa</label>
-                <input
-                  value={editing.plate}
-                  onChange={(e) =>
-                    setEditing({ ...editing, plate: e.target.value })
-                  }
-                  className="border p-2 rounded w-full"
-                />
-              </div>
-
-              {/* Modelo */}
-              <div className="mb-3">
-                <label className="block mb-1">Modelo</label>
-                <input
-                  value={editing.model}
-                  onChange={(e) =>
-                    setEditing({ ...editing, model: e.target.value })
-                  }
-                  className="border p-2 rounded w-full"
-                />
-              </div>
-
-              {/* Capacidade */}
-              <div className="mb-3">
-                <label className="block mb-1">Capacidade</label>
-                <input
-                  type="number"
-                  value={editing.capacity}
-                  onChange={(e) =>
-                    setEditing({ ...editing, capacity: Number(e.target.value) })
-                  }
-                  className="border p-2 rounded w-full"
-                />
-              </div>
-
-              {/* Status */}
-              <div className="mb-3">
-                <label className="block mb-1">Status</label>
-
-                <select
-                  value={editVehicle.status_id}
-                  onChange={(e) =>
-                    setEditVehicle({
-                      ...editVehicle,
-                      status_id: Number(e.target.value),
-                    })
-                  }
-                  className="border p-2 rounded w-full"
-                >
-                  <option value={0}>Selecione um status...</option>
-                  {statuses.map((s) => (
-                    <option key={s.id} value={s.id}>
-                      {s.description ?? s.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="flex justify-end gap-3 mt-4">
-                <button
-                  onClick={() => setEditing(null)}
-                  className="text-gray-600 hover:underline"
-                >
-                  Cancelar
-                </button>
-                <button
-                  onClick={handleSave}
-                  className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
-                >
-                  Salvar
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* MODAL CRIAR */}
-        {creating && (
-          <div className="fixed top-0 left-0 w-full h-full bg-black/40 flex justify-center items-center z-[1000]">
-            <div className="bg-white w-[450px] p-6 rounded-2xl shadow-xl">
-              <h2 className="text-2xl font-semibold mb-4">Cadastrar Veículo</h2>
-
-              {/* Placa */}
-              <div className="mb-3">
-                <label className="block mb-1">Placa</label>
-                <input
-                  value={newVehicle.plate}
-                  onChange={(e) =>
-                    setNewVehicle({ ...newVehicle, plate: e.target.value })
-                  }
-                  className="border p-2 rounded w-full"
-                />
-              </div>
-
-              {/* Modelo */}
-              <div className="mb-3">
-                <label className="block mb-1">Modelo</label>
-                <input
-                  value={newVehicle.model}
-                  onChange={(e) =>
-                    setNewVehicle({ ...newVehicle, model: e.target.value })
-                  }
-                  className="border p-2 rounded w-full"
-                />
-              </div>
-
-              {/* Capacidade */}
-              <div className="mb-3">
-                <label className="block mb-1">Capacidade</label>
-                <input
-                  type="number"
-                  value={newVehicle.capacity || ""}
-                  onChange={(e) =>
-                    setNewVehicle({
-                      ...newVehicle,
-                      capacity: Number(e.target.value), // ⚡ converte string para number
-                    })
-                  }
-                  className="border p-2 rounded w-full"
-                />
-              </div>
-
-              {/* Status */}
-              <div className="mb-3">
-                <select
-                  value={newVehicle.status_id}
-                  onChange={(e) =>
-                    setNewVehicle({
-                      ...newVehicle,
-                      status_id: Number(e.target.value),
-                    })
-                  }
-                  className="border p-2 rounded w-full"
-                >
-                  <option value={0}>Selecione um status...</option>
-                  {statuses.map((s) => (
-                    <option key={s.id} value={s.id}>
-                      {s.description ?? s.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="flex justify-end gap-3 mt-4">
-                <button
-                  onClick={() => setCreating(false)}
-                  className="text-gray-600 hover:underline"
-                >
-                  Cancelar
-                </button>
-                <button
-                  onClick={handleCreate}
-                  className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700"
-                >
-                  Cadastrar
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
       </div>
+
+      {/* ── Modal Edição ── */}
+      {editingVehicle && (
+        <VehicleModal
+          title={`Editar — ${editingVehicle.plate}`}
+          form={editForm}
+          statuses={statuses}
+          onChange={setEditForm}
+          onConfirm={handleSave}
+          onClose={() => setEditingVehicle(null)}
+          confirmLabel="Salvar alterações"
+          loading={saving}
+        />
+      )}
+
+      {/* ── Modal Criação ── */}
+      {creating && (
+        <VehicleModal
+          title="Novo Veículo"
+          form={newForm}
+          statuses={statuses}
+          onChange={setNewForm}
+          onConfirm={handleCreate}
+          onClose={() => { setCreating(false); setNewForm(EMPTY_FORM); }}
+          confirmLabel="Cadastrar"
+          loading={saving}
+        />
+      )}
+
+      {/* ── Modal Exclusão ── */}
+      {deleteTarget && (
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex justify-center items-center z-50 p-4">
+          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-sm p-8 flex flex-col items-center text-center gap-4">
+            <div className="w-14 h-14 rounded-full bg-red-50 flex items-center justify-center">
+              <LuTrash2 size={24} className="text-red-400" />
+            </div>
+            <div>
+              <h3 className="text-lg font-extrabold text-gray-800">Excluir veículo?</h3>
+              <p className="text-sm text-gray-400 mt-1">
+                <span className="font-semibold text-gray-600">{deleteTarget.plate}</span> será removido permanentemente.
+              </p>
+            </div>
+            <div className="flex gap-3 w-full mt-2">
+              <button
+                onClick={() => setDeleteTarget(null)}
+                className="flex-1 py-2.5 rounded-xl border border-gray-200 text-sm font-semibold text-gray-500 hover:bg-gray-50 transition"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={handleDelete}
+                className="flex-1 py-2.5 rounded-xl bg-red-500 text-white text-sm font-bold hover:bg-red-600 active:scale-95 transition-all"
+              >
+                Excluir
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </GenericPanelLayout>
   );
 }

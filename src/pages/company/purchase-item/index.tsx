@@ -1,9 +1,18 @@
 import { useEffect, useState } from "react";
 import { api } from "../../../api/lib/api";
 import { GenericPanelLayout } from "../../../components/Layout/company/layoutOption";
-import { LuSearch, LuTrash2, LuPencil, LuShoppingBag, LuX } from "react-icons/lu";
+import {
+  LuSearch,
+  LuTrash2,
+  LuPencil,
+  LuShoppingBag,
+  LuX,
+  LuHash,
+  LuBoxes,
+} from "react-icons/lu";
 
-// Tipagem exata baseada no seu Zod Schema
+// ─── Types ────────────────────────────────────────────────────────────────────
+
 type PurchaseOrderItem = {
   id: number;
   purchase_order_id: number;
@@ -11,36 +20,49 @@ type PurchaseOrderItem = {
   quantity: number;
   unit_price: number;
   total_price: number;
-  // O nome vem de dentro do recurso
-  resource?: {
-    name: string;
-  };
+  resource?: { name: string };
 };
+
+// ─── Field ────────────────────────────────────────────────────────────────────
+
+function Field({
+  label,
+  className = "",
+  ...props
+}: React.InputHTMLAttributes<HTMLInputElement> & {
+  label: string;
+  className?: string;
+}) {
+  return (
+    <div className={`flex flex-col gap-1 ${className}`}>
+      <label className="text-[10px] font-bold text-[#384A6C] uppercase tracking-widest">
+        {label}
+      </label>
+      <input
+        {...props}
+        className="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm text-gray-800 placeholder-gray-300 bg-white
+          focus:outline-none focus:ring-2 focus:ring-[#94C0E0] focus:border-transparent transition-all"
+      />
+    </div>
+  );
+}
+
+// ─── Main ─────────────────────────────────────────────────────────────────────
 
 export default function PurchaseOrderItemManager() {
   const [items, setItems] = useState<PurchaseOrderItem[]>([]);
   const [filtered, setFiltered] = useState<PurchaseOrderItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
-
-  // Modais
   const [editing, setEditing] = useState<PurchaseOrderItem | null>(null);
-  
-  // Como itens geralmente são criados DENTRO do pedido de compra, 
-  // aqui focaremos apenas em LISTAR, EDITAR e DELETAR itens avulsos.
-  // Se precisar criar item avulso, me avise.
-
-  useEffect(() => {
-    loadData();
-  }, []);
+  const [deleteTarget, setDeleteTarget] = useState<{ id: number; name: string } | null>(null);
 
   const loadData = async () => {
     try {
       setLoading(true);
-      // Ajuste a rota para a que você definiu (ex: /purchase-orders-items)
-      const res = await api.get("/purchase-order-items"); 
-      
-      const data = Array.isArray(res.data) ? res.data : (res.data.data || []);
+      const res = await api.get("/purchase-order-items");
+      const data = Array.isArray(res.data) ? res.data : res.data.data ?? [];
       setItems(data);
       setFiltered(data);
     } catch (err) {
@@ -50,174 +72,311 @@ export default function PurchaseOrderItemManager() {
     }
   };
 
+  useEffect(() => {
+    loadData();
+  }, []);
+
   const handleSearch = (value: string) => {
     setSearchTerm(value);
     const lower = value.toLowerCase();
     setFiltered(
       items.filter(
         (i) =>
-          // Busca pelo nome do recurso ou ID do pedido
           (i.resource?.name && i.resource.name.toLowerCase().includes(lower)) ||
           String(i.purchase_order_id).includes(value)
       )
     );
   };
 
-  const handleDelete = async (id: number) => {
-    if (!confirm("Deseja realmente excluir este item? Isso afetará o valor total do pedido.")) return;
+  const handleDelete = async () => {
+    if (!deleteTarget) return;
     try {
-      await api.delete(`/purchase-order-items/${id}`); // Verifique se essa rota existe
-      setItems(prev => prev.filter((i) => i.id !== id));
-      setFiltered(prev => prev.filter((i) => i.id !== id));
-      alert("Item excluído!");
+      await api.delete(`/purchase-order-items/${deleteTarget.id}`);
+      setItems((prev) => prev.filter((i) => i.id !== deleteTarget.id));
+      setFiltered((prev) => prev.filter((i) => i.id !== deleteTarget.id));
     } catch {
-      alert("Erro ao deletar item.");
+      alert("Erro ao excluir item.");
+    } finally {
+      setDeleteTarget(null);
     }
-  };
-
-  const handleEdit = (item: PurchaseOrderItem) => {
-    setEditing(item);
   };
 
   const handleSaveEdit = async () => {
     if (!editing) return;
     try {
-      // Payload simplificado para atualização
-      const payload = {
+      setSaving(true);
+      await api.put(`/purchase-order-items/${editing.id}`, {
         quantity: Number(editing.quantity),
-        unit_price: Number(editing.unit_price)
-      };
-      
-      await api.put(`/purchase-order-items/${editing.id}`, payload);
-      
-      alert("Item atualizado!");
+        unit_price: Number(editing.unit_price),
+      });
       setEditing(null);
-      loadData(); // Recarrega para garantir cálculos de total
-    } catch (error) {
-      console.error(error);
+      loadData();
+    } catch (err) {
+      console.error(err);
       alert("Erro ao atualizar item.");
+    } finally {
+      setSaving(false);
     }
   };
 
+  // Totais
+  const totalGeral = filtered.reduce(
+    (acc, i) => acc + Number(i.unit_price) * Number(i.quantity),
+    0
+  );
+
   return (
     <GenericPanelLayout panel="item_compra">
-      <div className="bg-white max-w-6xl w-full rounded-3xl shadow-xl p-10 min-h-[600px]">
-        <h1 className="text-3xl text-center mb-8 flex items-center justify-center gap-3 font-bold text-gray-800">
-          <LuShoppingBag /> Itens dos Pedidos
-        </h1>
+      <div className="w-full max-w-5xl mx-auto space-y-6">
 
-        {/* Header Busca */}
-        <div className="flex justify-end mb-6">
-          <div className="flex items-center gap-2 border border-gray-300 rounded-lg px-4 py-2 bg-gray-50">
-            <LuSearch className="text-gray-500" />
+        {/* ── Header ── */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <h1 className="text-2xl font-extrabold text-[#384A6C] tracking-tight flex items-center gap-2">
+              <LuShoppingBag size={22} /> Itens de Compra
+            </h1>
+            <p className="text-sm text-gray-400 mt-0.5">
+              {filtered.length} item{filtered.length !== 1 ? "s" : ""} encontrado{filtered.length !== 1 ? "s" : ""}
+            </p>
+          </div>
+
+          <div className="flex items-center gap-2 bg-white border border-gray-200 rounded-xl px-4 py-2.5 shadow-sm">
+            <LuSearch size={15} className="text-gray-400 shrink-0" />
             <input
               type="text"
               value={searchTerm}
               onChange={(e) => handleSearch(e.target.value)}
-              placeholder="Buscar por Recurso ou ID Pedido..."
-              className="outline-none bg-transparent w-64"
+              placeholder="Buscar por recurso ou ID do pedido..."
+              className="outline-none text-sm text-gray-700 placeholder-gray-300 w-56"
             />
           </div>
         </div>
 
-        {/* Lista */}
-        <div className="overflow-x-auto border rounded-xl shadow-sm">
-          <table className="w-full text-left border-collapse">
-            <thead className="bg-gray-100">
-              <tr className="text-gray-600 text-xs uppercase font-bold tracking-wider">
-                <th className="py-4 px-6">Produto / Recurso</th>
-                <th className="py-4 px-6">Pedido ID</th>
-                <th className="py-4 px-6">Qtd</th>
-                <th className="py-4 px-6">Preço Unit.</th>
-                <th className="py-4 px-6">Total Item</th>
-                <th className="py-4 px-6 text-right">Ações</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-200">
-              {loading ? (
-                <tr><td colSpan={6} className="text-center py-8 text-gray-500">Carregando...</td></tr>
-              ) : filtered.map((item) => (
-                <tr key={item.id} className="hover:bg-gray-50 transition">
-                  <td className="py-4 px-6 font-medium text-gray-800">
-                    {item.resource?.name || `Recurso #${item.resource_id}`}
-                  </td>
-                  <td className="py-4 px-6 text-sm text-gray-600">
-                    #{item.purchase_order_id}
-                  </td>
-                  <td className="py-4 px-6 font-bold">
-                    {item.quantity}
-                  </td>
-                  <td className="py-4 px-6 text-blue-600">
-                    R$ {Number(item.unit_price).toFixed(2)}
-                  </td>
-                  <td className="py-4 px-6 text-green-700 font-bold">
-                    R$ {(item.quantity * item.unit_price).toFixed(2)}
-                  </td>
-                  <td className="py-4 px-6 flex justify-end gap-3">
-                    <button onClick={() => handleEdit(item)} className="text-blue-500 hover:bg-blue-50 p-2 rounded-full transition">
-                      <LuPencil size={18} />
-                    </button>
-                    <button onClick={() => handleDelete(item.id)} className="text-red-500 hover:bg-red-50 p-2 rounded-full transition">
-                      <LuTrash2 size={18} />
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-          {!loading && filtered.length === 0 && (
-             <p className="text-center py-8 text-gray-400">Nenhum item encontrado.</p>
+        {/* ── Tabela ── */}
+        <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
+          {loading ? (
+            <div className="flex flex-col items-center justify-center py-20 gap-3">
+              <svg className="animate-spin h-6 w-6 text-[#94C0E0]" viewBox="0 0 24 24" fill="none">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
+              </svg>
+              <p className="text-sm text-gray-400">Carregando itens...</p>
+            </div>
+          ) : filtered.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-20 gap-2 text-gray-400">
+              <LuBoxes size={32} className="opacity-30" />
+              <p className="text-sm font-medium">Nenhum item encontrado.</p>
+            </div>
+          ) : (
+            <>
+              <div className="overflow-x-auto">
+                <table className="w-full text-left">
+                  <thead>
+                    <tr className="border-b border-gray-100 bg-[#EEF5FB]">
+                      {["Produto / Recurso", "Pedido", "Qtd", "Preço Unit.", "Total", ""].map(
+                        (h) => (
+                          <th
+                            key={h}
+                            className="py-3 px-6 text-[10px] font-bold text-[#384A6C] uppercase tracking-widest whitespace-nowrap last:text-right"
+                          >
+                            {h}
+                          </th>
+                        )
+                      )}
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-50">
+                    {filtered.map((item) => (
+                      <tr
+                        key={item.id}
+                        className="hover:bg-[#EEF5FB]/60 transition-colors"
+                      >
+                        {/* Recurso */}
+                        <td className="py-4 px-6">
+                          <div className="flex items-center gap-3">
+                            <div className="w-8 h-8 rounded-full bg-[#384A6C]/10 flex items-center justify-center text-[#384A6C] shrink-0">
+                              <LuShoppingBag size={14} />
+                            </div>
+                            <span className="font-semibold text-sm text-gray-800">
+                              {item.resource?.name ?? `Recurso #${item.resource_id}`}
+                            </span>
+                          </div>
+                        </td>
+
+                        {/* Pedido */}
+                        <td className="py-4 px-6">
+                          <span className="inline-flex items-center gap-1 text-xs font-semibold text-[#384A6C] bg-[#384A6C]/10 px-2.5 py-1 rounded-full">
+                            <LuHash size={10} />
+                            {item.purchase_order_id}
+                          </span>
+                        </td>
+
+                        {/* Qtd */}
+                        <td className="py-4 px-6">
+                          <span className="text-sm font-bold text-gray-700">{item.quantity}</span>
+                        </td>
+
+                        {/* Preço unit */}
+                        <td className="py-4 px-6">
+                          <span className="text-sm text-gray-600">
+                            R$ {Number(item.unit_price).toFixed(2)}
+                          </span>
+                        </td>
+
+                        {/* Total */}
+                        <td className="py-4 px-6">
+                          <span className="text-sm font-bold text-[#384A6C]">
+                            R$ {(Number(item.unit_price) * Number(item.quantity)).toFixed(2)}
+                          </span>
+                        </td>
+
+                        {/* Ações */}
+                        <td className="py-4 px-6">
+                          <div className="flex justify-end gap-2">
+                            <button
+                              onClick={() => setEditing(item)}
+                              className="p-2 rounded-xl text-[#384A6C] hover:bg-[#384A6C]/10 transition"
+                              title="Editar"
+                            >
+                              <LuPencil size={15} />
+                            </button>
+                            <button
+                              onClick={() =>
+                                setDeleteTarget({
+                                  id: item.id,
+                                  name: item.resource?.name ?? `Recurso #${item.resource_id}`,
+                                })
+                              }
+                              className="p-2 rounded-xl text-red-400 hover:bg-red-50 transition"
+                              title="Excluir"
+                            >
+                              <LuTrash2 size={15} />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Rodapé com total geral */}
+              <div className="flex justify-end items-center gap-2 px-6 py-4 border-t border-gray-100 bg-[#EEF5FB]/50">
+                <span className="text-xs font-bold text-gray-400 uppercase tracking-widest">
+                  Total geral:
+                </span>
+                <span className="text-base font-extrabold text-[#384A6C]">
+                  R$ {totalGeral.toFixed(2)}
+                </span>
+              </div>
+            </>
           )}
         </div>
+      </div>
 
-        {/* --- MODAL EDITAR --- */}
-        {editing && (
-          <div className="fixed inset-0 bg-black/60 flex justify-center items-center z-50 p-4">
-            <div className="bg-white w-[400px] p-6 rounded-2xl shadow-xl animate-fadeIn">
-              <div className="flex justify-between items-center mb-4">
-                <h2 className="text-xl font-bold">Editar Item</h2>
-                <button onClick={() => setEditing(null)}><LuX size={24}/></button>
-              </div>
-              
-              <div className="bg-gray-100 p-3 rounded mb-4">
-                <p className="text-sm text-gray-500">Produto</p>
-                <p className="font-semibold">{editing.resource?.name}</p>
-              </div>
+      {/* ── Modal Edição ── */}
+      {editing && (
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex justify-center items-center z-50 p-4">
+          <div className="bg-white w-full max-w-sm rounded-3xl shadow-2xl">
+            <div className="flex items-center justify-between px-8 pt-7 pb-4 border-b border-gray-100">
+              <h2 className="text-xl font-extrabold text-[#384A6C] tracking-tight">Editar Item</h2>
+              <button
+                onClick={() => setEditing(null)}
+                className="text-gray-400 hover:text-gray-600 transition p-1 rounded-lg hover:bg-gray-100"
+              >
+                <LuX size={20} />
+              </button>
+            </div>
 
-              <div className="space-y-4">
-                <div>
-                  <label className="text-sm font-bold text-gray-700">Quantidade</label>
-                  <input
-                    type="number"
-                    value={editing.quantity}
-                    onChange={(e) => setEditing({ ...editing, quantity: Number(e.target.value) })}
-                    className="border p-2 rounded w-full mt-1"
-                  />
+            <div className="px-8 py-6 space-y-4">
+              {/* Produto (read-only) */}
+              <div className="flex items-center gap-3 bg-[#EEF5FB] border border-[#94C0E0]/30 rounded-xl px-4 py-3">
+                <div className="w-8 h-8 rounded-full bg-[#384A6C]/10 flex items-center justify-center text-[#384A6C] shrink-0">
+                  <LuShoppingBag size={14} />
                 </div>
                 <div>
-                  <label className="text-sm font-bold text-gray-700">Preço Unitário (R$)</label>
-                  <input
-                    type="number" step="0.01"
-                    value={editing.unit_price}
-                    onChange={(e) => setEditing({ ...editing, unit_price: Number(e.target.value) })}
-                    className="border p-2 rounded w-full mt-1"
-                  />
+                  <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Produto</p>
+                  <p className="text-sm font-semibold text-gray-800">
+                    {editing.resource?.name ?? `Recurso #${editing.resource_id}`}
+                  </p>
                 </div>
               </div>
 
-              <div className="flex justify-end gap-3 mt-6 border-t pt-4">
-                <button onClick={() => setEditing(null)} className="text-gray-600 px-4 py-2 hover:bg-gray-100 rounded">
-                  Cancelar
-                </button>
-                <button onClick={handleSaveEdit} className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 font-medium">
-                  Salvar
-                </button>
+              <Field
+                label="Quantidade"
+                type="number"
+                min={1}
+                value={editing.quantity}
+                onChange={(e) => setEditing({ ...editing, quantity: Number(e.target.value) })}
+              />
+              <Field
+                label="Preço unitário (R$)"
+                type="number"
+                step="0.01"
+                min={0}
+                value={editing.unit_price}
+                onChange={(e) => setEditing({ ...editing, unit_price: Number(e.target.value) })}
+              />
+
+              {/* Preview do total */}
+              <div className="flex items-center justify-between bg-[#EEF5FB] border border-[#94C0E0]/30 rounded-xl px-4 py-3">
+                <span className="text-xs font-bold text-gray-400 uppercase tracking-widest">Total calculado</span>
+                <span className="text-base font-extrabold text-[#384A6C]">
+                  R$ {(Number(editing.quantity) * Number(editing.unit_price)).toFixed(2)}
+                </span>
               </div>
             </div>
-          </div>
-        )}
 
-      </div>
+            <div className="flex justify-end gap-3 px-8 py-5 border-t border-gray-100">
+              <button
+                onClick={() => setEditing(null)}
+                className="px-5 py-2.5 rounded-xl border border-gray-200 text-sm font-semibold text-gray-500 hover:bg-gray-50 transition"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={handleSaveEdit}
+                disabled={saving}
+                className="px-6 py-2.5 rounded-xl text-sm font-bold text-white bg-[#384A6C] hover:bg-[#2f3e5c] active:scale-95 transition-all disabled:opacity-60"
+              >
+                {saving ? "Salvando..." : "Salvar alterações"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Modal Exclusão ── */}
+      {deleteTarget && (
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex justify-center items-center z-50 p-4">
+          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-sm p-8 flex flex-col items-center text-center gap-4">
+            <div className="w-14 h-14 rounded-full bg-red-50 flex items-center justify-center">
+              <LuTrash2 size={24} className="text-red-400" />
+            </div>
+            <div>
+              <h3 className="text-lg font-extrabold text-gray-800">Excluir item?</h3>
+              <p className="text-sm text-gray-400 mt-1">
+                <span className="font-semibold text-gray-600">{deleteTarget.name}</span> será
+                removido e afetará o valor total do pedido.
+              </p>
+            </div>
+            <div className="flex gap-3 w-full mt-2">
+              <button
+                onClick={() => setDeleteTarget(null)}
+                className="flex-1 py-2.5 rounded-xl border border-gray-200 text-sm font-semibold text-gray-500 hover:bg-gray-50 transition"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={handleDelete}
+                className="flex-1 py-2.5 rounded-xl bg-red-500 text-white text-sm font-bold hover:bg-red-600 active:scale-95 transition-all"
+              >
+                Excluir
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </GenericPanelLayout>
   );
 }

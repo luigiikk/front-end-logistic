@@ -7,11 +7,13 @@ import {
   LuPencil,
   LuX,
   LuShoppingCart,
+  LuHash,
+  LuPackage,
+  LuWarehouse,
 } from "react-icons/lu";
 
-// --- TIPAGENS ---
+// ─── Types ────────────────────────────────────────────────────────────────────
 
-// O que vem do Back-end na listagem (Leitura simples)
 type PurchaseOrderSummary = {
   id: number;
   total_value: number;
@@ -19,13 +21,11 @@ type PurchaseOrderSummary = {
   status?: { name: string; id: number };
   status_id: number;
   created_at: string;
-  items?: any[]; // Para contagem de categorias na tabela
+  items?: any[];
 };
 
-// Dados auxiliares para os Selects
 type SelectOption = { id: number; name: string };
 
-// Tipagem do Item no Formulário
 type FormItem = {
   resource_id: number | "";
   warehouse_id: number | "";
@@ -33,7 +33,6 @@ type FormItem = {
   unit_price: number;
 };
 
-// Estado do Formulário
 type OrderForm = {
   supplier_id: number | "";
   status_id: number | "";
@@ -46,135 +45,165 @@ const initialFormState: OrderForm = {
   items: [{ resource_id: "", warehouse_id: "", quantity: 1, unit_price: 0 }],
 };
 
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+function getStatusStyle(name: string) {
+  const lower = name.toLowerCase();
+  if (lower.includes("pendente")) return "bg-yellow-50 text-yellow-700 border-yellow-200";
+  if (lower.includes("aprovado") || lower.includes("concluído")) return "bg-green-50 text-green-700 border-green-200";
+  if (lower.includes("cancelado")) return "bg-red-50 text-red-700 border-red-200";
+  return "bg-blue-50 text-blue-700 border-blue-200";
+}
+
+// ─── Field / Select ───────────────────────────────────────────────────────────
+
+function Field({
+  label,
+  className = "",
+  ...props
+}: React.InputHTMLAttributes<HTMLInputElement> & { label: string; className?: string }) {
+  return (
+    <div className={`flex flex-col gap-1 ${className}`}>
+      <label className="text-[10px] font-bold text-[#384A6C] uppercase tracking-widest">{label}</label>
+      <input
+        {...props}
+        className="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm text-gray-800 placeholder-gray-300 bg-white
+          focus:outline-none focus:ring-2 focus:ring-[#94C0E0] focus:border-transparent transition-all"
+      />
+    </div>
+  );
+}
+
+function SelectField({
+  label,
+  className = "",
+  children,
+  ...props
+}: React.SelectHTMLAttributes<HTMLSelectElement> & { label: string; className?: string }) {
+  return (
+    <div className={`flex flex-col gap-1 ${className}`}>
+      <label className="text-[10px] font-bold text-[#384A6C] uppercase tracking-widest">{label}</label>
+      <select
+        {...props}
+        className="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm text-gray-800 bg-white appearance-none
+          focus:outline-none focus:ring-2 focus:ring-[#94C0E0] focus:border-transparent transition-all"
+      >
+        {children}
+      </select>
+    </div>
+  );
+}
+
+// ─── Main ─────────────────────────────────────────────────────────────────────
+
 export default function PurchaseOrderManager() {
   const [loading, setLoading] = useState(true);
-  // Estado para a lista da tabela
+  const [saving, setSaving] = useState(false);
   const [orders, setOrders] = useState<PurchaseOrderSummary[]>([]);
-  // Estado para controlar se está editando e qual ID
   const [editingId, setEditingId] = useState<number | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<{ id: number } | null>(null);
 
-  // Listas de Opções (Dropdowns)
   const [suppliers, setSuppliers] = useState<SelectOption[]>([]);
   const [resources, setResources] = useState<SelectOption[]>([]);
   const [warehouses, setWarehouses] = useState<SelectOption[]>([]);
   const [statuses, setStatuses] = useState<SelectOption[]>([]);
 
-  // Controle de Modal e Formulário
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [formData, setFormData] = useState<OrderForm>(initialFormState);
 
-  useEffect(() => {
-    loadInitialData();
-  }, []);
+  const extractData = (resData: any) =>
+    Array.isArray(resData) ? resData : resData.data ?? [];
 
   const loadInitialData = async () => {
     try {
       setLoading(true);
-      // Carrega dados auxiliares e a lista principal em paralelo
       const [supRes, resRes, warRes, statRes, ordersRes] = await Promise.all([
         api.get("/supplier"),
         api.get("/resource"),
         api.get("/warehouses"),
-        api.get("/status/purchase_order"), // Ajuste a rota se necessário
+        api.get("/status/purchase_order"),
         api.get("/purchase-orders"),
       ]);
-
-      // Função auxiliar para extrair dados de possíveis estruturas de resposta ({ data: [] } vs [])
-      const extractData = (resData: any) =>
-        Array.isArray(resData) ? resData : resData.data || [];
-
       setSuppliers(extractData(supRes.data));
       setResources(extractData(resRes.data));
       setWarehouses(extractData(warRes.data));
       setStatuses(extractData(statRes.data));
       setOrders(extractData(ordersRes.data));
-    } catch (err: any) {
-      console.error("Erro ao carregar dados iniciais:", err);
+    } catch (err) {
+      console.error("Erro ao carregar dados:", err);
     } finally {
       setLoading(false);
     }
   };
 
-  // --- Manipulação do Formulário ---
+  useEffect(() => { loadInitialData(); }, []);
 
-  const handleAddItem = () => {
+  // ── Form helpers ──
+
+  const handleAddItem = () =>
     setFormData((prev) => ({
       ...prev,
-      items: [
-        ...prev.items,
-        { resource_id: "", warehouse_id: "", quantity: 1, unit_price: 0 },
-      ],
+      items: [...prev.items, { resource_id: "", warehouse_id: "", quantity: 1, unit_price: 0 }],
     }));
-  };
 
   const handleRemoveItem = (index: number) => {
     if (formData.items.length === 1) return;
-    const newItems = [...formData.items];
-    newItems.splice(index, 1);
-    setFormData((prev) => ({ ...prev, items: newItems }));
+    setFormData((prev) => ({ ...prev, items: prev.items.filter((_, i) => i !== index) }));
   };
 
-  const updateItem = (index: number, field: keyof FormItem, value: any) => {
-    const newItems = [...formData.items];
-    // @ts-ignore
-    newItems[index][field] = value;
-    setFormData((prev) => ({ ...prev, items: newItems }));
-  };
+  const updateItem = (index: number, field: keyof FormItem, value: any) =>
+    setFormData((prev) => {
+      const items = [...prev.items];
+      (items[index] as any)[field] = value;
+      return { ...prev, items };
+    });
 
-  // --- AÇÕES PRINCIPAIS (CRUD) ---
+  const modalTotal = formData.items.reduce(
+    (acc, i) => acc + Number(i.quantity || 0) * Number(i.unit_price || 0),
+    0
+  );
 
-  // 1. Abrir Modal para CRIAR
+  // ── CRUD ──
+
   const handleOpenCreate = () => {
     setEditingId(null);
     setFormData(initialFormState);
     setIsModalOpen(true);
   };
 
-  // 2. Abrir Modal para EDITAR (Busca dados completos do pedido)
   const handleEdit = async (id: number) => {
     try {
       setLoading(true);
       const { data: order } = await api.get(`/purchase-orders/${id}`);
-
       setFormData({
         supplier_id: order.supplier_id,
         status_id: order.status_id,
-
         items: order.items.map((item: any) => ({
           resource_id: item.resource_id,
           warehouse_id: item.warehouse_id || item.warehouse?.id || "",
-          
           quantity: item.quantity,
           unit_price: item.unit_price,
         })),
       });
-
       setEditingId(id);
       setIsModalOpen(true);
-    } catch (err) {
-      console.error("Erro ao buscar dados do pedido:", err);
+    } catch {
       alert("Não foi possível carregar os dados do pedido.");
     } finally {
       setLoading(false);
     }
   };
 
-
   const handleSave = async () => {
+    if (!formData.supplier_id || !formData.status_id)
+      return alert("Selecione um fornecedor e um status.");
+    const invalid = formData.items.some(
+      (i) => !i.resource_id || !i.warehouse_id || Number(i.quantity) <= 0
+    );
+    if (invalid) return alert("Preencha recurso, armazém e quantidade > 0 em todos os itens.");
+
     try {
-
-      if (!formData.supplier_id || !formData.status_id) {
-        return alert("Selecione um Fornecedor e um Status.");
-      }
-      const invalidItems = formData.items.some(
-        (i) => !i.resource_id || !i.warehouse_id || Number(i.quantity) <= 0
-      );
-      if (invalidItems) {
-        return alert(
-          "Preencha corretamente todos os itens (Recurso, Armazém e Quantidade > 0)."
-        );
-      }
-
+      setSaving(true);
       const payload = {
         supplier_id: Number(formData.supplier_id),
         status_id: Number(formData.status_id),
@@ -185,35 +214,29 @@ export default function PurchaseOrderManager() {
           unit_price: Number(item.unit_price),
         })),
       };
-
       if (editingId) {
-        // --- LÓGICA DE ATUALIZAÇÃO (PUT) ---
         await api.put(`/purchase-orders/${editingId}`, payload);
-        alert("Pedido atualizado com sucesso! Estoque recalculado.");
       } else {
-        // --- LÓGICA DE CRIAÇÃO (POST) ---
         await api.post("/purchase-orders", payload);
-        alert("Pedido criado com sucesso! Estoque atualizado.");
       }
-
       closeModal();
-      loadInitialData(); // Recarrega a lista da tabela
+      loadInitialData();
     } catch (err: any) {
-      console.error(err);
       alert(err.response?.data?.message || "Erro ao salvar pedido.");
+    } finally {
+      setSaving(false);
     }
   };
 
-  // 4. DELETAR
-  const handleDelete = async (id: number) => {
-    if (!confirm("Tem certeza? Isso reverterá a entrada no estoque.")) return;
+  const handleDelete = async () => {
+    if (!deleteTarget) return;
     try {
-      await api.delete(`/purchase-orders/${id}`);
-      setOrders((prev) => prev.filter((o) => o.id !== id));
-      alert("Pedido excluído e estoque revertido.");
-    } catch (err) {
-      console.error(err);
+      await api.delete(`/purchase-orders/${deleteTarget.id}`);
+      setOrders((prev) => prev.filter((o) => o.id !== deleteTarget.id));
+    } catch {
       alert("Erro ao excluir pedido.");
+    } finally {
+      setDeleteTarget(null);
     }
   };
 
@@ -223,340 +246,320 @@ export default function PurchaseOrderManager() {
     setFormData(initialFormState);
   };
 
-  // Calcula total estimado no modal (apenas visual)
-  const calculateModalTotal = () => {
-    return formData.items.reduce(
-      (acc, item) =>
-        acc + Number(item.quantity || 0) * Number(item.unit_price || 0),
-      0
-    );
-  };
-
   return (
     <GenericPanelLayout panel="pedido_de_compra">
-      <div className="bg-white max-w-6xl w-full rounded-3xl shadow-xl p-10 min-h-[600px]">
-        <h1 className="text-3xl text-center mb-8 font-bold text-gray-800">
-          Pedidos de Compra
-        </h1>
+      <div className="w-full max-w-5xl mx-auto space-y-6">
 
-        {/* Header Actions */}
-        <div className="flex justify-between mb-6">
+        {/* ── Header ── */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <h1 className="text-2xl font-extrabold text-[#384A6C] tracking-tight flex items-center gap-2">
+              <LuShoppingCart size={22} /> Pedidos de Compra
+            </h1>
+            <p className="text-sm text-gray-400 mt-0.5">
+              {orders.length} pedido{orders.length !== 1 ? "s" : ""} cadastrado{orders.length !== 1 ? "s" : ""}
+            </p>
+          </div>
+
           <button
             onClick={handleOpenCreate}
-            className="flex items-center gap-2 bg-green-600 text-white px-5 py-2 rounded-lg hover:bg-green-700 transition shadow-sm"
+            className="flex items-center gap-2 bg-[#384A6C] text-white px-4 py-2.5 rounded-xl text-sm font-bold
+              hover:bg-[#2f3e5c] active:scale-95 transition-all shadow-sm"
           >
-            <LuPlus size={20} /> Novo Pedido
+            <LuPlus size={16} /> Novo pedido
           </button>
         </div>
 
-        {/* Tabela de Listagem */}
-        <div className="overflow-x-auto border rounded-xl shadow-sm">
-          <table className="w-full text-left border-collapse">
-            <thead className="bg-gray-100">
-              <tr className="text-gray-600 text-xs uppercase font-bold tracking-wider">
-                <th className="py-4 px-6">ID</th>
-                <th className="py-4 px-6">Fornecedor</th>
-                <th className="py-4 px-6">Categorias (Itens)</th>
-                <th className="py-4 px-6">Status</th>
-                <th className="py-4 px-6">Total</th>
-                <th className="py-4 px-6 text-right">Ações</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-200">
-              {loading && orders.length === 0 ? (
-                <tr>
-                  <td colSpan={6} className="text-center py-8 text-gray-500">
-                    Carregando pedidos...
-                  </td>
-                </tr>
-              ) : (
-                orders.map((order) => {
-                  // Lógica visual para extrair nomes das categorias
-                  const categoryNames =
-                    order.items
-                      ?.map((i: any) => i.resource?.category?.name)
-                      .filter(Boolean) || [];
-                  const categoriesDisplay =
-                    Array.from(new Set(categoryNames)).join(", ") || "-";
+        {/* ── Tabela ── */}
+        <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
+          {loading && orders.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-20 gap-3">
+              <svg className="animate-spin h-6 w-6 text-[#94C0E0]" viewBox="0 0 24 24" fill="none">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
+              </svg>
+              <p className="text-sm text-gray-400">Carregando pedidos...</p>
+            </div>
+          ) : orders.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-20 gap-2 text-gray-400">
+              <LuShoppingCart size={32} className="opacity-30" />
+              <p className="text-sm font-medium">Nenhum pedido de compra cadastrado.</p>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-left">
+                <thead>
+                  <tr className="border-b border-gray-100 bg-[#EEF5FB]">
+                    {["Pedido", "Fornecedor", "Categorias", "Status", "Total", ""].map((h) => (
+                      <th
+                        key={h}
+                        className="py-3 px-6 text-[10px] font-bold text-[#384A6C] uppercase tracking-widest whitespace-nowrap last:text-right"
+                      >
+                        {h}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-50">
+                  {orders.map((order) => {
+                    const categoryNames =
+                      order.items
+                        ?.map((i: any) => i.resource?.category?.name)
+                        .filter(Boolean) ?? [];
+                    const categoriesDisplay =
+                      Array.from(new Set(categoryNames)).join(", ") || "—";
+                    const statusName = order.status?.name ?? String(order.status_id);
 
-                  return (
-                    <tr key={order.id} className="hover:bg-gray-50 transition">
-                      <td className="py-4 px-6 font-medium text-gray-800">
-                        #{order.id}
-                      </td>
-                      <td className="py-4 px-6 text-sm text-gray-600">
-                        {order.supplier?.name || "N/A"}
-                      </td>
-                      <td className="py-4 px-6 text-sm text-gray-600">
-                        <span
-                          className="bg-gray-100 px-2 py-1 rounded text-xs border border-gray-200 block w-fit max-w-[200px] truncate"
-                          title={categoriesDisplay}
-                        >
-                          {categoriesDisplay}
-                        </span>
-                      </td>
-                      <td className="py-4 px-6">
-                        <span
-                          className={`px-2 py-1 rounded-full text-xs font-semibold ${
-                            String(order.status?.name || order.status_id)
-                              .toLowerCase()
-                              .includes("pendente")
-                              ? "bg-yellow-100 text-yellow-800"
-                              : String(order.status?.name || order.status_id)
-                                  .toLowerCase()
-                                  .includes("aprovado")
-                              ? "bg-green-100 text-green-800"
-                              : "bg-blue-100 text-blue-800"
-                          }`}
-                        >
-                          {order.status?.name || order.status_id}
-                        </span>
-                      </td>
-                      <td className="py-4 px-6 font-bold text-green-700">
-                        R$ {Number(order.total_value).toFixed(2)}
-                      </td>
-                      <td className="py-4 px-6 flex justify-end gap-2">
-                        {/* Botão EDITAR */}
-                        <button
-                          onClick={() => handleEdit(order.id)}
-                          className="text-blue-500 hover:bg-blue-50 p-2 rounded-full transition"
-                          title="Editar"
-                        >
-                          <LuPencil size={18} />
-                        </button>
-                        {/* Botão EXCLUIR */}
-                        <button
-                          onClick={() => handleDelete(order.id)}
-                          className="text-red-500 hover:bg-red-50 p-2 rounded-full transition"
-                          title="Excluir (Reverter Estoque)"
-                        >
-                          <LuTrash2 size={18} />
-                        </button>
-                      </td>
-                    </tr>
-                  );
-                })
-              )}
-            </tbody>
-          </table>
-          {!loading && orders.length === 0 && (
-            <p className="text-center py-8 text-gray-500">
-              Nenhum pedido encontrado.
-            </p>
+                    return (
+                      <tr key={order.id} className="hover:bg-[#EEF5FB]/60 transition-colors">
+                        <td className="py-4 px-6">
+                          <span className="inline-flex items-center gap-1 text-sm font-bold text-[#384A6C]">
+                            <LuHash size={12} className="opacity-60" />{order.id}
+                          </span>
+                        </td>
+                        <td className="py-4 px-6 text-sm text-gray-700 font-medium">
+                          {order.supplier?.name ?? "—"}
+                        </td>
+                        <td className="py-4 px-6">
+                          <span
+                            className="text-xs text-gray-500 bg-gray-100 border border-gray-200 px-2.5 py-1 rounded-full block w-fit max-w-[180px] truncate"
+                            title={categoriesDisplay}
+                          >
+                            {categoriesDisplay}
+                          </span>
+                        </td>
+                        <td className="py-4 px-6">
+                          <span className={`inline-flex text-xs font-semibold px-2.5 py-0.5 rounded-full border ${getStatusStyle(statusName)}`}>
+                            {statusName}
+                          </span>
+                        </td>
+                        <td className="py-4 px-6">
+                          <span className="text-sm font-extrabold text-[#384A6C]">
+                            R$ {Number(order.total_value).toFixed(2)}
+                          </span>
+                        </td>
+                        <td className="py-4 px-6">
+                          <div className="flex justify-end gap-2">
+                            <button
+                              onClick={() => handleEdit(order.id)}
+                              className="p-2 rounded-xl text-[#384A6C] hover:bg-[#384A6C]/10 transition"
+                              title="Editar"
+                            >
+                              <LuPencil size={15} />
+                            </button>
+                            <button
+                              onClick={() => setDeleteTarget({ id: order.id })}
+                              className="p-2 rounded-xl text-red-400 hover:bg-red-50 transition"
+                              title="Excluir"
+                            >
+                              <LuTrash2 size={15} />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
           )}
         </div>
+      </div>
 
-        {/* MODAL DE CRIAÇÃO / EDIÇÃO */}
-        {isModalOpen && (
-          <div className="fixed inset-0 bg-black/60 flex justify-center items-center z-50 p-4">
-            <div className="bg-white w-full max-w-4xl rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh] animate-fadeIn">
-              {/* Header Modal */}
-              <div className="bg-gray-50 px-6 py-4 border-b flex justify-between items-center">
-                <h2 className="text-xl font-bold text-gray-800 flex items-center gap-2">
-                  <LuShoppingCart className="text-green-600" />
-                  {editingId ? `Editar Pedido #${editingId}` : "Novo Pedido"}
-                </h2>
-                <button onClick={closeModal}>
-                  <LuX size={24} className="text-gray-500 hover:text-gray-700" />
-                </button>
+      {/* ── Modal Criação / Edição ── */}
+      {isModalOpen && (
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex justify-center items-center z-50 p-4">
+          <div className="bg-white w-full max-w-4xl rounded-3xl shadow-2xl flex flex-col max-h-[90vh] overflow-hidden">
+
+            {/* Header */}
+            <div className="flex items-center justify-between px-8 pt-7 pb-4 border-b border-gray-100">
+              <h2 className="text-xl font-extrabold text-[#384A6C] tracking-tight flex items-center gap-2">
+                <LuShoppingCart size={20} />
+                {editingId ? `Editar Pedido #${editingId}` : "Novo Pedido de Compra"}
+              </h2>
+              <button
+                onClick={closeModal}
+                className="text-gray-400 hover:text-gray-600 transition p-1 rounded-lg hover:bg-gray-100"
+              >
+                <LuX size={20} />
+              </button>
+            </div>
+
+            {/* Body */}
+            <div className="px-8 py-6 overflow-y-auto space-y-6">
+
+              {/* Fornecedor + Status */}
+              <div className="grid grid-cols-2 gap-4">
+                <SelectField
+                  label="Fornecedor *"
+                  value={formData.supplier_id}
+                  onChange={(e) =>
+                    setFormData({ ...formData, supplier_id: e.target.value === "" ? "" : Number(e.target.value) })
+                  }
+                >
+                  <option value="">Selecione...</option>
+                  {suppliers.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
+                </SelectField>
+
+                <SelectField
+                  label="Status *"
+                  value={formData.status_id}
+                  onChange={(e) =>
+                    setFormData({ ...formData, status_id: e.target.value === "" ? "" : Number(e.target.value) })
+                  }
+                >
+                  <option value="">Selecione...</option>
+                  {statuses.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
+                </SelectField>
               </div>
 
-              {/* Body Modal */}
-              <div className="p-6 overflow-y-auto">
-                {/* 1. Seleção de Fornecedor e Status */}
-                <div className="grid grid-cols-2 gap-6 mb-6">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Fornecedor *
-                    </label>
-                    <select
-                      className="w-full border rounded-lg p-2.5 focus:ring-2 focus:ring-green-500 outline-none bg-white"
-                      value={formData.supplier_id}
-                      onChange={(e) => {
-                        const val = e.target.value;
-                        setFormData({
-                          ...formData,
-                          supplier_id: val === "" ? "" : Number(val),
-                        });
-                      }}
-                    >
-                      <option value="">Selecione...</option>
-                      {suppliers.map((s) => (
-                        <option key={s.id} value={s.id}>
-                          {s.name}
-                        </option>
-                      ))}
-                    </select>
+              {/* Itens */}
+              <div>
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-2">
+                    <div className="w-7 h-7 rounded-lg bg-[#384A6C]/10 flex items-center justify-center text-[#384A6C]">
+                      <LuPackage size={14} />
+                    </div>
+                    <p className="text-xs font-bold text-[#384A6C] uppercase tracking-widest">Itens do pedido</p>
                   </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Status *
-                    </label>
-                    <select
-                      className="w-full border rounded-lg p-2.5 focus:ring-2 focus:ring-green-500 outline-none bg-white"
-                      value={formData.status_id}
-                      onChange={(e) => {
-                        const val = e.target.value;
-                        setFormData({
-                          ...formData,
-                          status_id: val === "" ? "" : Number(val),
-                        });
-                      }}
-                    >
-                      <option value="">Selecione...</option>
-                      {statuses.map((s) => (
-                        <option key={s.id} value={s.id}>
-                          {s.name}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
+                  <span className="text-sm font-extrabold text-[#384A6C] bg-[#EEF5FB] border border-[#94C0E0]/30 px-4 py-1.5 rounded-full">
+                    Total: R$ {modalTotal.toFixed(2)}
+                  </span>
                 </div>
 
-                {/* 2. Lista de Itens */}
-                <div className="border-t pt-4">
-                  <h3 className="font-bold text-gray-700 mb-3 flex justify-between items-center">
-                    Itens do Pedido
-                    <span className="text-sm font-normal text-gray-500 bg-gray-100 px-2 py-1 rounded">
-                      Total Estimado: R$ {calculateModalTotal().toFixed(2)}
-                    </span>
-                  </h3>
-
+                <div className="space-y-3">
                   {formData.items.map((item, index) => (
                     <div
                       key={index}
-                      className="bg-gray-50 p-4 rounded-lg border border-gray-200 mb-3 relative group transition-all hover:shadow-sm"
+                      className="bg-[#EEF5FB] border border-[#94C0E0]/30 rounded-2xl p-4 relative group"
                     >
-                      <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
-                        {/* Recurso */}
-                        <div className="md:col-span-4">
-                          <label className="text-xs font-medium text-gray-500 block mb-1">
-                            Recurso/Produto *
-                          </label>
-                          <select
-                            className="w-full border rounded p-2 text-sm bg-white focus:ring-1 focus:ring-green-500 outline-none"
-                            value={item.resource_id}
-                            onChange={(e) =>
-                              updateItem(
-                                index,
-                                "resource_id",
-                                e.target.value === ""
-                                  ? ""
-                                  : Number(e.target.value)
-                              )
-                            }
-                          >
-                            <option value="">Selecione...</option>
-                            {resources.map((r) => (
-                              <option key={r.id} value={r.id}>
-                                {r.name}
-                              </option>
-                            ))}
-                          </select>
-                        </div>
+                      <div className="grid grid-cols-1 md:grid-cols-12 gap-3">
+                        <SelectField
+                          label="Recurso / Produto *"
+                          className="md:col-span-4"
+                          value={item.resource_id}
+                          onChange={(e) =>
+                            updateItem(index, "resource_id", e.target.value === "" ? "" : Number(e.target.value))
+                          }
+                        >
+                          <option value="">Selecione...</option>
+                          {resources.map((r) => <option key={r.id} value={r.id}>{r.name}</option>)}
+                        </SelectField>
 
-                        {/* Armazém */}
-                        <div className="md:col-span-4">
-                          <label className="text-xs font-medium text-gray-500 block mb-1">
-                            Armazém Destino *
-                          </label>
-                          <select
-                            className="w-full border rounded p-2 text-sm bg-white focus:ring-1 focus:ring-green-500 outline-none"
-                            value={item.warehouse_id}
-                            onChange={(e) =>
-                              updateItem(
-                                index,
-                                "warehouse_id",
-                                e.target.value === ""
-                                  ? ""
-                                  : Number(e.target.value)
-                              )
-                            }
-                          >
-                            <option value="">Selecione...</option>
-                            {warehouses.map((w) => (
-                              <option key={w.id} value={w.id}>
-                                {w.name}
-                              </option>
-                            ))}
-                          </select>
-                        </div>
+                        <SelectField
+                          label="Armazém destino *"
+                          className="md:col-span-4"
+                          value={item.warehouse_id}
+                          onChange={(e) =>
+                            updateItem(index, "warehouse_id", e.target.value === "" ? "" : Number(e.target.value))
+                          }
+                        >
+                          <option value="">Selecione...</option>
+                          {warehouses.map((w) => <option key={w.id} value={w.id}>{w.name}</option>)}
+                        </SelectField>
 
-                        {/* Quantidade */}
-                        <div className="md:col-span-2">
-                          <label className="text-xs font-medium text-gray-500 block mb-1">
-                            Qtd *
-                          </label>
-                          <input
-                            type="number"
-                            min="1"
-                            className="w-full border rounded p-2 text-sm focus:ring-1 focus:ring-green-500 outline-none"
-                            value={item.quantity}
-                            onChange={(e) =>
-                              updateItem(index, "quantity", e.target.value)
-                            }
-                          />
-                        </div>
+                        <Field
+                          label="Qtd *"
+                          className="md:col-span-2"
+                          type="number"
+                          min={1}
+                          value={item.quantity}
+                          onChange={(e) => updateItem(index, "quantity", e.target.value)}
+                        />
 
-                        {/* Preço Unitário */}
-                        <div className="md:col-span-2">
-                          <label className="text-xs font-medium text-gray-500 block mb-1">
-                            Preço Unit. (R$)
-                          </label>
-                          <input
-                            type="number"
-                            min="0"
-                            step="0.01"
-                            className="w-full border rounded p-2 text-sm focus:ring-1 focus:ring-green-500 outline-none"
-                            value={item.unit_price}
-                            onChange={(e) =>
-                              updateItem(index, "unit_price", e.target.value)
-                            }
-                          />
-                        </div>
+                        <Field
+                          label="Preço unit. (R$)"
+                          className="md:col-span-2"
+                          type="number"
+                          min={0}
+                          step="0.01"
+                          value={item.unit_price}
+                          onChange={(e) => updateItem(index, "unit_price", e.target.value)}
+                        />
                       </div>
 
-                      {/* Botão Remover Item (só aparece se tiver mais de 1) */}
                       {formData.items.length > 1 && (
                         <button
                           onClick={() => handleRemoveItem(index)}
-                          className="absolute -top-2 -right-2 bg-red-100 text-red-600 rounded-full p-1.5 hover:bg-red-200 shadow-sm opacity-0 group-hover:opacity-100 transition"
+                          className="absolute -top-2 -right-2 bg-red-100 text-red-500 rounded-full p-1.5
+                            hover:bg-red-200 shadow-sm opacity-0 group-hover:opacity-100 transition"
                           title="Remover item"
                         >
-                          <LuX size={14} />
+                          <LuX size={13} />
                         </button>
                       )}
                     </div>
                   ))}
-
-                  <button
-                    onClick={handleAddItem}
-                    className="text-sm text-green-600 font-medium hover:underline flex items-center gap-1 mt-3 py-2 px-3 rounded-lg hover:bg-green-50 transition"
-                  >
-                    <LuPlus /> Adicionar outro item
-                  </button>
                 </div>
-              </div>
 
-              {/* Footer Modal */}
-              <div className="bg-gray-50 px-6 py-4 flex justify-end gap-3 border-t">
                 <button
-                  onClick={closeModal}
-                  className="px-4 py-2 text-gray-600 hover:bg-gray-200 rounded-lg transition"
+                  onClick={handleAddItem}
+                  className="mt-3 flex items-center gap-1.5 text-sm text-[#384A6C] font-bold hover:underline underline-offset-4"
                 >
-                  Cancelar
-                </button>
-                <button
-                  onClick={handleSave}
-                  className="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700 font-medium shadow-md transition flex items-center gap-2"
-                >
-                  {editingId ? "Atualizar Pedido" : "Confirmar Pedido"}
+                  <LuPlus size={15} /> Adicionar item
                 </button>
               </div>
             </div>
+
+            {/* Footer */}
+            <div className="flex justify-end gap-3 px-8 py-5 border-t border-gray-100">
+              <button
+                onClick={closeModal}
+                className="px-5 py-2.5 rounded-xl border border-gray-200 text-sm font-semibold text-gray-500 hover:bg-gray-50 transition"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={handleSave}
+                disabled={saving}
+                className="px-6 py-2.5 rounded-xl text-sm font-bold text-white bg-[#384A6C] hover:bg-[#2f3e5c] active:scale-95 transition-all disabled:opacity-60 flex items-center gap-2"
+              >
+                {saving ? (
+                  <>
+                    <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
+                    </svg>
+                    Salvando...
+                  </>
+                ) : editingId ? "Atualizar pedido" : "Confirmar pedido"}
+              </button>
+            </div>
           </div>
-        )}
-      </div>
+        </div>
+      )}
+
+      {/* ── Modal Exclusão ── */}
+      {deleteTarget && (
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex justify-center items-center z-50 p-4">
+          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-sm p-8 flex flex-col items-center text-center gap-4">
+            <div className="w-14 h-14 rounded-full bg-red-50 flex items-center justify-center">
+              <LuTrash2 size={24} className="text-red-400" />
+            </div>
+            <div>
+              <h3 className="text-lg font-extrabold text-gray-800">Excluir pedido?</h3>
+              <p className="text-sm text-gray-400 mt-1">
+                O pedido <span className="font-semibold text-gray-600">#{deleteTarget.id}</span> será
+                removido e o estoque será revertido.
+              </p>
+            </div>
+            <div className="flex gap-3 w-full mt-2">
+              <button
+                onClick={() => setDeleteTarget(null)}
+                className="flex-1 py-2.5 rounded-xl border border-gray-200 text-sm font-semibold text-gray-500 hover:bg-gray-50 transition"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={handleDelete}
+                className="flex-1 py-2.5 rounded-xl bg-red-500 text-white text-sm font-bold hover:bg-red-600 active:scale-95 transition-all"
+              >
+                Excluir
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </GenericPanelLayout>
   );
 }

@@ -1,14 +1,24 @@
 import { useEffect, useState } from "react";
 import { api } from "../../../api/lib/api";
 import { GenericPanelLayout } from "../../../components/Layout/company/layoutOption";
-import { LuSearch, LuTrash2, LuPencil, LuFileText, LuLink } from "react-icons/lu";
+import {
+  LuSearch,
+  LuTrash2,
+  LuPencil,
+  LuFileText,
+  LuLink,
+  LuX,
+  LuCalendar,
+  LuHash,
+  LuInfo,
+} from "react-icons/lu";
 
-// 1. Definição atualizada conforme o Schema do Backend
+// ─── Types ────────────────────────────────────────────────────────────────────
+
 type PurchaseOrder = {
   id: number;
   total_value: number;
   status_id: number;
-  supplier_id: number;
 };
 
 type Invoice = {
@@ -16,319 +26,402 @@ type Invoice = {
   invoice_number: number | null;
   purchase_order_id: number;
   company_id: number;
-  issue_date: string; // Vem como string ISO do JSON
+  issue_date: string;
   due_date: string | null;
   link_file: string | null;
   purchase_order: PurchaseOrder;
 };
 
-// Pequeno helper para simular nomes de status (idealmente viria do backend)
-const getStatusName = (id: number) => {
-  const map: Record<number, string> = { 1: "Pendente", 2: "Pago", 3: "Atrasado", 4: "Cancelado" };
-  return map[id] || "Desconhecido";
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+const STATUS_MAP: Record<number, { label: string; cls: string }> = {
+  1: { label: "Pendente", cls: "bg-yellow-50 text-yellow-700 border-yellow-200" },
+  2: { label: "Pago",     cls: "bg-green-50 text-green-700 border-green-200" },
+  3: { label: "Atrasado", cls: "bg-red-50 text-red-700 border-red-200" },
+  4: { label: "Cancelado",cls: "bg-gray-100 text-gray-500 border-gray-200" },
 };
 
-// Helper para formatar data para o input HTML (yyyy-MM-dd)
-const formatDateForInput = (dateString: string | null) => {
-  if (!dateString) return "";
-  return new Date(dateString).toISOString().split('T')[0];
-};
+function getStatus(id: number) {
+  return STATUS_MAP[id] ?? { label: "Desconhecido", cls: "bg-gray-100 text-gray-500 border-gray-200" };
+}
+
+function formatDate(dateStr: string | null) {
+  if (!dateStr) return null;
+  return new Date(dateStr).toLocaleDateString("pt-BR");
+}
+
+function formatDateForInput(dateStr: string | null) {
+  if (!dateStr) return "";
+  return new Date(dateStr).toISOString().split("T")[0];
+}
+
+// ─── Field ────────────────────────────────────────────────────────────────────
+
+function Field({
+  label,
+  className = "",
+  ...props
+}: React.InputHTMLAttributes<HTMLInputElement> & {
+  label: string;
+  className?: string;
+}) {
+  return (
+    <div className={`flex flex-col gap-1 ${className}`}>
+      <label className="text-[10px] font-bold text-[#384A6C] uppercase tracking-widest">
+        {label}
+      </label>
+      <input
+        {...props}
+        className="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm text-gray-800 placeholder-gray-300 bg-white
+          focus:outline-none focus:ring-2 focus:ring-[#94C0E0] focus:border-transparent transition-all"
+      />
+    </div>
+  );
+}
+
+// ─── Main ─────────────────────────────────────────────────────────────────────
 
 export default function InvoiceManager() {
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [filtered, setFiltered] = useState<Invoice[]>([]);
   const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
-
   const [editing, setEditing] = useState<Invoice | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<{ id: number } | null>(null);
 
-  // Form states para edição (para evitar mutar o objeto original diretamente antes de salvar)
   const [editForm, setEditForm] = useState({
     invoice_number: "",
     issue_date: "",
     due_date: "",
-    link_file: ""
+    link_file: "",
   });
 
-  // 1. Carregar dados da API
   useEffect(() => {
-    async function loadData() {
-      try {
-        const res = await api.get("/invoice"); // Certifique-se que a rota é '/invoices' ou '' dependendo do prefixo
-        setInvoices(res.data);
-        setFiltered(res.data);
-      } catch (err) {
-        console.error("Erro ao carregar faturas", err);
-      } finally {
-        setLoading(false);
-      }
-    }
-    loadData();
+    api
+      .get("/invoice")
+      .then((r) => {
+        setInvoices(r.data);
+        setFiltered(r.data);
+      })
+      .catch(console.error)
+      .finally(() => setLoading(false));
   }, []);
 
-  // 2. Busca (Filtro)
   const handleSearch = (value: string) => {
     setSearchTerm(value);
-    const lowerValue = value.toLowerCase();
-    
+    const lower = value.toLowerCase();
     setFiltered(
       invoices.filter((inv) => {
-        const statusName = getStatusName(inv.purchase_order.status_id).toLowerCase();
-        
+        const statusLabel = getStatus(inv.purchase_order.status_id).label.toLowerCase();
         return (
           String(inv.id).includes(value) ||
-          String(inv.invoice_number || "").includes(value) ||
+          String(inv.invoice_number ?? "").includes(value) ||
           String(inv.purchase_order_id).includes(value) ||
-          statusName.includes(lowerValue)
+          statusLabel.includes(lower)
         );
       })
     );
   };
 
-  // 3. Deletar
-  const handleDelete = async (id: number) => {
-    if (!confirm(`Deseja realmente excluir a fatura #${id}?`)) return;
-    try {
-      await api.delete(`/invoice/${id}`); // Ajuste a rota conforme seu backend
-      const newList = invoices.filter((i) => i.id !== id);
-      setInvoices(newList);
-      setFiltered(newList); // Atualiza também a lista filtrada
-      alert("Fatura excluída com sucesso!");
-    } catch {
-      alert("Erro ao deletar fatura.");
-    }
-  };
-
-  // 4. Preparar Edição
   const handleEdit = (invoice: Invoice) => {
     setEditing(invoice);
     setEditForm({
       invoice_number: invoice.invoice_number ? String(invoice.invoice_number) : "",
       issue_date: formatDateForInput(invoice.issue_date),
       due_date: formatDateForInput(invoice.due_date),
-      link_file: invoice.link_file || ""
+      link_file: invoice.link_file ?? "",
     });
   };
 
-  // 5. Salvar Edição
   const handleSave = async () => {
     if (!editing) return;
-
     try {
-      // Payload conforme o Schema de Update (ajuste conforme necessário)
+      setSaving(true);
       const payload = {
         invoice_number: editForm.invoice_number ? Number(editForm.invoice_number) : null,
-        issue_date: new Date(editForm.issue_date), // O Zod espera Date object ou string válida
+        issue_date: new Date(editForm.issue_date),
         due_date: editForm.due_date ? new Date(editForm.due_date) : null,
-        link_file: editForm.link_file || null
+        link_file: editForm.link_file || null,
       };
-      
       await api.put(`/invoice/${editing.id}`, payload);
-      
-      // Atualiza estado local
-      const updatedList = invoices.map((inv) => {
-        if (inv.id === editing.id) {
-            return { 
-                ...inv, 
-                invoice_number: payload.invoice_number,
-                issue_date: payload.issue_date.toISOString(),
-                due_date: payload.due_date ? payload.due_date.toISOString() : null,
-                link_file: payload.link_file
-            };
-        }
-        return inv;
-      });
-
-      setInvoices(updatedList);
-      setFiltered(updatedList); // Reseta filtro ou reaplica lógica se necessário
-
-      alert("Fatura atualizada com sucesso!");
+      const updated = invoices.map((inv) =>
+        inv.id === editing.id
+          ? {
+              ...inv,
+              invoice_number: payload.invoice_number,
+              issue_date: payload.issue_date.toISOString(),
+              due_date: payload.due_date?.toISOString() ?? null,
+              link_file: payload.link_file,
+            }
+          : inv
+      );
+      setInvoices(updated);
+      setFiltered(updated);
       setEditing(null);
-    } catch (error) {
-      console.error(error);
-      alert("Erro ao atualizar fatura. Verifique os dados.");
+    } catch (err) {
+      console.error(err);
+      alert("Erro ao atualizar fatura.");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!deleteTarget) return;
+    try {
+      await api.delete(`/invoice/${deleteTarget.id}`);
+      const next = invoices.filter((i) => i.id !== deleteTarget.id);
+      setInvoices(next);
+      setFiltered(next);
+    } catch {
+      alert("Erro ao excluir fatura.");
+    } finally {
+      setDeleteTarget(null);
     }
   };
 
   return (
-    // @ts-ignore 
+    // @ts-ignore
     <GenericPanelLayout panel="invoice">
-      <div className="bg-white max-w-5xl w-full rounded-3xl shadow-xl p-10 min-h-[600px]">
-        <h1 className="text-3xl text-center mb-8 flex items-center justify-center gap-3">
-          <LuFileText /> Gestão de Faturas
-        </h1>
+      <div className="w-full max-w-5xl mx-auto space-y-6">
 
-        {/* Header: Busca */}
-        <div className="flex justify-between mb-6">
-          <div className="flex items-center gap-2 border border-black rounded-lg px-4 py-2 w-full max-w-md">
-            <LuSearch />
+        {/* ── Header ── */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <h1 className="text-2xl font-extrabold text-[#384A6C] tracking-tight flex items-center gap-2">
+              <LuFileText size={22} /> Faturas
+            </h1>
+            <p className="text-sm text-gray-400 mt-0.5">
+              {filtered.length} fatura{filtered.length !== 1 ? "s" : ""} encontrada{filtered.length !== 1 ? "s" : ""}
+            </p>
+          </div>
+
+          <div className="flex items-center gap-2 bg-white border border-gray-200 rounded-xl px-4 py-2.5 shadow-sm">
+            <LuSearch size={15} className="text-gray-400 shrink-0" />
             <input
               type="text"
               value={searchTerm}
               onChange={(e) => handleSearch(e.target.value)}
-              placeholder="Buscar por ID, Nº Nota, Pedido ou Status..."
-              className="outline-none w-full"
+              placeholder="Buscar por ID, nota, pedido ou status..."
+              className="outline-none text-sm text-gray-700 placeholder-gray-300 w-64"
             />
           </div>
         </div>
 
-        {/* Lista de Faturas */}
-        <div className="border-t border-black">
+        {/* ── Lista ── */}
+        <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
           {loading ? (
-            <p className="text-center py-4 text-gray-500">Carregando...</p>
+            <div className="flex flex-col items-center justify-center py-20 gap-3">
+              <svg className="animate-spin h-6 w-6 text-[#94C0E0]" viewBox="0 0 24 24" fill="none">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
+              </svg>
+              <p className="text-sm text-gray-400">Carregando faturas...</p>
+            </div>
+          ) : filtered.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-20 gap-2 text-gray-400">
+              <LuFileText size={32} className="opacity-30" />
+              <p className="text-sm font-medium">Nenhuma fatura encontrada.</p>
+            </div>
           ) : (
-            filtered.map((inv) => {
-                const statusName = getStatusName(inv.purchase_order.status_id);
+            <ul className="divide-y divide-gray-50">
+              {filtered.map((inv) => {
+                const status = getStatus(inv.purchase_order.status_id);
                 return (
-                  <div
+                  <li
                     key={inv.id}
-                    className="flex justify-between border-b border-black py-4 items-center px-4 hover:bg-gray-50 transition-colors"
+                    className="flex items-center justify-between px-6 py-4 hover:bg-[#EEF5FB]/60 transition-colors gap-4"
                   >
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2">
-                          <p className="font-semibold text-lg">
-                            Fatura #{inv.id} 
-                            {inv.invoice_number && <span className="text-gray-500 text-sm ml-2">(Nota: {inv.invoice_number})</span>}
-                          </p>
+                    {/* Ícone + info */}
+                    <div className="flex items-start gap-4 flex-1 min-w-0">
+                      <div className="w-10 h-10 rounded-full bg-[#384A6C]/10 flex items-center justify-center text-[#384A6C] shrink-0 mt-0.5">
+                        <LuFileText size={18} />
                       </div>
-                      
-                      <p className="text-sm text-gray-600">Referente ao Pedido: <strong>#{inv.purchase_order_id}</strong></p>
-                      
-                      <div className="flex gap-4 mt-2 text-sm font-medium items-center">
-                        <span className="text-blue-600 bg-blue-50 px-2 py-1 rounded">
-                            R$ {Number(inv.purchase_order.total_value).toFixed(2)}
-                        </span>
-                        
-                        <span className={`px-2 py-1 rounded ${
-                            statusName === "Pago" ? "bg-green-100 text-green-700" : "bg-orange-100 text-orange-700"
-                        }`}>
-                          {statusName}
-                        </span>
 
-                        <span className="text-gray-500">
-                             Emissão: {new Date(inv.issue_date).toLocaleDateString()}
-                        </span>
-                        {inv.due_date && (
-                             <span className="text-red-500">
-                                Venc: {new Date(inv.due_date).toLocaleDateString()}
-                             </span>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <p className="font-semibold text-gray-800 text-sm">
+                            Fatura #{inv.id}
+                          </p>
+                          {inv.invoice_number && (
+                            <span className="text-xs text-gray-400 flex items-center gap-0.5">
+                              <LuHash size={10} /> Nota {inv.invoice_number}
+                            </span>
+                          )}
+                          <span className={`inline-flex text-xs font-semibold px-2.5 py-0.5 rounded-full border ${status.cls}`}>
+                            {status.label}
+                          </span>
+                        </div>
+
+                        <div className="flex items-center gap-4 text-xs text-gray-400 mt-1 flex-wrap">
+                          <span>
+                            Pedido{" "}
+                            <span className="font-semibold text-gray-600">
+                              #{inv.purchase_order_id}
+                            </span>
+                          </span>
+                          <span className="font-semibold text-[#384A6C]">
+                            R$ {Number(inv.purchase_order.total_value).toFixed(2)}
+                          </span>
+                          <span className="flex items-center gap-1">
+                            <LuCalendar size={10} />
+                            Emissão: {formatDate(inv.issue_date)}
+                          </span>
+                          {inv.due_date && (
+                            <span className="flex items-center gap-1 text-red-400">
+                              <LuCalendar size={10} />
+                              Venc: {formatDate(inv.due_date)}
+                            </span>
+                          )}
+                        </div>
+
+                        {inv.link_file && (
+                          <a
+                            href={inv.link_file}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="inline-flex items-center gap-1 text-xs text-[#384A6C] font-semibold hover:underline underline-offset-4 mt-1.5"
+                          >
+                            <LuLink size={11} /> Ver arquivo
+                          </a>
                         )}
                       </div>
-                      
-                      {inv.link_file && (
-                          <a href={inv.link_file} target="_blank" rel="noreferrer" className="text-xs text-blue-500 flex items-center gap-1 mt-2 hover:underline">
-                              <LuLink /> Ver Arquivo
-                          </a>
-                      )}
                     </div>
 
-                    <div className="flex gap-4">
+                    {/* Ações */}
+                    <div className="flex items-center gap-2 shrink-0">
                       <button
                         onClick={() => handleEdit(inv)}
-                        className="text-blue-600 text-2xl hover:text-blue-800 transition-transform hover:scale-110"
+                        className="p-2 rounded-xl text-[#384A6C] hover:bg-[#384A6C]/10 transition"
                         title="Editar"
                       >
-                        <LuPencil />
+                        <LuPencil size={16} />
                       </button>
                       <button
-                        onClick={() => handleDelete(inv.id)}
-                        className="text-red-600 text-2xl hover:text-red-800 transition-transform hover:scale-110"
+                        onClick={() => setDeleteTarget({ id: inv.id })}
+                        className="p-2 rounded-xl text-red-400 hover:bg-red-50 transition"
                         title="Excluir"
                       >
-                        <LuTrash2 />
+                        <LuTrash2 size={16} />
                       </button>
                     </div>
-                  </div>
+                  </li>
                 );
-            })
-          )}
-          
-          {filtered.length === 0 && !loading && (
-            <p className="text-center py-6 text-gray-400">Nenhuma fatura encontrada.</p>
+              })}
+            </ul>
           )}
         </div>
+      </div>
 
-        {/* --- MODAL EDITAR --- */}
-        {editing && (
-          <div className="fixed top-0 left-0 w-full h-full bg-black/40 flex justify-center items-center z-[1000] backdrop-blur-sm">
-            <div className="bg-white w-[500px] p-8 rounded-2xl shadow-2xl z-[1001]">
-              <h2 className="text-2xl font-semibold mb-6 text-gray-800">Editar Fatura #{editing.id}</h2>
-              
-              <div className="flex flex-col gap-4">
-                
-                {/* Nota Fiscal */}
-                <div>
-                    <label className="text-sm font-bold text-gray-700">Número da Nota Fiscal</label>
-                    <input
-                    type="number"
-                    value={editForm.invoice_number}
-                    onChange={(e) => setEditForm({ ...editForm, invoice_number: e.target.value })}
-                    className="border border-gray-300 p-2 rounded w-full mt-1 focus:ring-2 focus:ring-blue-500 outline-none"
-                    placeholder="Ex: 123456"
-                    />
-                </div>
+      {/* ── Modal Edição ── */}
+      {editing && (
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex justify-center items-center z-50 p-4">
+          <div className="bg-white w-full max-w-lg rounded-3xl shadow-2xl">
 
-                <div className="flex gap-4">
-                    {/* Data Emissão */}
-                    <div className="flex-1">
-                        <label className="text-sm font-bold text-gray-700">Data de Emissão</label>
-                        <input
-                        type="date"
-                        value={editForm.issue_date}
-                        onChange={(e) => setEditForm({ ...editForm, issue_date: e.target.value })}
-                        className="border border-gray-300 p-2 rounded w-full mt-1 focus:ring-2 focus:ring-blue-500 outline-none"
-                        />
-                    </div>
+            <div className="flex items-center justify-between px-8 pt-7 pb-4 border-b border-gray-100">
+              <h2 className="text-xl font-extrabold text-[#384A6C] tracking-tight">
+                Editar Fatura #{editing.id}
+              </h2>
+              <button
+                onClick={() => setEditing(null)}
+                className="text-gray-400 hover:text-gray-600 transition p-1 rounded-lg hover:bg-gray-100"
+              >
+                <LuX size={20} />
+              </button>
+            </div>
 
-                    {/* Data Vencimento */}
-                    <div className="flex-1">
-                        <label className="text-sm font-bold text-gray-700">Data de Vencimento</label>
-                        <input
-                        type="date"
-                        value={editForm.due_date}
-                        onChange={(e) => setEditForm({ ...editForm, due_date: e.target.value })}
-                        className="border border-gray-300 p-2 rounded w-full mt-1 focus:ring-2 focus:ring-blue-500 outline-none"
-                        />
-                    </div>
-                </div>
+            <div className="px-8 py-6 space-y-4">
+              <Field
+                label="Número da nota fiscal"
+                type="number"
+                placeholder="Ex: 123456"
+                value={editForm.invoice_number}
+                onChange={(e) => setEditForm({ ...editForm, invoice_number: e.target.value })}
+              />
 
-                {/* Link Arquivo */}
-                <div>
-                    <label className="text-sm font-bold text-gray-700">Link do Arquivo (PDF/Drive)</label>
-                    <input
-                    type="text"
-                    value={editForm.link_file}
-                    onChange={(e) => setEditForm({ ...editForm, link_file: e.target.value })}
-                    className="border border-gray-300 p-2 rounded w-full mt-1 focus:ring-2 focus:ring-blue-500 outline-none"
-                    placeholder="https://..."
-                    />
-                </div>
-
-                {/* Aviso sobre dados Read-Only */}
-                <div className="bg-gray-100 p-3 rounded text-xs text-gray-500 mt-2">
-                    <p>O <strong>Valor</strong> e o <strong>Status</strong> são gerenciados através do Pedido de Compra associado (ID: {editing.purchase_order_id}).</p>
-                </div>
+              <div className="grid grid-cols-2 gap-3">
+                <Field
+                  label="Data de emissão"
+                  type="date"
+                  value={editForm.issue_date}
+                  onChange={(e) => setEditForm({ ...editForm, issue_date: e.target.value })}
+                />
+                <Field
+                  label="Data de vencimento"
+                  type="date"
+                  value={editForm.due_date}
+                  onChange={(e) => setEditForm({ ...editForm, due_date: e.target.value })}
+                />
               </div>
 
-              <div className="flex justify-end gap-3 mt-8">
-                <button 
-                    onClick={() => setEditing(null)} 
-                    className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
-                >
-                  Cancelar
-                </button>
-                <button 
-                    onClick={handleSave} 
-                    className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors shadow-lg shadow-blue-200"
-                >
-                  Salvar Alterações
-                </button>
+              <Field
+                label="Link do arquivo (PDF / Drive)"
+                type="url"
+                placeholder="https://..."
+                value={editForm.link_file}
+                onChange={(e) => setEditForm({ ...editForm, link_file: e.target.value })}
+              />
+
+              <div className="flex items-start gap-2 bg-[#EEF5FB] border border-[#94C0E0]/30 rounded-xl px-4 py-3 text-xs text-gray-500">
+                <LuInfo size={14} className="text-[#384A6C] shrink-0 mt-0.5" />
+                O <strong className="text-gray-700">valor</strong> e o{" "}
+                <strong className="text-gray-700">status</strong> são gerenciados pelo Pedido de
+                Compra #{editing.purchase_order_id}.
               </div>
             </div>
-          </div>
-        )}
 
-      </div>
+            <div className="flex justify-end gap-3 px-8 py-5 border-t border-gray-100">
+              <button
+                onClick={() => setEditing(null)}
+                className="px-5 py-2.5 rounded-xl border border-gray-200 text-sm font-semibold text-gray-500 hover:bg-gray-50 transition"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={handleSave}
+                disabled={saving}
+                className="px-6 py-2.5 rounded-xl text-sm font-bold text-white bg-[#384A6C] hover:bg-[#2f3e5c] active:scale-95 transition-all disabled:opacity-60"
+              >
+                {saving ? "Salvando..." : "Salvar alterações"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Modal Exclusão ── */}
+      {deleteTarget && (
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex justify-center items-center z-50 p-4">
+          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-sm p-8 flex flex-col items-center text-center gap-4">
+            <div className="w-14 h-14 rounded-full bg-red-50 flex items-center justify-center">
+              <LuTrash2 size={24} className="text-red-400" />
+            </div>
+            <div>
+              <h3 className="text-lg font-extrabold text-gray-800">Excluir fatura?</h3>
+              <p className="text-sm text-gray-400 mt-1">
+                Fatura{" "}
+                <span className="font-semibold text-gray-600">#{deleteTarget.id}</span>{" "}
+                será removida permanentemente.
+              </p>
+            </div>
+            <div className="flex gap-3 w-full mt-2">
+              <button
+                onClick={() => setDeleteTarget(null)}
+                className="flex-1 py-2.5 rounded-xl border border-gray-200 text-sm font-semibold text-gray-500 hover:bg-gray-50 transition"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={handleDelete}
+                className="flex-1 py-2.5 rounded-xl bg-red-500 text-white text-sm font-bold hover:bg-red-600 active:scale-95 transition-all"
+              >
+                Excluir
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </GenericPanelLayout>
   );
 }
