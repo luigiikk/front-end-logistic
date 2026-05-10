@@ -1,27 +1,33 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import { LuMountain } from "react-icons/lu";
+import { LuArrowLeft } from "react-icons/lu";
+import logo2 from "../../../Img/logo2.png";
 
 interface HeaderLayoutProps {
-  title?: string; 
+  title?: string;
 }
 
-export const HeaderLayout: React.FC<HeaderLayoutProps> = ({ title = "EMPRESA" }) => {
+export const HeaderLayout: React.FC<HeaderLayoutProps> = ({
+  title = "EMPRESA",
+}) => {
   return (
-    <header className="flex justify-between items-center px-8 py-4 bg-white shadow-sm z-10">
+    <header className="flex justify-between items-center px-8 py-3 bg-[#384A6C] shadow-md z-10">
+      {/* Voltar */}
       <Link
-        to={"/company"}
-        className="bg-[#f7b94d] hover:bg-[#e6aa3e] text-black px-8 py-2 rounded-full font-medium transition-colors shadow-sm cursor-pointer no-underline flex items-center justify-center"
+        to="/company"
+        className="flex items-center gap-2 text-white/70 hover:text-white text-sm font-semibold transition-colors no-underline"
       >
+        <LuArrowLeft size={16} />
         Voltar
       </Link>
 
-      <div className="flex items-center gap-3">
-        <div className="border-2 border-black rounded-full p-1">
-          <LuMountain className="w-6 h-6 text-black" />
-        </div>
-        <span className="font-bold text-lg tracking-wide text-black">{title}</span>
-      </div>
+      {/* Logo */}
+      <img src={logo2} alt="LogiFast" className="h-8 object-contain" />
+
+      {/* Título da página */}
+      <span className="text-sm font-bold text-white/80 tracking-wide uppercase">
+        {title.replace(" - LogiFast", "")}
+      </span>
     </header>
   );
 };
