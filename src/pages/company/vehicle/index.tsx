@@ -17,34 +17,56 @@ type Vehicle = {
   id: number;
   plate: string;
   model: string;
-  capacity: number;
+  total_volume: number;    
+  available_volume: number;  
   status: string;
 };
 
 type Status = {
   id: number;
   name: string;
-  description?: string | null;
-  entity_type?: string | null;
+  type: "order" | "vehicle" | "invoice" | "purchase_order";
+  is_default?: boolean;
 };
 
 type VehicleForm = {
   plate: string;
   model: string;
-  capacity: number;
+  total_volume: number; 
   status_id: number;
 };
 
-const EMPTY_FORM: VehicleForm = { plate: "", model: "", capacity: 0, status_id: 0 };
+const EMPTY_FORM: VehicleForm = {
+  plate: "",
+  model: "",
+  total_volume: 0,
+  status_id: 0,
+};
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function getInitials(model: string) {
-  return model.split(" ").slice(0, 2).map((w) => w[0]).join("").toUpperCase();
+  return model
+    .split(" ")
+    .slice(0, 2)
+    .map((w) => w[0])
+    .join("")
+    .toUpperCase();
 }
 
 function maskPlate(v: string) {
   return v.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 7);
+}
+
+/**
+ * Cruza o nome do status atual do veículo (string) com o array de statuses
+ * para recuperar o id correto e pré-selecionar o select no modal de edição.
+ */
+function resolveStatusId(statusName: string, statuses: Status[]): number {
+  const match = statuses.find(
+    (s) => s.name.toLowerCase() === statusName.toLowerCase()
+  );
+  return match?.id ?? 0;
 }
 
 // ─── Field / Select ───────────────────────────────────────────────────────────
@@ -53,10 +75,15 @@ function Field({
   label,
   className = "",
   ...props
-}: React.InputHTMLAttributes<HTMLInputElement> & { label: string; className?: string }) {
+}: React.InputHTMLAttributes<HTMLInputElement> & {
+  label: string;
+  className?: string;
+}) {
   return (
     <div className={`flex flex-col gap-1 ${className}`}>
-      <label className="text-[10px] font-bold text-[#384A6C] uppercase tracking-widest">{label}</label>
+      <label className="text-[10px] font-bold text-[#384A6C] uppercase tracking-widest">
+        {label}
+      </label>
       <input
         {...props}
         className="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm text-gray-800 placeholder-gray-300 bg-white
@@ -71,10 +98,15 @@ function SelectField({
   className = "",
   children,
   ...props
-}: React.SelectHTMLAttributes<HTMLSelectElement> & { label: string; className?: string }) {
+}: React.SelectHTMLAttributes<HTMLSelectElement> & {
+  label: string;
+  className?: string;
+}) {
   return (
     <div className={`flex flex-col gap-1 ${className}`}>
-      <label className="text-[10px] font-bold text-[#384A6C] uppercase tracking-widest">{label}</label>
+      <label className="text-[10px] font-bold text-[#384A6C] uppercase tracking-widest">
+        {label}
+      </label>
       <select
         {...props}
         className="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm text-gray-800 bg-white appearance-none
@@ -99,13 +131,18 @@ type ModalProps = {
   loading: boolean;
 };
 
-function VehicleModal({ title, form, statuses, onChange, onConfirm, onClose, confirmLabel, loading }: ModalProps) {
+function VehicleModal({
+  title, form, statuses, onChange, onConfirm, onClose, confirmLabel, loading,
+}: ModalProps) {
   return (
     <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex justify-center items-center z-50 p-4">
       <div className="bg-white w-full max-w-md rounded-3xl shadow-2xl">
         <div className="flex items-center justify-between px-8 pt-7 pb-4 border-b border-gray-100">
           <h2 className="text-xl font-extrabold text-[#384A6C] tracking-tight">{title}</h2>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 transition p-1 rounded-lg hover:bg-gray-100">
+          <button
+            onClick={onClose}
+            className="text-gray-400 hover:text-gray-600 transition p-1 rounded-lg hover:bg-gray-100"
+          >
             <LuX size={20} />
           </button>
         </div>
@@ -127,12 +164,13 @@ function VehicleModal({ title, form, statuses, onChange, onConfirm, onClose, con
           </div>
           <div className="grid grid-cols-2 gap-3">
             <Field
-              label="Capacidade (kg)"
+              label="Volume total (m³)"
               type="number"
               min={0}
+              step={0.1}
               placeholder="0"
-              value={form.capacity || ""}
-              onChange={(e) => onChange({ ...form, capacity: Number(e.target.value) })}
+              value={form.total_volume || ""}
+              onChange={(e) => onChange({ ...form, total_volume: Number(e.target.value) })}
             />
             <SelectField
               label="Status"
@@ -140,8 +178,11 @@ function VehicleModal({ title, form, statuses, onChange, onConfirm, onClose, con
               onChange={(e) => onChange({ ...form, status_id: Number(e.target.value) })}
             >
               <option value={0}>Selecione...</option>
+              {/* ✅ Só exibe statuses do tipo "vehicle" */}
               {statuses.map((s) => (
-                <option key={s.id} value={s.id}>{s.description ?? s.name}</option>
+                <option key={s.id} value={s.id}>
+                  {s.name}
+                </option>
               ))}
             </SelectField>
           </div>
@@ -175,6 +216,8 @@ export default function VehicleManager() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [search, setSearch] = useState("");
+
+  // ✅ Apenas statuses cujo entity_type === "vehicle"
   const [statuses, setStatuses] = useState<Status[]>([]);
 
   const [editingVehicle, setEditingVehicle] = useState<Vehicle | null>(null);
@@ -186,9 +229,18 @@ export default function VehicleManager() {
   useEffect(() => {
     Promise.all([api.get("/vehicle"), api.get("/status/vehicle")])
       .then(([vRes, sRes]) => {
-        setVehicles(vRes.data);
-        setFiltered(vRes.data);
-        setStatuses(sRes.data);
+        // A rota /status/vehicle já retorna apenas os do tipo "vehicle"
+        const vehicleStatuses: Status[] = Array.isArray(sRes.data)
+          ? sRes.data
+          : sRes.data.data ?? [];
+
+        const vehicleList: Vehicle[] = Array.isArray(vRes.data)
+          ? vRes.data
+          : vRes.data.data ?? [];
+
+        setVehicles(vehicleList);
+        setFiltered(vehicleList);
+        setStatuses(vehicleStatuses);
       })
       .catch(console.error)
       .finally(() => setLoading(false));
@@ -203,7 +255,7 @@ export default function VehicleManager() {
           v.plate.toLowerCase().includes(lower) ||
           v.model.toLowerCase().includes(lower) ||
           v.status.toLowerCase().includes(lower) ||
-          String(v.capacity).includes(value)
+          String(v.total_volume).includes(value)
       )
     );
   };
@@ -214,10 +266,13 @@ export default function VehicleManager() {
       await api.delete(`/vehicle/${deleteTarget.id}`);
       const next = vehicles.filter((v) => v.id !== deleteTarget.id);
       setVehicles(next);
-      setFiltered(next.filter((v) =>
-        v.plate.toLowerCase().includes(search.toLowerCase()) ||
-        v.model.toLowerCase().includes(search.toLowerCase())
-      ));
+      setFiltered(
+        next.filter(
+          (v) =>
+            v.plate.toLowerCase().includes(search.toLowerCase()) ||
+            v.model.toLowerCase().includes(search.toLowerCase())
+        )
+      );
     } catch {
       alert("Erro ao excluir veículo.");
     } finally {
@@ -227,7 +282,13 @@ export default function VehicleManager() {
 
   const handleOpenEdit = (v: Vehicle) => {
     setEditingVehicle(v);
-    setEditForm({ plate: v.plate, model: v.model, capacity: v.capacity, status_id: 0 });
+    setEditForm({
+      plate: v.plate,
+      model: v.model,
+      total_volume: v.total_volume,
+      // ✅ Resolve o id correto cruzando o nome do status com o array
+      status_id: resolveStatusId(v.status, statuses),
+    });
   };
 
   const handleSave = async () => {
@@ -237,7 +298,7 @@ export default function VehicleManager() {
       const payload = {
         plate: editForm.plate,
         model: editForm.model,
-        capacity: Number(editForm.capacity),
+        total_volume: Number(editForm.total_volume),
         status_id: editForm.status_id,
       };
       await api.put(`/vehicle/${editingVehicle.id}`, payload);
@@ -260,12 +321,15 @@ export default function VehicleManager() {
       await api.post("/vehicle", {
         plate: newForm.plate,
         model: newForm.model,
-        capacity: Number(newForm.capacity),
+        total_volume: Number(newForm.total_volume),
         status_id: newForm.status_id,
       });
       const list = await api.get("/vehicle");
-      setVehicles(list.data);
-      setFiltered(list.data);
+      const vehicleList: Vehicle[] = Array.isArray(list.data)
+        ? list.data
+        : list.data.data ?? [];
+      setVehicles(vehicleList);
+      setFiltered(vehicleList);
       setCreating(false);
       setNewForm(EMPTY_FORM);
     } catch {
@@ -286,7 +350,8 @@ export default function VehicleManager() {
               <LuTruck size={22} /> Veículos
             </h1>
             <p className="text-sm text-gray-400 mt-0.5">
-              {filtered.length} veículo{filtered.length !== 1 ? "s" : ""} encontrado{filtered.length !== 1 ? "s" : ""}
+              {filtered.length} veículo{filtered.length !== 1 ? "s" : ""} encontrado
+              {filtered.length !== 1 ? "s" : ""}
             </p>
           </div>
 
@@ -339,17 +404,17 @@ export default function VehicleManager() {
                     </div>
                     <div>
                       <div className="flex items-center gap-2 flex-wrap">
-                        <p className="font-semibold text-gray-800 text-sm">
-                          {v.plate}
-                        </p>
+                        <p className="font-semibold text-gray-800 text-sm">{v.plate}</p>
                         <span className="text-gray-400 text-xs">—</span>
                         <p className="text-sm text-gray-600">{v.model}</p>
                       </div>
                       <div className="flex items-center gap-3 text-xs text-gray-400 mt-0.5 flex-wrap">
                         <span className="flex items-center gap-1">
                           <LuGauge size={11} />
-                          Capacidade:{" "}
-                          <span className="font-semibold text-gray-600">{v.capacity} kg</span>
+                          Volume:{" "}
+                          <span className="font-semibold text-gray-600">
+                            {v.available_volume} / {v.total_volume} m³
+                          </span>
                         </span>
                         <span className="inline-flex items-center text-xs font-semibold px-2.5 py-0.5 rounded-full border bg-[#384A6C]/10 text-[#384A6C] border-[#384A6C]/20">
                           {v.status}
@@ -419,7 +484,8 @@ export default function VehicleManager() {
             <div>
               <h3 className="text-lg font-extrabold text-gray-800">Excluir veículo?</h3>
               <p className="text-sm text-gray-400 mt-1">
-                <span className="font-semibold text-gray-600">{deleteTarget.plate}</span> será removido permanentemente.
+                <span className="font-semibold text-gray-600">{deleteTarget.plate}</span> será
+                removido permanentemente.
               </p>
             </div>
             <div className="flex gap-3 w-full mt-2">
