@@ -199,164 +199,78 @@ export default function OrderManager() {
   // --- RENDERIZAÇÃO ---
 
   return (
-    <GenericPanelLayout panel="pedido">
-      <div className="bg-white max-w-6xl w-full rounded-3xl shadow-xl p-10 min-h-[600px]">
-        <h1 className="text-3xl text-center mb-8 font-bold text-gray-800">Gerenciar Pedidos</h1>
+  <GenericPanelLayout panel="pedido">
+    <div className="w-full max-w-5xl mx-auto space-y-6">
+      
+      {/* ── Cabeçalho ── */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-extrabold text-[#384A6C] tracking-tight">Gerenciar Pedidos</h1>
+          <p className="text-sm text-gray-400 mt-0.5">
+            {filtered.length} pedido{filtered.length !== 1 ? "s" : ""} encontrado{filtered.length !== 1 ? "s" : ""}
+          </p>
+        </div>
 
-        <div className="flex justify-between mb-6">
-          <button onClick={() => setCreating(true)} className="flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition">
-            <LuPlus /> Criar Pedido
-          </button>
-          <div className="flex items-center gap-2 border border-gray-300 rounded-lg px-4 py-2">
-            <LuSearch className="text-gray-500" />
-            <input 
-              value={searchTerm} onChange={(e) => handleSearch(e.target.value)} 
-              placeholder="Buscar destinatário..." className="outline-none" 
+        <div className="flex items-center gap-3">
+          {/* Busca padronizada */}
+          <div className="flex items-center gap-2 bg-white border border-gray-200 rounded-xl px-4 py-2.5 shadow-sm">
+            <LuSearch size={15} className="text-gray-400 shrink-0" />
+            <input
+              type="text"
+              value={searchTerm}
+              onChange={(e) => handleSearch(e.target.value)}
+              placeholder="Buscar destinatário..."
+              className="outline-none text-sm text-gray-700 placeholder-gray-300 w-52"
             />
           </div>
+
+          <button
+            onClick={() => setCreating(true)}
+            className="flex items-center gap-2 bg-[#384A6C] text-white px-4 py-2.5 rounded-xl text-sm font-bold hover:bg-[#2f3e5c] active:scale-95 transition-all shadow-sm"
+          >
+            <LuPlus size={16} />
+            Novo Pedido
+          </button>
         </div>
+      </div>
 
-        {/* Tabela de Listagem */}
-        <div className="border rounded-lg overflow-hidden">
-          {filtered.map((order) => (
-            <div key={order.id} className="flex justify-between border-b p-4 hover:bg-gray-50 items-center">
-              <div>
-                <p className="font-bold text-lg text-gray-800">Pedido #{order.code || order.id}</p>
-                <p className="text-gray-600 text-sm">Destinatário: {order.recipient}</p>
-                <span className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full">{order.status}</span>
-              </div>
-              <button onClick={() => handleDeleteOrder(order.id)} className="text-red-500 hover:bg-red-50 p-2 rounded-full">
-                <LuTrash2 size={20} />
-              </button>
-            </div>
-          ))}
-        </div>
-
-        {/* --- MODAL DE CRIAÇÃO COMPLETO --- */}
-        {creating && (
-          <div className="fixed inset-0 bg-black/60 flex justify-center items-center z-[1000] p-4">
-            <div className="bg-white w-full max-w-4xl rounded-2xl shadow-2xl flex flex-col max-h-[90vh] overflow-hidden">
-              
-              <div className="bg-gray-50 px-6 py-4 border-b">
-                <h2 className="text-xl font-bold text-gray-800">Novo Pedido de Entrega</h2>
-              </div>
-
-              <div className="p-8 overflow-y-auto space-y-8">
-                
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                  {/* 2. Dados do Destinatário */}
-                  <div className="bg-gray-50 p-4 rounded-xl border">
-                    <h3 className="flex items-center gap-2 font-bold text-gray-700 mb-4 border-b pb-2">
-                      <LuUser /> Dados do Destinatário
-                    </h3>
-                    <div className="space-y-3">
-                      <div>
-                        <label className="text-xs font-semibold text-gray-500">Nome Completo *</label>
-                        <input className="w-full border rounded p-2" 
-                          value={newOrder.recipient.name} onChange={e => updateRecipient('name', e.target.value)} />
-                      </div>
-                      <div>
-                        <label className="text-xs font-semibold text-gray-500">CPF *</label>
-                        <input className="w-full border rounded p-2" 
-                          value={newOrder.recipient.cpf} onChange={e => updateRecipient('cpf', e.target.value)} />
-                      </div>
-                      <div>
-                        <label className="text-xs font-semibold text-gray-500">Email</label>
-                        <input className="w-full border rounded p-2" 
-                          value={newOrder.recipient.email} onChange={e => updateRecipient('email', e.target.value)} />
-                      </div>
-                    </div>
+      {/* ── Lista de Pedidos (Estilo Card) ── */}
+      <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
+        {loading ? (
+          <div className="flex flex-col items-center justify-center py-20 gap-3">
+             {/* Spinner padronizado conforme a tela de company/client */}
+             <div className="animate-spin h-6 w-6 border-2 border-[#94C0E0] border-t-transparent rounded-full" />
+             <p className="text-sm text-gray-400">Carregando pedidos...</p>
+          </div>
+        ) : (
+          <ul className="divide-y divide-gray-50">
+            {filtered.map((order) => (
+              <li key={order.id} className="flex items-center justify-between px-6 py-4 hover:bg-[#EEF5FB]/60 transition-colors">
+                <div className="flex items-center gap-4">
+                  <div className="w-10 h-10 rounded-full bg-[#384A6C]/10 flex items-center justify-center text-[#384A6C] font-bold">
+                    #{order.code?.slice(-2) || order.id}
                   </div>
-
-                  {/* 3. Endereço */}
-                  <div className="bg-gray-50 p-4 rounded-xl border">
-                    <h3 className="flex items-center gap-2 font-bold text-gray-700 mb-4 border-b pb-2">
-                      <LuMapPin /> Endereço de Entrega
-                    </h3>
-                    <div className="grid grid-cols-2 gap-3">
-                      <div className="col-span-2">
-                        <label className="text-xs font-semibold text-gray-500">Rua</label>
-                        <input className="w-full border rounded p-2" 
-                          value={newOrder.recipient.address.street} onChange={e => updateAddress('street', e.target.value)} />
-                      </div>
-                      <div>
-                        <label className="text-xs font-semibold text-gray-500">Número</label>
-                        <input type="number" className="w-full border rounded p-2" 
-                          value={newOrder.recipient.address.number} onChange={e => updateAddress('number', e.target.value)} />
-                      </div>
-                      <div>
-                        <label className="text-xs font-semibold text-gray-500">CEP</label>
-                        <input className="w-full border rounded p-2" 
-                          value={newOrder.recipient.address.zipcode} onChange={e => updateAddress('zipcode', e.target.value)} />
-                      </div>
-                      <div>
-                        <label className="text-xs font-semibold text-gray-500">Cidade</label>
-                        <input className="w-full border rounded p-2" 
-                          value={newOrder.recipient.address.city} onChange={e => updateAddress('city', e.target.value)} />
-                      </div>
-                      <div>
-                        <label className="text-xs font-semibold text-gray-500">Estado</label>
-                        <input className="w-full border rounded p-2" maxLength={2}
-                          value={newOrder.recipient.address.state} onChange={e => updateAddress('state', e.target.value)} />
-                      </div>
-                      <div className="col-span-2">
-                        <label className="text-xs font-semibold text-gray-500">Complemento</label>
-                        <input className="w-full border rounded p-2" 
-                          value={newOrder.recipient.address.complement} onChange={e => updateAddress('complement', e.target.value)} />
-                      </div>
-                    </div>
+                  <div>
+                    <p className="font-semibold text-gray-800 text-sm">Pedido {order.code}</p>
+                    <p className="text-xs text-gray-400">Destinatário: {order.recipient}</p>
                   </div>
                 </div>
-
-                {/* 4. Produtos */}
-                <div>
-                  <h3 className="flex items-center gap-2 font-bold text-gray-700 mb-4 border-b pb-2">
-                    <LuBox /> Itens do Pedido
-                  </h3>
-                  {newOrder.products.map((p, index) => (
-                    <div key={index} className="flex gap-3 mb-3 items-end bg-gray-50 p-3 rounded border">
-                      <div className="flex-1">
-                        <label className="text-xs text-gray-500">Produto</label>
-                        <input className="w-full border rounded p-2" placeholder="Nome"
-                          value={p.name} onChange={e => updateProduct(index, 'name', e.target.value)} />
-                      </div>
-                      <div className="flex-1">
-                        <label className="text-xs text-gray-500">Descrição</label>
-                        <input className="w-full border rounded p-2" placeholder="Desc"
-                          value={p.description} onChange={e => updateProduct(index, 'description', e.target.value)} />
-                      </div>
-                      <div className="w-20">
-                        <label className="text-xs text-gray-500">Qtd</label>
-                        <input type="number" className="w-full border rounded p-2"
-                          value={p.quantity} onChange={e => updateProduct(index, 'quantity', e.target.value)} />
-                      </div>
-                      {index > 0 && (
-                        <button onClick={() => handleRemoveProduct(index)} className="text-red-500 p-2 hover:bg-red-100 rounded">
-                          <LuTrash2 />
-                        </button>
-                      )}
-                    </div>
-                  ))}
-                  <button onClick={handleAddProduct} className="text-sm text-green-600 font-bold hover:underline flex items-center gap-1">
-                    <LuPlus /> Adicionar Item
+                <div className="flex items-center gap-3">
+                  <span className="px-3 py-1 rounded-full bg-blue-50 text-[#384A6C] text-[10px] font-bold uppercase tracking-wider">
+                    {order.status}
+                  </span>
+                  <button onClick={() => handleDeleteOrder(order.id)} className="p-2 rounded-xl text-red-400 hover:bg-red-50 transition">
+                    <LuTrash2 size={16} />
                   </button>
                 </div>
-
-              </div>
-
-              <div className="bg-gray-50 px-6 py-4 border-t flex justify-end gap-3">
-                <button onClick={() => setCreating(false)} className="px-4 py-2 text-gray-600 hover:bg-gray-200 rounded-lg">Cancelar</button>
-                <button onClick={handleCreateProductWithOrder} className="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700 font-bold shadow-md">
-                  Confirmar Pedido
-                </button>
-              </div>
-
-            </div>
-          </div>
+              </li>
+            ))}
+          </ul>
         )}
-
       </div>
-    </GenericPanelLayout>
-  );
+    </div>
+    
+    {/* O modal de criação deve seguir o estilo do ClientModal de company/client/index.tsx */}
+  </GenericPanelLayout>
+);
 }
