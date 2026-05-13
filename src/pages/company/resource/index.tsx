@@ -76,11 +76,15 @@ export default function ResourceManager() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState<number | "">("");
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [formData, setFormData] = useState<ResourceForm>(initialForm);
-  const [deleteTarget, setDeleteTarget] = useState<{ id: number; name: string } | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<{
+    id: number;
+    name: string;
+  } | null>(null);
 
   const loadData = async () => {
     try {
@@ -106,16 +110,26 @@ export default function ResourceManager() {
     loadData();
   }, []);
 
-  const handleSearch = (value: string) => {
+  const handleSearch = (
+    value: string,
+    categoryId: number | "" = selectedCategory
+  ) => {
     setSearchTerm(value);
     const lower = value.toLowerCase();
     setFiltered(
-      resources.filter(
-        (r) =>
-          r.name.toLowerCase().includes(lower) ||
-          String(r.id).includes(value)
-      )
+      resources.filter((r) => {
+        const matchesText =
+          r.name.toLowerCase().includes(lower) || String(r.id).includes(value);
+        const matchesCategory =
+          categoryId === "" || r.category_id === categoryId;
+        return matchesText && matchesCategory;
+      })
     );
+  };
+
+  const handleCategoryFilter = (categoryId: number | "") => {
+    setSelectedCategory(categoryId);
+    handleSearch(searchTerm, categoryId);
   };
 
   const handleSave = async () => {
@@ -193,7 +207,6 @@ export default function ResourceManager() {
   return (
     <GenericPanelLayout panel="recurso">
       <div className="w-full max-w-5xl mx-auto space-y-6">
-
         {/* ── Header ── */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
@@ -201,7 +214,8 @@ export default function ResourceManager() {
               <LuPackage size={22} /> Recursos
             </h1>
             <p className="text-sm text-gray-400 mt-0.5">
-              {filtered.length} recurso{filtered.length !== 1 ? "s" : ""} encontrado
+              {filtered.length} recurso{filtered.length !== 1 ? "s" : ""}{" "}
+              encontrado
               {filtered.length !== 1 ? "s" : ""}
             </p>
           </div>
@@ -223,6 +237,27 @@ export default function ResourceManager() {
             >
               <LuPlus size={16} /> Novo Recurso
             </button>
+
+            {/* Filtro por Categoria */}
+            <div className="flex items-center gap-2 bg-white border border-gray-200 rounded-xl px-3 py-2 shadow-sm">
+              <LuBoxes size={15} className="text-gray-400 shrink-0" />
+              <select
+                value={selectedCategory}
+                onChange={(e) =>
+                  handleCategoryFilter(
+                    e.target.value === "" ? "" : Number(e.target.value)
+                  )
+                }
+                className="outline-none text-sm text-gray-700 bg-transparent cursor-pointer"
+              >
+                <option value="">Todas as categorias</option>
+                {categories.map((cat) => (
+                  <option key={cat.id} value={cat.id}>
+                    {cat.name}
+                  </option>
+                ))}
+              </select>
+            </div>
           </div>
         </div>
 
@@ -230,9 +265,24 @@ export default function ResourceManager() {
         <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
           {loading ? (
             <div className="flex flex-col items-center justify-center py-20 gap-3">
-              <svg className="animate-spin h-6 w-6 text-[#94C0E0]" viewBox="0 0 24 24" fill="none">
-                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
+              <svg
+                className="animate-spin h-6 w-6 text-[#94C0E0]"
+                viewBox="0 0 24 24"
+                fill="none"
+              >
+                <circle
+                  className="opacity-25"
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="currentColor"
+                  strokeWidth="4"
+                />
+                <path
+                  className="opacity-75"
+                  fill="currentColor"
+                  d="M4 12a8 8 0 018-8v8H4z"
+                />
               </svg>
               <p className="text-sm text-gray-400">Carregando recursos...</p>
             </div>
@@ -246,27 +296,33 @@ export default function ResourceManager() {
               <table className="w-full text-left">
                 <thead>
                   <tr className="border-b border-gray-100 bg-[#EEF5FB]">
-                    {["Nome", "Categoria", "Descrição", "Estoque", ""].map((h) => (
-                      <th
-                        key={h}
-                        className="py-3 px-6 text-[10px] font-bold text-[#384A6C] uppercase tracking-widest whitespace-nowrap last:text-right"
-                      >
-                        {h}
-                      </th>
-                    ))}
+                    {["Nome", "Categoria", "Descrição", "Estoque", ""].map(
+                      (h) => (
+                        <th
+                          key={h}
+                          className="py-3 px-6 text-[10px] font-bold text-[#384A6C] uppercase tracking-widest whitespace-nowrap last:text-right"
+                        >
+                          {h}
+                        </th>
+                      )
+                    )}
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-50">
                   {filtered.map((r) => (
-                    <tr key={r.id} className="hover:bg-[#EEF5FB]/60 transition-colors">
-
+                    <tr
+                      key={r.id}
+                      className="hover:bg-[#EEF5FB]/60 transition-colors"
+                    >
                       {/* Nome */}
                       <td className="py-4 px-6">
                         <div className="flex items-center gap-3">
                           <div className="w-8 h-8 rounded-full bg-[#384A6C]/10 flex items-center justify-center text-[#384A6C] shrink-0">
                             <LuPackage size={14} />
                           </div>
-                          <span className="font-semibold text-sm text-gray-800">{r.name}</span>
+                          <span className="font-semibold text-sm text-gray-800">
+                            {r.name}
+                          </span>
                         </div>
                       </td>
 
@@ -279,12 +335,16 @@ export default function ResourceManager() {
 
                       {/* Descrição */}
                       <td className="py-4 px-6 text-sm text-gray-500 max-w-xs truncate">
-                        {r.description || <span className="text-gray-300">—</span>}
+                        {r.description || (
+                          <span className="text-gray-300">—</span>
+                        )}
                       </td>
 
                       {/* Estoque */}
                       <td className="py-4 px-6">
-                        <span className="text-sm font-bold text-[#384A6C]">{r.quantity}</span>
+                        <span className="text-sm font-bold text-[#384A6C]">
+                          {r.quantity}
+                        </span>
                       </td>
 
                       {/* Ações */}
@@ -298,7 +358,9 @@ export default function ResourceManager() {
                             <LuPencil size={15} />
                           </button>
                           <button
-                            onClick={() => setDeleteTarget({ id: r.id, name: r.name })}
+                            onClick={() =>
+                              setDeleteTarget({ id: r.id, name: r.name })
+                            }
                             className="p-2 rounded-xl text-red-400 hover:bg-red-50 transition"
                             title="Excluir"
                           >
@@ -319,7 +381,6 @@ export default function ResourceManager() {
       {isModalOpen && (
         <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex justify-center items-center z-50 p-4">
           <div className="bg-white w-full max-w-lg rounded-3xl shadow-2xl flex flex-col max-h-[90vh]">
-
             {/* Header */}
             <div className="flex items-center justify-between px-8 pt-7 pb-4 border-b border-gray-100">
               <h2 className="text-xl font-extrabold text-[#384A6C] tracking-tight flex items-center gap-2">
@@ -340,7 +401,9 @@ export default function ResourceManager() {
                 label="Nome do Recurso *"
                 placeholder="Ex: Cimento CP-II"
                 value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, name: e.target.value })
+                }
               />
 
               {/* Categoria (select estilizado) */}
@@ -353,7 +416,8 @@ export default function ResourceManager() {
                   onChange={(e) =>
                     setFormData({
                       ...formData,
-                      category_id: e.target.value === "" ? "" : Number(e.target.value),
+                      category_id:
+                        e.target.value === "" ? "" : Number(e.target.value),
                     })
                   }
                   className="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm text-gray-800 bg-white
@@ -361,7 +425,9 @@ export default function ResourceManager() {
                 >
                   <option value="">Selecione uma categoria...</option>
                   {categories.map((cat) => (
-                    <option key={cat.id} value={cat.id}>{cat.name}</option>
+                    <option key={cat.id} value={cat.id}>
+                      {cat.name}
+                    </option>
                   ))}
                 </select>
               </div>
@@ -375,7 +441,9 @@ export default function ResourceManager() {
                   rows={3}
                   placeholder="Detalhes técnicos..."
                   value={formData.description}
-                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, description: e.target.value })
+                  }
                   className="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm text-gray-800 placeholder-gray-300 bg-white
                     focus:outline-none focus:ring-2 focus:ring-[#94C0E0] focus:border-transparent transition-all resize-none"
                 />
@@ -386,11 +454,14 @@ export default function ResourceManager() {
                 type="number"
                 min={0}
                 value={formData.quantity}
-                onChange={(e) => setFormData({ ...formData, quantity: Number(e.target.value) })}
+                onChange={(e) =>
+                  setFormData({ ...formData, quantity: Number(e.target.value) })
+                }
               />
 
               <p className="text-xs text-gray-400">
-                Geralmente 0. Use pedidos de compra para adicionar estoque posteriormente.
+                Geralmente 0. Use pedidos de compra para adicionar estoque
+                posteriormente.
               </p>
             </div>
 
@@ -407,7 +478,11 @@ export default function ResourceManager() {
                 disabled={saving}
                 className="px-6 py-2.5 rounded-xl text-sm font-bold text-white bg-[#384A6C] hover:bg-[#2f3e5c] active:scale-95 transition-all disabled:opacity-60"
               >
-                {saving ? "Salvando..." : editingId ? "Salvar alterações" : "Criar Recurso"}
+                {saving
+                  ? "Salvando..."
+                  : editingId
+                  ? "Salvar alterações"
+                  : "Criar Recurso"}
               </button>
             </div>
           </div>
@@ -422,10 +497,14 @@ export default function ResourceManager() {
               <LuTrash2 size={24} className="text-red-400" />
             </div>
             <div>
-              <h3 className="text-lg font-extrabold text-gray-800">Excluir recurso?</h3>
+              <h3 className="text-lg font-extrabold text-gray-800">
+                Excluir recurso?
+              </h3>
               <p className="text-sm text-gray-400 mt-1">
-                <span className="font-semibold text-gray-600">{deleteTarget.name}</span> será
-                removido. Verifique se não está vinculado a pedidos.
+                <span className="font-semibold text-gray-600">
+                  {deleteTarget.name}
+                </span>{" "}
+                será removido. Verifique se não está vinculado a pedidos.
               </p>
             </div>
             <div className="flex gap-3 w-full mt-2">
