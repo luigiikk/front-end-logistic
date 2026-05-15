@@ -15,7 +15,8 @@ type Resource = {
   category?: { name: string };
   width?: number | null;
   height?: number | null;
-  depth?: number | null;
+  length?: number | null;
+  total_quantity?: number; 
 };
 
 type ResourceForm = {
@@ -24,28 +25,28 @@ type ResourceForm = {
   category_id: number | "";
   width: string;
   height: string;
-  depth: string;
+  length: string;
 };
 
 const initialForm: ResourceForm = {
   name: "", description: "", category_id: "",
-  width: "", height: "", depth: "",
+  width: "", height: "", length: "",
 };
 
 function unitVolume(r: {
   width?: number | null;
   height?: number | null;
-  depth?: number | null;
+  length?: number | null;
 }) {
   if (
     r.width == null ||
     r.height == null ||
-    r.depth == null
+    r.length == null
   ) {
     return null;
   }
 
-  return r.width * r.height * r.depth;
+  return r.width * r.height * r.length;
 }
 
 function Field({ label, className = "", ...props }: React.InputHTMLAttributes<HTMLInputElement> & { label: string; className?: string }) {
@@ -112,7 +113,7 @@ export default function ResourceManager() {
         category_id: Number(formData.category_id),
         width: formData.width ? Number(formData.width) : null,
         height: formData.height ? Number(formData.height) : null,
-        depth: formData.depth ? Number(formData.depth) : null,
+        length: formData.length ? Number(formData.length) : null,
       };
       if (editingId) { await api.put(`/resource/${editingId}`, payload); }
       else { await api.post("/resource", payload); }
@@ -144,7 +145,7 @@ export default function ResourceManager() {
       name: r.name, description: r.description ?? "", category_id: r.category_id,
       width: r.width != null ? String(r.width) : "",
       height: r.height != null ? String(r.height) : "",
-      depth: r.depth != null ? String(r.depth) : "",
+      length: r.length != null ? String(r.length) : "",
     });
     setIsModalOpen(true);
   };
@@ -158,12 +159,12 @@ export default function ResourceManager() {
   const previewVolume = (() => {
   const w = Number(formData.width);
   const h = Number(formData.height);
-  const d = Number(formData.depth);
+  const d = Number(formData.length);
 
   if (
     formData.width === "" ||
     formData.height === "" ||
-    formData.depth === ""
+    formData.length === ""
   ) {
     return null;
   }
@@ -231,42 +232,76 @@ export default function ResourceManager() {
                   {filtered.map((r) => {
                     const vol = unitVolume(r);
                     return (
-                      <tr key={r.id} className="hover:bg-[#EEF5FB]/60 transition-colors">
+                      <tr
+                        key={r.id}
+                        className="hover:bg-[#EEF5FB]/60 transition-colors"
+                      >
+                        {/* Nome */}
                         <td className="py-4 px-6">
                           <div className="flex items-center gap-3">
                             <div className="w-8 h-8 rounded-full bg-[#384A6C]/10 flex items-center justify-center text-[#384A6C] shrink-0">
                               <LuPackage size={14} />
                             </div>
-                            <span className="font-semibold text-sm text-gray-800">{r.name}</span>
+                            <span className="font-semibold text-sm text-gray-800">
+                              {r.name}
+                            </span>
                           </div>
                         </td>
+
+                        {/* Categoria */}
                         <td className="py-4 px-6">
                           <span className="inline-flex items-center text-xs font-semibold text-[#384A6C] bg-[#384A6C]/10 px-2.5 py-1 rounded-full">
                             {resolveCategoryName(r)}
                           </span>
                         </td>
+
+                        {/* Descrição */}
                         <td className="py-4 px-6 text-sm text-gray-500 max-w-xs truncate">
-                          {r.description || <span className="text-gray-300">—</span>}
-                        </td>
-                        {/* Dimensões + volume */}
-                        <td className="py-4 px-6">
-                          {vol != null ? (
-                            <div className="flex flex-col gap-0.5">
-                              <span className="text-xs text-gray-400">
-                                {r.width}×{r.height}×{r.depth} m
-                              </span>
-                              <span className="text-xs font-bold text-[#384A6C]">
-                                {vol.toFixed(3)} m³/un
-                              </span>
-                            </div>
-                          ) : (
-                            <span className="text-xs text-gray-300">Não definido</span>
+                          {r.description || (
+                            <span className="text-gray-300">—</span>
                           )}
                         </td>
+
+                        {/* Dimensões */}
+                        <td className="py-4 px-6">
+                          {vol != null ? (
+                            <span className="text-xs font-bold text-[#384A6C]">
+                              {vol.toFixed(2)} m³/un
+                            </span>
+                          ) : (
+                            <span className="text-xs text-gray-300">
+                              Não definido
+                            </span>
+                          )}
+                        </td>
+
+                        {/* Estoque */}
+                        <td className="py-4 px-6">
+                          <span className="inline-flex items-center gap-1 text-xs font-semibold text-[#384A6C] bg-[#384A6C]/10 px-2.5 py-1 rounded-full">
+                            <LuBoxes size={11} />
+                            {r.total_quantity ?? 0} un
+                          </span>
+                        </td>
+
+                        {/* Ações */}
                         <td className="py-4 px-6">
                           <div className="flex justify-end gap-2">
-                            <button onClick={() => openEdit(r)} className="p-2 rounded-xl text-[#384A6C] hover:bg-[#384A6C]/10 transition" title="Editar"><LuPencil size={15} /></button>
-                            <button onClick={() => setDeleteTarget({ id: r.id, name: r.name })} className="p-2 rounded-xl text-red-400 hover:bg-red-50 transition" title="Excluir"><LuTrash2 size={15} /></button>
+                            <button
+                              onClick={() => openEdit(r)}
+                              className="p-2 rounded-xl text-[#384A6C] hover:bg-[#384A6C]/10 transition"
+                              title="Editar"
+                            >
+                              <LuPencil size={15} />
+                            </button>
+                            <button
+                              onClick={() =>
+                                setDeleteTarget({ id: r.id, name: r.name })
+                              }
+                              className="p-2 rounded-xl text-red-400 hover:bg-red-50 transition"
+                              title="Excluir"
+                            >
+                              <LuTrash2 size={15} />
+                            </button>
                           </div>
                         </td>
                       </tr>
@@ -313,14 +348,14 @@ export default function ResourceManager() {
                 <div className="grid grid-cols-3 gap-3">
                   <Field label="Largura" placeholder="0.00" type="number" step="0.01" min={0} value={formData.width} onChange={(e) => setFormData({ ...formData, width: e.target.value })} />
                   <Field label="Altura" placeholder="0.00" type="number" step="0.01" min={0} value={formData.height} onChange={(e) => setFormData({ ...formData, height: e.target.value })} />
-                  <Field label="Profundidade" placeholder="0.00" type="number" step="0.01" min={0} value={formData.depth} onChange={(e) => setFormData({ ...formData, depth: e.target.value })} />
+                  <Field label="Profundidade" placeholder="0.00" type="number" step="0.01" min={0} value={formData.length} onChange={(e) => setFormData({ ...formData, length: e.target.value })} />
                 </div>
 
                 {/* Preview volume unitário */}
                 {previewVolume != null && (
                   <div className="mt-3 flex items-center justify-between bg-[#EEF5FB] border border-[#94C0E0]/30 rounded-xl px-4 py-2.5">
                     <span className="text-xs font-bold text-gray-400 uppercase tracking-widest">Volume unitário</span>
-                    <span className="text-sm font-extrabold text-[#384A6C]">{previewVolume.toFixed(4)} m³</span>
+                    <span className="text-sm font-extrabold text-[#384A6C]">{previewVolume.toFixed(2)} m³</span>
                   </div>
                 )}
               </div>

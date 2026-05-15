@@ -24,7 +24,7 @@ type Product = {
   quantity: number;
   height: number;
   width: number;
-  depth: number;
+  length: number;
 };
 
 type Order = {
@@ -91,7 +91,7 @@ const emptyProduct: Product = {
   quantity: 1,
   height: 0,
   width: 0,
-  depth: 0,
+  length: 0,
 };
 
 const initialOrderState: NewOrderForm = {
@@ -134,7 +134,7 @@ function maskZip(v: string) {
 /** Calcula o volume total dos produtos no formulário */
 function calcProductsVolume(products: Product[]): number {
   return products.reduce((acc, p) => {
-    const unit = (p.height || 0) * (p.width || 0) * (p.depth || 0);
+    const unit = (p.height || 0) * (p.width || 0) * (p.length || 0);
     return acc + unit * (p.quantity || 1);
   }, 0);
 }
@@ -310,7 +310,7 @@ export default function OrderManager() {
       return alert("Preencha nome e CPF do destinatário.");
 
     const hasInvalidDimensions = newOrder.products.some(
-      (p) => !p.height || !p.width || !p.depth
+      (p) => !p.height || !p.width || !p.length
     );
     if (hasInvalidDimensions)
       return alert("Preencha altura, largura e profundidade de todos os produtos.");
@@ -341,7 +341,7 @@ export default function OrderManager() {
           quantity: Number(p.quantity),
           height: Number(p.height),
           width: Number(p.width),
-          depth: Number(p.depth),
+          length: Number(p.length),
         })),
       };
       await api.post("/order/company", payload);
@@ -521,8 +521,8 @@ export default function OrderManager() {
                       : "bg-green-50 text-green-700 border-green-200"
                   }`}>
                     <LuPackage size={13} />
-                    Volume dos produtos: {currentProductsVolume.toFixed(3)} m³ •
-                    Disponível no veículo: {selectedVehicle.available_volume.toFixed(3)} m³
+                    Volume dos produtos: {currentProductsVolume.toFixed(2)} m³ •
+                    Disponível no veículo: {selectedVehicle.available_volume.toFixed(2)} m³
                     {currentProductsVolume > selectedVehicle.available_volume && " — ⚠ excede capacidade!"}
                   </div>
                 )}
@@ -610,12 +610,12 @@ export default function OrderManager() {
                         <Field label="Largura" className="flex-1" type="number" min={0} step={0.01} placeholder="0.00"
                           value={p.width || ""} onChange={(e) => updateProduct(index, "width", Number(e.target.value))} />
                         <Field label="Profund." className="flex-1" type="number" min={0} step={0.01} placeholder="0.00"
-                          value={p.depth || ""} onChange={(e) => updateProduct(index, "depth", Number(e.target.value))} />
+                          value={p.length || ""} onChange={(e) => updateProduct(index, "length", Number(e.target.value))} />
                         {/* Volume calculado do item */}
                         <div className="flex flex-col gap-1 shrink-0">
                           <span className="text-[10px] font-bold text-[#384A6C] uppercase tracking-widest">Volume</span>
                           <span className="px-3 py-2 rounded-xl border border-gray-200 bg-white text-sm text-gray-500 w-24 text-center">
-                            {(p.height * p.width * p.depth * p.quantity).toFixed(3)} m³
+                            {(p.height * p.width * p.length * p.quantity).toFixed(2)} m³
                           </span>
                         </div>
                       </div>
@@ -627,7 +627,7 @@ export default function OrderManager() {
                 {newOrder.products.length > 1 && (
                   <div className="mt-2 flex items-center justify-end gap-2 text-xs text-[#384A6C] font-bold">
                     <LuPackage size={13} />
-                    Volume total dos itens: {currentProductsVolume.toFixed(3)} m³
+                    Volume total dos itens: {currentProductsVolume.toFixed(2)} m³
                   </div>
                 )}
 

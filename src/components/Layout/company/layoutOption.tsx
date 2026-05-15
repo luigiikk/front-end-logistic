@@ -14,7 +14,8 @@ type Panel =
   | "veiculo"
   | "fornecedor"
   | "armazem"
-  | "recurso";
+  | "recurso"
+  | "inventario";
 
 interface GenericPanelLayoutProps {
   children: ReactNode;
@@ -34,6 +35,7 @@ const PANEL_TITLES: Record<Panel, string> = {
   fornecedor: "Fornecedores",
   armazem: "Armazéns",
   recurso: "Recursos",
+  inventario: "Inventário",
 };
 
 export const GenericPanelLayout: React.FC<GenericPanelLayoutProps> = ({

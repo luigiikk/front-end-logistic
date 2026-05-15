@@ -13,7 +13,7 @@ type PurchaseOrderSummary = {
   status_id: number; created_at: string; items?: any[];
 };
 
-type ResourceOption = { id: number; name: string; width?: number | null; height?: number | null; depth?: number | null };
+type ResourceOption = { id: number; name: string; width?: number | null; height?: number | null; length?: number | null };
 type SelectOption = { id: number; name: string };
 
 type FormItem = {
@@ -45,8 +45,8 @@ function getStatusStyle(name: string) {
 }
 
 function calcItemVolume(resource: ResourceOption | undefined, quantity: number): number | null {
-  if (!resource?.width || !resource?.height || !resource?.depth) return null;
-  return resource.width * resource.height * resource.depth * quantity;
+  if (!resource?.width || !resource?.height || !resource?.length) return null;
+  return resource.width * resource.height * resource.length * quantity;
 }
 
 // ─── Field / Select ───────────────────────────────────────────────────────────
@@ -98,7 +98,7 @@ export default function PurchaseOrderManager() {
         api.get("/status/purchase_order"), api.get("/purchase-orders"),
       ]);
       setSuppliers(extractData(supRes.data));
-      setResources(extractData(resRes.data)); // inclui width/height/depth
+      setResources(extractData(resRes.data)); // inclui width/height/length
       setWarehouses(extractData(warRes.data));
       setStatuses(extractData(statRes.data));
       setOrders(extractData(ordersRes.data));
@@ -250,8 +250,8 @@ export default function PurchaseOrderManager() {
                     // volume total do pedido calculado a partir dos itens
                     const orderVolume = order.items?.reduce((acc: number, i: any) => {
                       const r = i.resource;
-                      if (!r?.width || !r?.height || !r?.depth) return acc;
-                      return acc + r.width * r.height * r.depth * (i.quantity ?? 1);
+                      if (!r?.width || !r?.height || !r?.length) return acc;
+                      return acc + r.width * r.height * r.length * (i.quantity ?? 1);
                     }, 0) ?? null;
 
                     return (
@@ -275,7 +275,7 @@ export default function PurchaseOrderManager() {
                         <td className="py-4 px-6">
                           {orderVolume != null && orderVolume > 0 ? (
                             <span className="inline-flex items-center gap-1 text-xs font-semibold text-[#384A6C] bg-[#384A6C]/10 px-2.5 py-1 rounded-full">
-                              <LuBoxes size={10} />{orderVolume.toFixed(3)} m³
+                              <LuBoxes size={10} />{orderVolume.toFixed(2)} m³
                             </span>
                           ) : <span className="text-xs text-gray-300">—</span>}
                         </td>
@@ -332,7 +332,7 @@ export default function PurchaseOrderManager() {
                   <div className="flex items-center gap-3">
                     {hasAnyVolume && (
                       <span className="text-sm font-bold text-gray-500 bg-gray-100 border border-gray-200 px-3 py-1.5 rounded-full flex items-center gap-1">
-                        <LuBoxes size={13} /> {modalTotalVolume.toFixed(3)} m³
+                        <LuBoxes size={13} /> {modalTotalVolume.toFixed(2)} m³
                       </span>
                     )}
                     <span className="text-sm font-extrabold text-[#384A6C] bg-[#EEF5FB] border border-[#94C0E0]/30 px-4 py-1.5 rounded-full">
@@ -369,10 +369,10 @@ export default function PurchaseOrderManager() {
                             <LuWarehouse size={11} className="text-gray-400" />
                             <span className="text-[11px] text-gray-400">
                               Volume ocupado:{" "}
-                              <span className="font-bold text-[#384A6C]">{itemVolume.toFixed(4)} m³</span>
+                              <span className="font-bold text-[#384A6C]">{itemVolume.toFixed(2)} m³</span>
                               {selectedResource && (
                                 <span className="ml-1 text-gray-300">
-                                  ({selectedResource.width}×{selectedResource.height}×{selectedResource.depth} m × {item.quantity} un)
+                                  ({selectedResource.width}×{selectedResource.height}×{selectedResource.length} m × {item.quantity} un)
                                 </span>
                               )}
                             </span>
