@@ -226,25 +226,40 @@ export default function VehicleManager() {
   const [newForm, setNewForm] = useState<VehicleForm>(EMPTY_FORM);
   const [deleteTarget, setDeleteTarget] = useState<{ id: number; plate: string } | null>(null);
 
-  useEffect(() => {
-    Promise.all([api.get("/vehicle"), api.get("/status/vehicle")])
-      .then(([vRes, sRes]) => {
-        // A rota /status/vehicle já retorna apenas os do tipo "vehicle"
-        const vehicleStatuses: Status[] = Array.isArray(sRes.data)
-          ? sRes.data
-          : sRes.data.data ?? [];
+  async function loadVehicles() {
+  try {
+    setLoading(true);
 
-        const vehicleList: Vehicle[] = Array.isArray(vRes.data)
-          ? vRes.data
-          : vRes.data.data ?? [];
+    const vRes = await api.get("/vehicle");
 
-        setVehicles(vehicleList);
-        setFiltered(vehicleList);
-        setStatuses(vehicleStatuses);
-      })
-      .catch(console.error)
-      .finally(() => setLoading(false));
-  }, []);
+    const vehicleList: Vehicle[] = Array.isArray(vRes.data)
+      ? vRes.data
+      : vRes.data.data ?? [];
+
+    setVehicles(vehicleList);
+    setFiltered(vehicleList);
+  } catch (err: any) {
+    console.error("Erro ao carregar veículos:", err.response?.data);
+  } finally {
+    setLoading(false);
+  }
+
+  // Status é opcional — falha silenciosa
+  try {
+    const sRes = await api.get("/status/vehicle");
+    const vehicleStatuses: Status[] = Array.isArray(sRes.data)
+      ? sRes.data
+      : sRes.data.data ?? [];
+    setStatuses(vehicleStatuses);
+  } catch {
+    // sem status disponível, o select simplesmente fica vazio
+    setStatuses([]);
+  }
+}
+
+useEffect(() => {
+  loadVehicles();
+}, []);
 
   const handleSearch = (value: string) => {
     setSearch(value);
@@ -292,28 +307,26 @@ export default function VehicleManager() {
   };
 
   const handleSave = async () => {
-    if (!editingVehicle) return;
-    try {
-      setSaving(true);
-      const payload = {
-        plate: editForm.plate,
-        model: editForm.model,
-        total_volume: Number(editForm.total_volume),
-        status_id: editForm.status_id,
-      };
-      await api.put(`/vehicle/${editingVehicle.id}`, payload);
-      const next = vehicles.map((v) =>
-        v.id === editingVehicle.id ? { ...v, ...payload } : v
-      );
-      setVehicles(next);
-      setFiltered(next);
-      setEditingVehicle(null);
-    } catch {
-      alert("Erro ao atualizar veículo.");
-    } finally {
-      setSaving(false);
-    }
-  };
+  if (!editingVehicle) return;
+  try {
+    setSaving(true);
+    const payload = {
+      plate: editForm.plate,
+      model: editForm.model,
+      total_volume: Number(editForm.total_volume),
+      ...(editForm.status_id && { status_id: editForm.status_id }),
+    };
+    console.log("payload enviado:", payload);
+    await api.put(`/vehicle/${editingVehicle.id}`, payload);
+    await loadVehicles(); // ← recarrega do servidor
+    setEditingVehicle(null);
+  } catch (err: any) {
+    console.error("Erro detalhado:", err.response?.data);
+    alert("Erro ao atualizar veículo.");
+  } finally {
+    setSaving(false);
+  }
+};
 
   const handleCreate = async () => {
     try {
