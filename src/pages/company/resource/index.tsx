@@ -11,7 +11,6 @@ type Resource = {
   id: number;
   name: string;
   description: string;
-  quantity: number;
   category_id: number;
   category?: { name: string };
   width?: number | null;
@@ -22,7 +21,6 @@ type Resource = {
 type ResourceForm = {
   name: string;
   description: string;
-  quantity: number;
   category_id: number | "";
   width: string;
   height: string;
@@ -30,7 +28,7 @@ type ResourceForm = {
 };
 
 const initialForm: ResourceForm = {
-  name: "", description: "", quantity: 0, category_id: "",
+  name: "", description: "", category_id: "",
   width: "", height: "", depth: "",
 };
 
@@ -111,7 +109,6 @@ export default function ResourceManager() {
       const payload = {
         name: formData.name,
         description: formData.description,
-        quantity: Number(formData.quantity),
         category_id: Number(formData.category_id),
         width: formData.width ? Number(formData.width) : null,
         height: formData.height ? Number(formData.height) : null,
@@ -144,7 +141,7 @@ export default function ResourceManager() {
     setEditingId(r.id);
     console.log(r);
     setFormData({
-      name: r.name, description: r.description ?? "", quantity: r.quantity, category_id: r.category_id,
+      name: r.name, description: r.description ?? "", category_id: r.category_id,
       width: r.width != null ? String(r.width) : "",
       height: r.height != null ? String(r.height) : "",
       depth: r.depth != null ? String(r.depth) : "",
@@ -267,9 +264,6 @@ export default function ResourceManager() {
                           )}
                         </td>
                         <td className="py-4 px-6">
-                          <span className="text-sm font-bold text-[#384A6C]">{r.quantity}</span>
-                        </td>
-                        <td className="py-4 px-6">
                           <div className="flex justify-end gap-2">
                             <button onClick={() => openEdit(r)} className="p-2 rounded-xl text-[#384A6C] hover:bg-[#384A6C]/10 transition" title="Editar"><LuPencil size={15} /></button>
                             <button onClick={() => setDeleteTarget({ id: r.id, name: r.name })} className="p-2 rounded-xl text-red-400 hover:bg-red-50 transition" title="Excluir"><LuTrash2 size={15} /></button>
@@ -311,9 +305,6 @@ export default function ResourceManager() {
                 <label className="text-[10px] font-bold text-[#384A6C] uppercase tracking-widest">Descrição</label>
                 <textarea rows={3} placeholder="Detalhes técnicos..." value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} className="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm text-gray-800 placeholder-gray-300 bg-white focus:outline-none focus:ring-2 focus:ring-[#94C0E0] focus:border-transparent transition-all resize-none" />
               </div>
-
-              <Field label="Estoque inicial" type="number" min={0} value={formData.quantity} onChange={(e) => setFormData({ ...formData, quantity: Number(e.target.value) })} />
-
               {/* Dimensões */}
               <div>
                 <p className="text-[10px] font-bold text-[#384A6C] uppercase tracking-widest flex items-center gap-1 mb-3">
