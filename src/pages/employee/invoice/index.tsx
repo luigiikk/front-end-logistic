@@ -1,14 +1,19 @@
 import { useEffect, useState } from "react";
 import { api } from "../../../api/lib/api";
 import { GenericPanelLayout } from "../../../components/Layout/company/layoutOption";
-import { LuSearch, LuFileText } from "react-icons/lu";
+import {
+  LuSearch,
+  LuFileText,
+  LuHash,
+  LuCalendar,
+  LuDollarSign,
+} from "react-icons/lu";
 
-// Definição do tipo Invoice (Fatura)
 type Invoice = {
   id: number;
   order_id: number;
   amount: number;
-  status: string; // Ex: 'Pendente', 'Pago', 'Atrasado'
+  status: string;
   due_date: string;
 };
 
@@ -18,8 +23,6 @@ export default function InvoiceManager() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
 
-
-  // 1. Carregar dados da API
   useEffect(() => {
     async function loadData() {
       try {
@@ -35,7 +38,6 @@ export default function InvoiceManager() {
     loadData();
   }, []);
 
-  // 2. Busca (Filtro)
   const handleSearch = (value: string) => {
     setSearchTerm(value);
     setFiltered(
@@ -48,59 +50,81 @@ export default function InvoiceManager() {
     );
   };
 
- 
   return (
-    // Lembre-se de adicionar "invoice" no arquivo layoutOption.tsx conforme instruído anteriormente
-    // @ts-ignore 
+    // @ts-ignore
     <GenericPanelLayout panel="invoice">
-      <div className="bg-white max-w-5xl w-full rounded-3xl shadow-xl p-10 min-h-[600px]">
-        <h1 className="text-3xl text-center mb-8 flex items-center justify-center gap-3">
-          <LuFileText /> Gestão de Faturas
-        </h1>
-        {/* Header: Botão Criar + Busca */}
-        <div className="flex justify-between mb-6">
-          <div className="flex items-center gap-2 border border-black rounded-lg px-4 py-2">
-            <LuSearch />
+      <div className="w-full max-w-5xl mx-auto space-y-6">
+
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <h1 className="text-2xl font-extrabold text-[#384A6C] tracking-tight">Faturas</h1>
+            <p className="text-sm text-gray-400 mt-0.5">
+              {filtered.length} fatura{filtered.length !== 1 ? "s" : ""} encontrada{filtered.length !== 1 ? "s" : ""}
+            </p>
+          </div>
+
+          <div className="flex items-center gap-2 bg-white border border-gray-200 rounded-xl px-4 py-2.5 shadow-sm">
+            <LuSearch size={15} className="text-gray-400 shrink-0" />
             <input
               type="text"
               value={searchTerm}
               onChange={(e) => handleSearch(e.target.value)}
-              placeholder="Buscar por ID ou Status..."
-              className="outline-none"
+              placeholder="Buscar por ID ou status..."
+              className="outline-none text-sm text-gray-700 placeholder-gray-300 w-64"
             />
           </div>
         </div>
 
-        {/* Lista de Faturas */}
-        <div className="border-t border-black">
+        <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
           {loading ? (
-            <p className="text-center py-4 text-gray-500">Carregando...</p>
+            <div className="flex flex-col items-center justify-center py-20 gap-3">
+              <div className="animate-spin h-6 w-6 border-2 border-[#94C0E0] border-t-transparent rounded-full" />
+              <p className="text-sm text-gray-400">Carregando faturas...</p>
+            </div>
+          ) : filtered.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-20 gap-2 text-gray-400">
+              <LuFileText size={32} className="opacity-30" />
+              <p className="text-sm font-medium">Nenhuma fatura encontrada.</p>
+            </div>
           ) : (
-            filtered.map((inv) => (
-              <div
-                key={inv.id}
-                className="flex justify-between border-b border-black py-4 items-center px-4 hover:bg-gray-50"
-              >
-                <div>
-                  <p className="font-semibold text-lg">Fatura #{inv.id}</p>
-                  <p className="text-sm text-gray-600">Referente ao Pedido: #{inv.order_id}</p>
-                  <div className="flex gap-4 mt-1 text-sm font-medium">
-                    <span className="text-blue-600">R$ {Number(inv.amount).toFixed(2)}</span>
-                    <span
-                      className={`${
-                        inv.status === "Pago" ? "text-green-600" : "text-orange-500"
-                      }`}
-                    >
-                      {inv.status}
-                    </span>
-                    <span className="text-gray-500">Venc: {inv.due_date}</span>
+            <ul className="divide-y divide-gray-50">
+              {filtered.map((inv) => (
+                <li
+                  key={inv.id}
+                  className="flex items-center justify-between px-6 py-4 hover:bg-[#EEF5FB]/60 transition-colors"
+                >
+                  <div className="flex items-center gap-4">
+                    <div className="w-10 h-10 rounded-full bg-[#384A6C]/10 flex items-center justify-center text-[#384A6C] shrink-0">
+                      <LuFileText size={18} />
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <p className="font-semibold text-gray-800 text-sm">Fatura #{inv.id}</p>
+                        <span className="text-[10px] bg-gray-100 text-gray-500 px-2 py-0.5 rounded font-bold uppercase">
+                          Pedido #{inv.order_id}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-4 text-xs text-gray-400 mt-1 flex-wrap">
+                        <span className="flex items-center gap-1">
+                          <LuDollarSign size={11} /> <b>Valor:</b> R$ {Number(inv.amount).toFixed(2)}
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <LuCalendar size={11} /> <b>Venc:</b> {inv.due_date}
+                        </span>
+                      </div>
+                    </div>
                   </div>
-                </div>
-              </div>
-            ))
-          )}
-          {filtered.length === 0 && !loading && (
-            <p className="text-center py-6 text-gray-400">Nenhuma fatura encontrada.</p>
+
+                  <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border
+                    ${inv.status === "Pago"
+                      ? "bg-green-50 text-green-600 border-green-200"
+                      : "bg-[#EEF5FB] text-[#384A6C] border-[#94C0E0]/30"
+                    }`}>
+                    {inv.status}
+                  </span>
+                </li>
+              ))}
+            </ul>
           )}
         </div>
       </div>
