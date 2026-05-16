@@ -458,8 +458,10 @@ export default function EmployeeManager() {
       .finally(() => setLoading(false));
 
     api.get("/roules")
-      .then((r) => setRoles(r.data))
-      .catch(console.error);
+  .then((r) => {
+    setRoles(r.data);
+  })
+  .catch((err) => console.error("roles error:", err));  
   }, []);
 
   const handleSearch = (value: string) => {
