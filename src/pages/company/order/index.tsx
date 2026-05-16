@@ -15,8 +15,31 @@ import {
   LuRuler,  // Adicione este
 } from "react-icons/lu";
 import { useToast } from "../../../components/Toast/ToastContent";
+import OrderTrackingModal from "../../../components/Modal/OrderTrackingModal";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
+
+type TrackingEvent = {
+  id: number;
+  location: string | null;
+  description: string | null;
+  estimated_delivery: string | null;
+  occurred_at: string;
+  status: { id: number; name: string } | null;
+};
+
+type OrderTracking = {
+  order: { id: number; code: string; status: string };
+  tracking: TrackingEvent[];
+};
+
+type NewTrackingForm = {
+  status_id: number | "";
+  location: string;
+  description: string;
+  occurred_at: string;
+  estimated_delivery: string;
+};
 
 type Product = {
   id?: number;
@@ -235,6 +258,16 @@ export default function OrderManager() {
   const [creating, setCreating] = useState(false);
   const [newOrder, setNewOrder] = useState<NewOrderForm>(initialOrderState);
   const [deleteTarget, setDeleteTarget] = useState<{ id: number; code: string } | null>(null);
+  const [trackingTarget, setTrackingTarget] = useState<Order | null>(null);
+  const [tracking, setTracking] = useState<OrderTracking | null>(null);
+  const [trackingLoading, setTrackingLoading] = useState(false);
+  const [trackingTab, setTrackingTab] = useState<"history" | "new">("history");
+  const [newTracking, setNewTracking] = useState<NewTrackingForm>({
+    status_id: "", location: "", description: "",
+    occurred_at: "", estimated_delivery: "",
+  });
+  const [savingTracking, setSavingTracking] = useState(false);
+  
 
   useEffect(() => {
     loadOrders();
@@ -374,6 +407,44 @@ export default function OrderManager() {
   const currentProductsVolume = calcProductsVolume(newOrder.products);
   const selectedVehicle = vehicles.find((v) => v.id === Number(newOrder.vehicle_id));
 
+  const openTracking = async (order: Order) => {
+    setTrackingTarget(order);
+    setTrackingTab("history");
+    setTrackingLoading(true);
+    try {
+      const res = await api.get(`/order/${order.id}`);
+      setTracking(res.data);
+    } catch (err: any) {
+      toast(err.response?.data?.message || "Erro ao carregar rastreio.", "error");
+    } finally {
+      setTrackingLoading(false);
+    }
+  };
+  
+  const handleCreateTracking = async () => {
+    if (!newTracking.status_id || !trackingTarget) return;
+    try {
+      setSavingTracking(true);
+      await api.post(`/orders/${trackingTarget.id}`, {
+        status_id: Number(newTracking.status_id),
+        location: newTracking.location || null,
+        description: newTracking.description || null,
+        occurred_at: newTracking.occurred_at || new Date().toISOString(),
+        estimated_delivery: newTracking.estimated_delivery || null,
+      });
+      toast("Evento registrado com sucesso!", "success");
+      // Recarrega o histórico
+      const res = await api.get(`/orders/${trackingTarget.id}`);
+      setTracking(res.data);
+      setTrackingTab("history");
+      setNewTracking({ status_id: "", location: "", description: "", occurred_at: "", estimated_delivery: "" });
+    } catch (err: any) {
+      toast(err.response?.data?.message || "Erro ao salvar evento.", "error");
+    } finally {
+      setSavingTracking(false);
+    }
+  };
+
   return (
     <GenericPanelLayout panel="pedido">
       <div className="w-full max-w-5xl mx-auto space-y-6">
@@ -448,7 +519,8 @@ export default function OrderManager() {
               {filtered.map((order) => (
                 <li
                   key={order.id}
-                  className="flex items-center justify-between px-6 py-4 hover:bg-[#EEF5FB]/60 transition-colors"
+                  onClick={() => setTrackingTarget(order)}
+                  className="flex items-center justify-between px-6 py-4 hover:bg-[#EEF5FB]/60 transition-colors cursor-pointer"
                 >
                   <div className="flex items-center gap-4">
                     <div className="w-10 h-10 rounded-full bg-[#384A6C]/10 flex items-center justify-center text-[#384A6C] shrink-0">
@@ -862,6 +934,16 @@ export default function OrderManager() {
           </div>
         </div>
       )}
+      {trackingTarget && (
+        <OrderTrackingModal
+          orderId={trackingTarget.id}
+          orderCode={trackingTarget.code}
+          orderStatus={trackingTarget.status}
+          orderRecipient={trackingTarget.recipient}
+          onClose={() => setTrackingTarget(null)}
+        />
+      )}
     </GenericPanelLayout>
   );
+  
 }

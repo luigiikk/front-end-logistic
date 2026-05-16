@@ -105,6 +105,7 @@ export default function PurchaseOrderManager() {
       setStatuses(extractData(statRes.data));
       setOrders(extractData(ordersRes.data));
     } catch (err) {
+      console.log(err)
       toast(`${err}`, "error");
     } finally {
       setLoading(false);

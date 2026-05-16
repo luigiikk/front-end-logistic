@@ -13,6 +13,7 @@ import {
   UserIcon,
   CheckCircleIcon,
 } from "@heroicons/react/24/outline";
+import { useToast } from "../../../components/Toast/ToastContent";
 
 // ─── Tipos de usuário ────────────────────────────────────────────────────────
 
@@ -100,6 +101,7 @@ function Field({
 // ─── Formulário unificado ────────────────────────────────────────────────────
 
 function LoginForm({ tab }: { tab: UserTab }) {
+  const { toast } = useToast();
   const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
   const navigate = useNavigate();
@@ -115,8 +117,12 @@ function LoginForm({ tab }: { tab: UserTab }) {
     try {
       const raw = tab.mask ? identifier.replace(/\D/g, "") : identifier;
       await handleAuth(raw, password);
+      toast("Login realizado com sucesso!", "success");
       navigate(NAVIGATE_MAP[tab.type]);
-    } catch {}
+    } catch (err: any) {
+      const message = err.response?.data?.message || "Erro ao fazer login.";
+      toast(message, "error");
+    }
   }
 
   return (
@@ -138,11 +144,7 @@ function LoginForm({ tab }: { tab: UserTab }) {
         onChange={(e) => setPassword(e.target.value)}
         required
       />
-
-      {error && (
-        <p className="text-red-500 text-xs font-medium px-1">{error}</p>
-      )}
-
+      
       <button
         type="submit"
         disabled={loading}

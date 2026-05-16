@@ -79,8 +79,9 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
       try {
         const res = await api.get(`/company/${companyId}`);
         setCompany(res.data);
-      } catch (err) {
-        toast("Erro ao buscar empresa:", "error");
+      } catch (err: any) {
+        const message = err.response?.data?.message || "Erro inesperado";
+        toast(message, "error");
       }
     }
     fetchCompany();
