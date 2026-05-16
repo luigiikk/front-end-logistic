@@ -375,13 +375,15 @@ export default function OrderManager() {
   return (
     <GenericPanelLayout panel="pedido">
       <div className="w-full max-w-5xl mx-auto space-y-6">
-
         {/* ── Header ── */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-extrabold text-[#384A6C] tracking-tight">Pedidos</h1>
+            <h1 className="text-2xl font-extrabold text-[#384A6C] tracking-tight">
+              Pedidos
+            </h1>
             <p className="text-sm text-gray-400 mt-0.5">
-              {filtered.length} pedido{filtered.length !== 1 ? "s" : ""} encontrado{filtered.length !== 1 ? "s" : ""}
+              {filtered.length} pedido{filtered.length !== 1 ? "s" : ""}{" "}
+              encontrado{filtered.length !== 1 ? "s" : ""}
             </p>
           </div>
           <div className="flex items-center gap-3">
@@ -409,9 +411,24 @@ export default function OrderManager() {
         <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
           {loading ? (
             <div className="flex flex-col items-center justify-center py-20 gap-3">
-              <svg className="animate-spin h-6 w-6 text-[#94C0E0]" viewBox="0 0 24 24" fill="none">
-                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
+              <svg
+                className="animate-spin h-6 w-6 text-[#94C0E0]"
+                viewBox="0 0 24 24"
+                fill="none"
+              >
+                <circle
+                  className="opacity-25"
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="currentColor"
+                  strokeWidth="4"
+                />
+                <path
+                  className="opacity-75"
+                  fill="currentColor"
+                  d="M4 12a8 8 0 018-8v8H4z"
+                />
               </svg>
               <p className="text-sm text-gray-400">Carregando pedidos...</p>
             </div>
@@ -419,7 +436,9 @@ export default function OrderManager() {
             <div className="flex flex-col items-center justify-center py-20 gap-2 text-gray-400">
               <LuPackage size={32} className="opacity-30" />
               <p className="text-sm font-medium">
-                {searchTerm ? "Nenhum pedido encontrado para a busca." : "Nenhum pedido cadastrado."}
+                {searchTerm
+                  ? "Nenhum pedido encontrado para a busca."
+                  : "Nenhum pedido cadastrado."}
               </p>
             </div>
           ) : (
@@ -449,7 +468,7 @@ export default function OrderManager() {
                         )}
                         {order.vehicle ? (
                           <span className="flex items-center gap-1">
-                            <LuTruck size={11} /> {order.vehicle}
+                            <LuTruck size={11} /> {order.vehicle.plate}
                           </span>
                         ) : (
                           <span className="flex items-center gap-1 text-amber-500 font-semibold">
@@ -460,7 +479,12 @@ export default function OrderManager() {
                     </div>
                   </div>
                   <button
-                    onClick={() => setDeleteTarget({ id: order.id, code: order.code || String(order.id) })}
+                    onClick={() =>
+                      setDeleteTarget({
+                        id: order.id,
+                        code: order.code || String(order.id),
+                      })
+                    }
                     className="p-2 rounded-xl text-red-400 hover:bg-red-50 transition shrink-0 ml-4"
                     title="Excluir pedido"
                   >
@@ -477,12 +501,16 @@ export default function OrderManager() {
       {creating && (
         <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex justify-center items-center z-50 p-4">
           <div className="bg-white w-full max-w-4xl rounded-3xl shadow-2xl flex flex-col max-h-[90vh] overflow-hidden">
-
             {/* Header */}
             <div className="flex items-center justify-between px-8 pt-7 pb-4 border-b border-gray-100">
-              <h2 className="text-xl font-extrabold text-[#384A6C] tracking-tight">Novo Pedido</h2>
+              <h2 className="text-xl font-extrabold text-[#384A6C] tracking-tight">
+                Novo Pedido
+              </h2>
               <button
-                onClick={() => { setCreating(false); setNewOrder(initialOrderState); }}
+                onClick={() => {
+                  setCreating(false);
+                  setNewOrder(initialOrderState);
+                }}
                 className="text-gray-400 hover:text-gray-600 transition p-1 rounded-lg hover:bg-gray-100"
               >
                 <LuX size={20} />
@@ -491,14 +519,21 @@ export default function OrderManager() {
 
             {/* Body */}
             <div className="px-8 py-6 overflow-y-auto space-y-8">
-
               {/* Veículo — opcional */}
               <div>
-                <SectionTitle icon={LuTruck} label="Veículo responsável (opcional)" />
+                <SectionTitle
+                  icon={LuTruck}
+                  label="Veículo responsável (opcional)"
+                />
                 <SelectField
                   label="Veículo"
                   value={newOrder.vehicle_id}
-                  onChange={(e) => setNewOrder({ ...newOrder, vehicle_id: e.target.value ? Number(e.target.value) : "" })}
+                  onChange={(e) =>
+                    setNewOrder({
+                      ...newOrder,
+                      vehicle_id: e.target.value ? Number(e.target.value) : "",
+                    })
+                  }
                 >
                   <option value="">Sem veículo — alocar depois</option>
                   {vehicles.map((v) => (
@@ -507,7 +542,8 @@ export default function OrderManager() {
                       value={v.id}
                       disabled={v.available_volume <= 0}
                     >
-                      {v.plate} — {v.model} • {v.available_volume.toFixed(2)} m³ disponível
+                      {v.plate} — {v.model} • {v.available_volume.toFixed(2)} m³
+                      disponível
                       {v.available_volume <= 0 ? " (cheio)" : ""}
                     </option>
                   ))}
@@ -515,15 +551,19 @@ export default function OrderManager() {
 
                 {/* Feedback de volume em tempo real */}
                 {selectedVehicle && (
-                  <div className={`mt-2 flex items-center gap-2 text-xs font-semibold px-3 py-2 rounded-xl border ${
-                    currentProductsVolume > selectedVehicle.available_volume
-                      ? "bg-red-50 text-red-600 border-red-200"
-                      : "bg-green-50 text-green-700 border-green-200"
-                  }`}>
+                  <div
+                    className={`mt-2 flex items-center gap-2 text-xs font-semibold px-3 py-2 rounded-xl border ${
+                      currentProductsVolume > selectedVehicle.available_volume
+                        ? "bg-red-50 text-red-600 border-red-200"
+                        : "bg-green-50 text-green-700 border-green-200"
+                    }`}
+                  >
                     <LuPackage size={13} />
                     Volume dos produtos: {currentProductsVolume.toFixed(2)} m³ •
-                    Disponível no veículo: {selectedVehicle.available_volume.toFixed(2)} m³
-                    {currentProductsVolume > selectedVehicle.available_volume && " — ⚠ excede capacidade!"}
+                    Disponível no veículo:{" "}
+                    {selectedVehicle.available_volume.toFixed(2)} m³
+                    {currentProductsVolume > selectedVehicle.available_volume &&
+                      " — ⚠ excede capacidade!"}
                   </div>
                 )}
               </div>
@@ -543,7 +583,9 @@ export default function OrderManager() {
                       label="CPF *"
                       placeholder="000.000.000-00"
                       value={maskCPF(newOrder.recipient.cpf)}
-                      onChange={(e) => updateRecipient("cpf", maskCPF(e.target.value))}
+                      onChange={(e) =>
+                        updateRecipient("cpf", maskCPF(e.target.value))
+                      }
                     />
                     <Field
                       label="E-mail"
@@ -559,18 +601,56 @@ export default function OrderManager() {
                 <div className="bg-[#EEF5FB] rounded-2xl p-5 border border-[#94C0E0]/30">
                   <SectionTitle icon={LuMapPin} label="Endereço de entrega" />
                   <div className="grid grid-cols-6 gap-3">
-                    <Field label="Rua" className="col-span-4" placeholder="Nome da rua"
-                      value={newOrder.recipient.address.street} onChange={(e) => updateAddress("street", e.target.value)} />
-                    <Field label="Número" className="col-span-2" type="number" placeholder="0"
-                      value={newOrder.recipient.address.number} onChange={(e) => updateAddress("number", e.target.value)} />
-                    <Field label="CEP" className="col-span-3" placeholder="00000-000"
-                      value={maskZip(newOrder.recipient.address.zipcode)} onChange={(e) => updateAddress("zipcode", maskZip(e.target.value))} />
-                    <Field label="Cidade" className="col-span-2" placeholder="Cidade"
-                      value={newOrder.recipient.address.city} onChange={(e) => updateAddress("city", e.target.value)} />
-                    <Field label="UF" className="col-span-1" placeholder="SP" maxLength={2}
-                      value={newOrder.recipient.address.state} onChange={(e) => updateAddress("state", e.target.value.toUpperCase())} />
-                    <Field label="Complemento" className="col-span-6" placeholder="Apto, bloco..."
-                      value={newOrder.recipient.address.complement} onChange={(e) => updateAddress("complement", e.target.value)} />
+                    <Field
+                      label="Rua"
+                      className="col-span-4"
+                      placeholder="Nome da rua"
+                      value={newOrder.recipient.address.street}
+                      onChange={(e) => updateAddress("street", e.target.value)}
+                    />
+                    <Field
+                      label="Número"
+                      className="col-span-2"
+                      type="number"
+                      placeholder="0"
+                      value={newOrder.recipient.address.number}
+                      onChange={(e) => updateAddress("number", e.target.value)}
+                    />
+                    <Field
+                      label="CEP"
+                      className="col-span-3"
+                      placeholder="00000-000"
+                      value={maskZip(newOrder.recipient.address.zipcode)}
+                      onChange={(e) =>
+                        updateAddress("zipcode", maskZip(e.target.value))
+                      }
+                    />
+                    <Field
+                      label="Cidade"
+                      className="col-span-2"
+                      placeholder="Cidade"
+                      value={newOrder.recipient.address.city}
+                      onChange={(e) => updateAddress("city", e.target.value)}
+                    />
+                    <Field
+                      label="UF"
+                      className="col-span-1"
+                      placeholder="SP"
+                      maxLength={2}
+                      value={newOrder.recipient.address.state}
+                      onChange={(e) =>
+                        updateAddress("state", e.target.value.toUpperCase())
+                      }
+                    />
+                    <Field
+                      label="Complemento"
+                      className="col-span-6"
+                      placeholder="Apto, bloco..."
+                      value={newOrder.recipient.address.complement}
+                      onChange={(e) =>
+                        updateAddress("complement", e.target.value)
+                      }
+                    />
                   </div>
                 </div>
               </div>
@@ -586,15 +666,43 @@ export default function OrderManager() {
                     >
                       {/* Linha 1: nome, descrição, qtd */}
                       <div className="flex gap-3 items-end">
-                        <Field label="Produto" className="flex-1" placeholder="Nome do item"
-                          value={p.name} onChange={(e) => updateProduct(index, "name", e.target.value)} />
-                        <Field label="Descrição" className="flex-1" placeholder="Breve descrição"
-                          value={p.description} onChange={(e) => updateProduct(index, "description", e.target.value)} />
-                        <Field label="Qtd" className="w-20" type="number" min={1}
-                          value={p.quantity} onChange={(e) => updateProduct(index, "quantity", Number(e.target.value))} />
+                        <Field
+                          label="Produto"
+                          className="flex-1"
+                          placeholder="Nome do item"
+                          value={p.name}
+                          onChange={(e) =>
+                            updateProduct(index, "name", e.target.value)
+                          }
+                        />
+                        <Field
+                          label="Descrição"
+                          className="flex-1"
+                          placeholder="Breve descrição"
+                          value={p.description}
+                          onChange={(e) =>
+                            updateProduct(index, "description", e.target.value)
+                          }
+                        />
+                        <Field
+                          label="Qtd"
+                          className="w-20"
+                          type="number"
+                          min={1}
+                          value={p.quantity}
+                          onChange={(e) =>
+                            updateProduct(
+                              index,
+                              "quantity",
+                              Number(e.target.value),
+                            )
+                          }
+                        />
                         {index > 0 && (
-                          <button onClick={() => handleRemoveProduct(index)}
-                            className="p-2 rounded-xl text-red-400 hover:bg-red-50 transition shrink-0 mb-0.5">
+                          <button
+                            onClick={() => handleRemoveProduct(index)}
+                            className="p-2 rounded-xl text-red-400 hover:bg-red-50 transition shrink-0 mb-0.5"
+                          >
                             <LuTrash2 size={16} />
                           </button>
                         )}
@@ -605,17 +713,67 @@ export default function OrderManager() {
                         <div className="flex items-center gap-1 text-[10px] font-bold text-[#384A6C] uppercase tracking-widest shrink-0 pb-2.5">
                           <LuRuler size={12} /> Dimensões (m)
                         </div>
-                        <Field label="Altura" className="flex-1" type="number" min={0} step={0.01} placeholder="0.00"
-                          value={p.height || ""} onChange={(e) => updateProduct(index, "height", Number(e.target.value))} />
-                        <Field label="Largura" className="flex-1" type="number" min={0} step={0.01} placeholder="0.00"
-                          value={p.width || ""} onChange={(e) => updateProduct(index, "width", Number(e.target.value))} />
-                        <Field label="Profund." className="flex-1" type="number" min={0} step={0.01} placeholder="0.00"
-                          value={p.length || ""} onChange={(e) => updateProduct(index, "length", Number(e.target.value))} />
+                        <Field
+                          label="Altura"
+                          className="flex-1"
+                          type="number"
+                          min={0}
+                          step={0.01}
+                          placeholder="0.00"
+                          value={p.height || ""}
+                          onChange={(e) =>
+                            updateProduct(
+                              index,
+                              "height",
+                              Number(e.target.value),
+                            )
+                          }
+                        />
+                        <Field
+                          label="Largura"
+                          className="flex-1"
+                          type="number"
+                          min={0}
+                          step={0.01}
+                          placeholder="0.00"
+                          value={p.width || ""}
+                          onChange={(e) =>
+                            updateProduct(
+                              index,
+                              "width",
+                              Number(e.target.value),
+                            )
+                          }
+                        />
+                        <Field
+                          label="Profund."
+                          className="flex-1"
+                          type="number"
+                          min={0}
+                          step={0.01}
+                          placeholder="0.00"
+                          value={p.length || ""}
+                          onChange={(e) =>
+                            updateProduct(
+                              index,
+                              "length",
+                              Number(e.target.value),
+                            )
+                          }
+                        />
                         {/* Volume calculado do item */}
                         <div className="flex flex-col gap-1 shrink-0">
-                          <span className="text-[10px] font-bold text-[#384A6C] uppercase tracking-widest">Volume</span>
+                          <span className="text-[10px] font-bold text-[#384A6C] uppercase tracking-widest">
+                            Volume
+                          </span>
                           <span className="px-3 py-2 rounded-xl border border-gray-200 bg-white text-sm text-gray-500 w-24 text-center">
-                            {(p.height * p.width * p.length * p.quantity).toFixed(2)} m³
+                            {(
+                              p.height *
+                              p.width *
+                              p.length *
+                              p.quantity
+                            ).toFixed(2)}{" "}
+                            m³
                           </span>
                         </div>
                       </div>
@@ -627,12 +785,17 @@ export default function OrderManager() {
                 {newOrder.products.length > 1 && (
                   <div className="mt-2 flex items-center justify-end gap-2 text-xs text-[#384A6C] font-bold">
                     <LuPackage size={13} />
-                    Volume total dos itens: {currentProductsVolume.toFixed(2)} m³
+                    Volume total dos itens: {currentProductsVolume.toFixed(
+                      2,
+                    )}{" "}
+                    m³
                   </div>
                 )}
 
-                <button onClick={handleAddProduct}
-                  className="mt-3 flex items-center gap-1.5 text-sm text-[#384A6C] font-bold hover:underline underline-offset-4">
+                <button
+                  onClick={handleAddProduct}
+                  className="mt-3 flex items-center gap-1.5 text-sm text-[#384A6C] font-bold hover:underline underline-offset-4"
+                >
                   <LuPlus size={15} /> Adicionar item
                 </button>
               </div>
@@ -641,7 +804,10 @@ export default function OrderManager() {
             {/* Footer */}
             <div className="flex justify-end gap-3 px-8 py-5 border-t border-gray-100">
               <button
-                onClick={() => { setCreating(false); setNewOrder(initialOrderState); }}
+                onClick={() => {
+                  setCreating(false);
+                  setNewOrder(initialOrderState);
+                }}
                 className="px-5 py-2.5 rounded-xl border border-gray-200 text-sm font-semibold text-gray-500 hover:bg-gray-50 transition"
               >
                 Cancelar
@@ -666,18 +832,28 @@ export default function OrderManager() {
               <LuTrash2 size={24} className="text-red-400" />
             </div>
             <div>
-              <h3 className="text-lg font-extrabold text-gray-800">Excluir pedido?</h3>
+              <h3 className="text-lg font-extrabold text-gray-800">
+                Excluir pedido?
+              </h3>
               <p className="text-sm text-gray-400 mt-1">
-                Pedido <span className="font-semibold text-gray-600">#{deleteTarget.code}</span> será removido permanentemente.
+                Pedido{" "}
+                <span className="font-semibold text-gray-600">
+                  #{deleteTarget.code}
+                </span>{" "}
+                será removido permanentemente.
               </p>
             </div>
             <div className="flex gap-3 w-full mt-2">
-              <button onClick={() => setDeleteTarget(null)}
-                className="flex-1 py-2.5 rounded-xl border border-gray-200 text-sm font-semibold text-gray-500 hover:bg-gray-50 transition">
+              <button
+                onClick={() => setDeleteTarget(null)}
+                className="flex-1 py-2.5 rounded-xl border border-gray-200 text-sm font-semibold text-gray-500 hover:bg-gray-50 transition"
+              >
                 Cancelar
               </button>
-              <button onClick={handleDelete}
-                className="flex-1 py-2.5 rounded-xl bg-red-500 text-white text-sm font-bold hover:bg-red-600 active:scale-95 transition-all">
+              <button
+                onClick={handleDelete}
+                className="flex-1 py-2.5 rounded-xl bg-red-500 text-white text-sm font-bold hover:bg-red-600 active:scale-95 transition-all"
+              >
                 Excluir
               </button>
             </div>

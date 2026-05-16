@@ -13,6 +13,7 @@ import SupplierManager from "../pages/company/supplier";
 import WarehouseManager from "../pages/company/warhouse";
 import ResourceManager from "../pages/company/resource";
 import InventoryManager from "../pages/company/inventory";
+import AllocateVehicleManager from "../pages/company/allocate-vehicle";
 
 
 
@@ -31,6 +32,7 @@ const companyNavLinks = [
   { name: "Fornecedor", path: "/company/supplier" },
   { name: "Recursos", path: "/company/resource" },
   { name: "Inventário", path: "/company/inventory" },
+  { name: "Alocação de Veículo", path: "/company/allocate-vehicle" },
 ];
 
 export function CompanyRoutes() {
@@ -59,6 +61,7 @@ export function CompanyRoutes() {
       <Route path="warehouse" element={<WarehouseManager/>} />
       <Route path="resource" element={<ResourceManager/>} />
       <Route path="inventory" element={<InventoryManager/>} />
+      <Route path="allocate-vehicle" element={<AllocateVehicleManager/>} />
     </Route>,
   ];
 }
