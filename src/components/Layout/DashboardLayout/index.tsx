@@ -4,6 +4,7 @@ import React, { useEffect, useState } from "react";
 import { api } from "../../../api/lib/api";
 import { LuMenu, LuX, LuLogOut } from "react-icons/lu";
 import logo2 from "../../../Img/logo2.png";
+import { useToast } from "../../Toast/ToastContent";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -61,6 +62,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
   pageTitle,
   navLinks,
 }) => {
+  const { toast } = useToast();
   const [company, setCompany] = useState<any>(null);
   const [menuOpen, setMenuOpen] = useState(false);
   const navigate = useNavigate();
@@ -78,7 +80,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
         const res = await api.get(`/company/${companyId}`);
         setCompany(res.data);
       } catch (err) {
-        console.error("Erro ao buscar empresa:", err);
+        toast("Erro ao buscar empresa:", "error");
       }
     }
     fetchCompany();

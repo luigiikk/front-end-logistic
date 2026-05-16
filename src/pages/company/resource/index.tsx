@@ -4,6 +4,7 @@ import { GenericPanelLayout } from "../../../components/Layout/company/layoutOpt
 import {
   LuSearch, LuTrash2, LuPlus, LuPencil, LuX, LuPackage, LuBoxes, LuRuler,
 } from "react-icons/lu";
+import { useToast } from "../../../components/Toast/ToastContent";
 
 type Category = { id: number; name: string };
 
@@ -59,6 +60,7 @@ function Field({ label, className = "", ...props }: React.InputHTMLAttributes<HT
 }
 
 export default function ResourceManager() {
+  const { toast } = useToast();
   const [resources, setResources] = useState<Resource[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [filtered, setFiltered] = useState<Resource[]>([]);
@@ -78,9 +80,12 @@ export default function ResourceManager() {
       const data: Resource[] = Array.isArray(resourcesRes.data) ? resourcesRes.data : resourcesRes.data.data ?? [];
       setResources(data);
       setFiltered(data);
-      setCategories(categoriesRes.data);
+      const catData: Category[] = Array.isArray(categoriesRes.data)
+        ? categoriesRes.data
+        : categoriesRes.data.data ?? [];
+      setCategories(catData);
     } catch (err) {
-      console.error("Erro ao carregar dados:", err);
+      toast(`${err}`, "error");
     } finally {
       setLoading(false);
     }
@@ -104,7 +109,7 @@ export default function ResourceManager() {
   };
 
   const handleSave = async () => {
-    if (!formData.name || !formData.category_id) { alert("Preencha o Nome e selecione uma Categoria."); return; }
+    if (!formData.name || !formData.category_id) {  toast("Preencha o Nome e selecione uma Categoria.", "error"); return; }
     try {
       setSaving(true);
       const payload = {
@@ -119,8 +124,9 @@ export default function ResourceManager() {
       else { await api.post("/resource", payload); }
       closeModal();
       await loadData();
+      toast(editingId ? "Recurso atualizado!" : "Recurso criado!", "success");
     } catch (err: any) {
-      alert(err.response?.data?.message || "Erro ao salvar recurso.");
+      toast(err.response?.data?.message || "Erro ao salvar recurso.", "error");
     } finally {
       setSaving(false);
     }
@@ -132,7 +138,9 @@ export default function ResourceManager() {
       await api.delete(`/resource/${deleteTarget.id}`);
       setResources((prev) => prev.filter((r) => r.id !== deleteTarget.id));
       setFiltered((prev) => prev.filter((r) => r.id !== deleteTarget.id));
-    } catch { alert("Erro ao excluir. O recurso pode estar vinculado a um pedido."); }
+      toast("Recurso excluído.", "success");
+    } catch {
+      toast("Erro ao excluir. O recurso pode estar vinculado a um pedido.", "error"); }
     finally { setDeleteTarget(null); }
   };
 
@@ -140,7 +148,6 @@ export default function ResourceManager() {
 
   const openEdit = (r: Resource) => {
     setEditingId(r.id);
-    console.log(r);
     setFormData({
       name: r.name, description: r.description ?? "", category_id: r.category_id,
       width: r.width != null ? String(r.width) : "",

@@ -12,6 +12,7 @@ import {
   LuHash,
   LuInfo,
 } from "react-icons/lu";
+import { useToast } from "../../../components/Toast/ToastContent";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -82,6 +83,7 @@ function Field({
 // ─── Main ─────────────────────────────────────────────────────────────────────
 
 export default function InvoiceManager() {
+  const { toast } = useToast();
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [filtered, setFiltered] = useState<Invoice[]>([]);
   const [loading, setLoading] = useState(true);
@@ -104,7 +106,7 @@ export default function InvoiceManager() {
         setInvoices(r.data);
         setFiltered(r.data);
       })
-      .catch(console.error)
+      .catch((err) => toast(err, "error"))
       .finally(() => setLoading(false));
   }, []);
 
@@ -160,8 +162,7 @@ export default function InvoiceManager() {
       setFiltered(updated);
       setEditing(null);
     } catch (err) {
-      console.error(err);
-      alert("Erro ao atualizar fatura.");
+      toast(`${err}`, "error")
     } finally {
       setSaving(false);
     }
@@ -174,8 +175,8 @@ export default function InvoiceManager() {
       const next = invoices.filter((i) => i.id !== deleteTarget.id);
       setInvoices(next);
       setFiltered(next);
-    } catch {
-      alert("Erro ao excluir fatura.");
+    } catch(err) {
+      toast(`${err}`, "error")
     } finally {
       setDeleteTarget(null);
     }

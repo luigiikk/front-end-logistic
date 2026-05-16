@@ -8,6 +8,7 @@ import {
   LuUser, 
   LuTruck 
 } from "react-icons/lu";
+import { useToast } from "../../../components/Toast/ToastContent";
 
 // ─── Tipos ────────────────────────────────────────────────────────────────────
 
@@ -30,6 +31,7 @@ type Order = {
 // ─── Componente Principal ─────────────────────────────────────────────────────
 
 export default function OrderManager() {
+  const { toast } = useToast();
   const [orders, setOrders] = useState<Order[]>([]);
   const [filtered, setFiltered] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
@@ -42,7 +44,7 @@ export default function OrderManager() {
         setOrders(res.data);
         setFiltered(res.data);
       } catch (err) {
-        console.error("Erro ao carregar pedidos", err);
+        toast(`${err}`, "error");
       } finally {
         setLoading(false);
       }

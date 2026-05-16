@@ -8,6 +8,7 @@ import {
   LuCalendar,
   LuDollarSign,
 } from "react-icons/lu";
+import { useToast } from "../../../components/Toast/ToastContent";
 
 type Invoice = {
   id: number;
@@ -18,6 +19,7 @@ type Invoice = {
 };
 
 export default function InvoiceManager() {
+  const { toast } = useToast();
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [filtered, setFiltered] = useState<Invoice[]>([]);
   const [loading, setLoading] = useState(true);
@@ -30,7 +32,7 @@ export default function InvoiceManager() {
         setInvoices(res.data);
         setFiltered(res.data);
       } catch (err) {
-        console.error("Erro ao carregar faturas", err);
+        toast(`${err}`, "error");
       } finally {
         setLoading(false);
       }

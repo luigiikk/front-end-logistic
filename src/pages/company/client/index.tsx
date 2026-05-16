@@ -13,6 +13,7 @@ import {
   LuMapPin,
   LuUser,
 } from "react-icons/lu";
+import { useToast } from "../../../components/Toast/ToastContent";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -295,6 +296,7 @@ function ClientModal({
 // ─── Main ─────────────────────────────────────────────────────────────────────
 
 export default function ClientManager() {
+  const { toast } = useToast();
   const [clients, setClients] = useState<Client[]>([]);
   const [filtered, setFiltered] = useState<Client[]>([]);
   const [loading, setLoading] = useState(true);
@@ -312,7 +314,7 @@ export default function ClientManager() {
         setClients(r.data);
         setFiltered(r.data);
       })
-      .catch(console.error)
+      .catch()
       .finally(() => setLoading(false));
   }, []);
 
@@ -338,7 +340,7 @@ export default function ClientManager() {
         c.name.toLowerCase().includes(searchTerm.toLowerCase())
       ));
     } catch {
-      alert("Erro ao excluir cliente.");
+      toast("Erro ao excluir cliente.", "error");
     } finally {
       setDeleteId(null);
     }
@@ -349,7 +351,7 @@ export default function ClientManager() {
       const res = await api.get(`/client/${id}`);
       setEditing(res.data);
     } catch {
-      alert("Erro ao carregar cliente.");
+      toast("Erro ao carregar cliente.", "error");
     }
   };
 
@@ -378,7 +380,7 @@ export default function ClientManager() {
       setFiltered(next);
       setEditing(null);
     } catch {
-      alert("Erro ao atualizar cliente.");
+      toast("Erro ao atualizar cliente.", "error");
     } finally {
       setSaving(false);
     }
@@ -409,7 +411,7 @@ export default function ClientManager() {
       setCreating(false);
       setNewClient({ ...EMPTY_CLIENT });
     } catch {
-      alert("Erro ao cadastrar cliente.");
+      toast("Erro ao cadastrar cliente.", "error");
     } finally {
       setSaving(false);
     }

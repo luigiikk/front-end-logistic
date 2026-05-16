@@ -10,6 +10,7 @@ import {
   LuHash,
   LuBoxes,
 } from "react-icons/lu";
+import { useToast } from "../../../components/Toast/ToastContent";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -50,6 +51,7 @@ function Field({
 // ─── Main ─────────────────────────────────────────────────────────────────────
 
 export default function PurchaseOrderItemManager() {
+  const { toast } = useToast();
   const [items, setItems] = useState<PurchaseOrderItem[]>([]);
   const [filtered, setFiltered] = useState<PurchaseOrderItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -66,7 +68,7 @@ export default function PurchaseOrderItemManager() {
       setItems(data);
       setFiltered(data);
     } catch (err) {
-      console.error("Erro ao carregar itens", err);
+      toast(`${err}`, "error");
     } finally {
       setLoading(false);
     }
@@ -94,8 +96,8 @@ export default function PurchaseOrderItemManager() {
       await api.delete(`/purchase-order-items/${deleteTarget.id}`);
       setItems((prev) => prev.filter((i) => i.id !== deleteTarget.id));
       setFiltered((prev) => prev.filter((i) => i.id !== deleteTarget.id));
-    } catch {
-      alert("Erro ao excluir item.");
+    } catch(err) {
+      toast(`${err}`, "error");
     } finally {
       setDeleteTarget(null);
     }
@@ -112,8 +114,7 @@ export default function PurchaseOrderItemManager() {
       setEditing(null);
       loadData();
     } catch (err) {
-      console.error(err);
-      alert("Erro ao atualizar item.");
+      toast(`${err}`, "error");
     } finally {
       setSaving(false);
     }

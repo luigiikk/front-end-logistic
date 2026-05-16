@@ -4,6 +4,7 @@ import { GenericPanelLayout } from "../../../components/Layout/company/layoutOpt
 import {
   LuSearch, LuTrash2, LuPlus, LuPencil, LuX, LuWarehouse, LuMapPin, LuBoxes,
 } from "react-icons/lu";
+import { useToast } from "../../../components/Toast/ToastContent";
 
 type Address = {
   street: string; number: number; city: string; state: string;
@@ -77,6 +78,7 @@ function Field({ label, className = "", ...props }: React.InputHTMLAttributes<HT
 }
 
 export default function WarehouseManager() {
+  const { toast } = useToast();
   const [warehouses, setWarehouses] = useState<Warehouse[]>([]);
   const [filtered, setFiltered] = useState<Warehouse[]>([]);
   const [loading, setLoading] = useState(true);
@@ -116,7 +118,7 @@ export default function WarehouseManager() {
           : data
       );
     } catch (err) {
-      console.error("Erro ao carregar armazéns", err);
+      toast(`${err}`, "error");
     } finally {
       setLoading(false);
     }
@@ -148,7 +150,7 @@ export default function WarehouseManager() {
 
   const handleSave = async () => {
     if (!formData.name || !formData.street || !formData.city) {
-      alert("Nome, Rua e Cidade são obrigatórios.");
+      toast("Nome, Rua e Cidade são obrigatórios.", "info");
       return;
     }
     try {
@@ -174,7 +176,7 @@ export default function WarehouseManager() {
       // Pass current searchTerm explicitly so loadWarehouses doesn't read a stale closure
       await loadWarehouses(searchTerm);
     } catch (err: any) {
-      alert(err.response?.data?.message || "Erro ao salvar armazém.");
+      toast(`${err}`, "error");
     } finally {
       setSaving(false);
     }
@@ -186,8 +188,8 @@ export default function WarehouseManager() {
       await api.delete(`/warehouses/${deleteTarget.id}`);
       setWarehouses((prev) => prev.filter((w) => w.id !== deleteTarget.id));
       setFiltered((prev) => prev.filter((w) => w.id !== deleteTarget.id));
-    } catch {
-      alert("Erro ao excluir armazém.");
+    } catch(err) {
+      toast(`${err}`, "error");
     } finally {
       setDeleteTarget(null);
     }

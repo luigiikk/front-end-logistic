@@ -4,6 +4,7 @@ import { useState } from "react";
 import { api } from "../../../api/lib/api";
 import { MapPinIcon, DocumentTextIcon, MagnifyingGlassIcon, XMarkIcon } from "@heroicons/react/24/outline";
 import { CheckCircleIcon, ClockIcon, TruckIcon } from "@heroicons/react/24/solid";
+import { useToast } from "../../../components/Toast/ToastContent";
 
 type TrackingEvent = {
   id: number;
@@ -43,6 +44,7 @@ function formatTime(dateStr: string) {
 }
 
 export default function RastreioPage() {
+  const { toast } = useToast();
   const [code, setCode] = useState("");
   const [cpf, setCpf] = useState("");
   const [orderData, setOrderData] = useState<OrderData | null>(null);
@@ -70,8 +72,7 @@ export default function RastreioPage() {
       });
       setOrderData(res.data);
     } catch (err: any) {
-      console.error(err);
-      setError(err.response?.data?.message || "Pedido não encontrado. Verifique os dados informados.");
+      toast("Pedido não encontrado. Verifique os dados informados.", "error");
       setOrderData(null);
     } finally {
       setLoading(false);

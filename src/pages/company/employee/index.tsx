@@ -14,6 +14,7 @@ import {
   LuBriefcase,
   LuHash,
 } from "react-icons/lu";
+import { useToast } from "../../../components/Toast/ToastContent";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -440,6 +441,7 @@ function CreateModal({ data, roles, onChange, onConfirm, onClose, loading }: Cre
 // ─── Main ─────────────────────────────────────────────────────────────────────
 
 export default function EmployeeManager() {
+  const { toast } = useToast();
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [filtered, setFiltered] = useState<Employee[]>([]);
   const [loading, setLoading] = useState(true);
@@ -454,14 +456,14 @@ export default function EmployeeManager() {
   useEffect(() => {
     api.get("/employee")
       .then((r) => { setEmployees(r.data); setFiltered(r.data); })
-      .catch(console.error)
+      .catch((err) => toast("Erro ao ao carregar funcionário.", "error"))
       .finally(() => setLoading(false));
 
     api.get("/roules")
   .then((r) => {
     setRoles(r.data);
   })
-  .catch((err) => console.error("roles error:", err));  
+  .catch((err) => toast("Erro ao carregar cargos.", "error"));  
   }, []);
 
   const handleSearch = (value: string) => {
@@ -513,8 +515,7 @@ export default function EmployeeManager() {
       setFiltered(next);
       setEditing(null);
     } catch (err: any) {
-      alert("Erro ao atualizar funcionário.");
-      console.error(err.response?.data || err);
+      toast("Erro ao atualizar funcionário", "error");
     } finally {
       setSaving(false);
     }
@@ -545,8 +546,7 @@ export default function EmployeeManager() {
       setCreating(false);
       setNewEmployee({ ...EMPTY_NEW });
     } catch (err: any) {
-      alert("Erro ao cadastrar funcionário. Verifique os dados.");
-      console.error(err);
+      toast("Erro ao cadastrar funcionário. Verifique os dados.", "error");
     } finally {
       setSaving(false);
     }

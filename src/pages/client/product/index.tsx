@@ -3,6 +3,7 @@ import { useEffect, useState, useMemo, useCallback } from "react";
 import { api } from "../../../api/lib/api";
 import { LuSearch, LuTrash2 } from "react-icons/lu";
 import { GenericPanelLayout } from "../../../components/Layout/company/layoutOption";
+import { useToast } from "../../../components/Toast/ToastContent";
 
 type Product = {
   id: number;
@@ -19,6 +20,7 @@ type OrderSummary = {
 };
 
 export default function ProductManager() {
+  const { toast } = useToast();
   const [products, setProducts] = useState<Product[]>([]);
   const [ordersLookup, setOrdersLookup] = useState<Record<number, string>>({});
   const [loading, setLoading] = useState(true);
@@ -46,7 +48,7 @@ export default function ProductManager() {
         setOrdersLookup(lookupMap);
 
       } catch (err) {
-        console.error("Erro ao carregar dados:", err);
+        toast("Erro ao carregar dados", "error");
       } finally {
         setLoading(false);
       }
@@ -79,10 +81,9 @@ export default function ProductManager() {
       await api.delete(`/product/${productId}`);
       // Atualiza o estado local removendo o item, sem precisar recarregar tudo da API
       setProducts((prev) => prev.filter((p) => p.id !== productId));
-      alert("Produto excluído com sucesso!");
+      toast("Produto excluído com sucesso!", "success");
     } catch (err: any) {
-      console.error("Erro ao excluir produto:", err);
-      alert(err.response?.data?.message || "Erro ao excluir produto");
+      toast("Erro ao excluir produto", "error");
     }
   }, []);
 

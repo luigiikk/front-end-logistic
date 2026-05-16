@@ -4,6 +4,7 @@ import { GenericPanelLayout } from "../../../components/Layout/company/layoutOpt
 import {
   LuTrash2, LuPlus, LuPencil, LuX, LuShoppingCart, LuHash, LuPackage, LuWarehouse, LuBoxes,
 } from "react-icons/lu";
+import { useToast } from "../../../components/Toast/ToastContent";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -74,6 +75,7 @@ function SelectField({ label, className = "", children, ...props }: React.Select
 // ─── Main ─────────────────────────────────────────────────────────────────────
 
 export default function PurchaseOrderManager() {
+  const { toast } = useToast();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [orders, setOrders] = useState<PurchaseOrderSummary[]>([]);
@@ -103,7 +105,7 @@ export default function PurchaseOrderManager() {
       setStatuses(extractData(statRes.data));
       setOrders(extractData(ordersRes.data));
     } catch (err) {
-      console.error("Erro ao carregar dados:", err);
+      toast(`${err}`, "error");
     } finally {
       setLoading(false);
     }
@@ -160,14 +162,14 @@ export default function PurchaseOrderManager() {
       });
       setEditingId(id);
       setIsModalOpen(true);
-    } catch { alert("Não foi possível carregar os dados do pedido."); }
+    } catch(err) { toast(`${err}`, "error"); }
     finally { setLoading(false); }
   };
 
   const handleSave = async () => {
-    if (!formData.supplier_id || !formData.status_id) return alert("Selecione um fornecedor e um status.");
+    if (!formData.supplier_id || !formData.status_id) return toast("Selecione um fornecedor e um status.", "error");
     const invalid = formData.items.some((i) => !i.resource_id || !i.warehouse_id || Number(i.quantity) <= 0);
-    if (invalid) return alert("Preencha recurso, armazém e quantidade > 0 em todos os itens.");
+    if (invalid) return toast("Preencha recurso, armazém e quantidade > 0 em todos os itens.", "error");
     try {
       setSaving(true);
       const payload = {
@@ -182,7 +184,7 @@ export default function PurchaseOrderManager() {
       closeModal();
       loadInitialData();
     } catch (err: any) {
-      alert(err.response?.data?.message || "Erro ao salvar pedido.");
+      toast(`${err}`, "error");
     } finally {
       setSaving(false);
     }
@@ -193,7 +195,7 @@ export default function PurchaseOrderManager() {
     try {
       await api.delete(`/purchase-orders/${deleteTarget.id}`);
       setOrders((prev) => prev.filter((o) => o.id !== deleteTarget.id));
-    } catch { alert("Erro ao excluir pedido."); }
+    } catch(err) { toast(`${err}`, "error"); }
     finally { setDeleteTarget(null); }
   };
 

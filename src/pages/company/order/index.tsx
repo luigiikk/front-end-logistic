@@ -14,6 +14,7 @@ import {
   LuPackage,
   LuRuler,  // Adicione este
 } from "react-icons/lu";
+import { useToast } from "../../../components/Toast/ToastContent";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -224,6 +225,7 @@ function StatusBadge({ status }: { status: string }) {
 // ─── Main ─────────────────────────────────────────────────────────────────────
 
 export default function OrderManager() {
+  const { toast } = useToast();
   const [orders, setOrders] = useState<Order[]>([]);
   const [filtered, setFiltered] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
@@ -245,7 +247,7 @@ export default function OrderManager() {
       setOrders(res.data);
       setFiltered(res.data);
     } catch (err) {
-      console.error(err);
+      toast(`${err}`, "error")
     } finally {
       setLoading(false);
     }
@@ -257,7 +259,7 @@ export default function OrderManager() {
       const list: Vehicle[] = Array.isArray(res.data) ? res.data : res.data.data ?? [];
       setVehicles(list);
     } catch (err) {
-      console.error(err);
+      toast(`${err}`, "error")
     }
   };
 
@@ -307,13 +309,13 @@ export default function OrderManager() {
 
   const handleCreate = async () => {
     if (!newOrder.recipient.name || !newOrder.recipient.cpf)
-      return alert("Preencha nome e CPF do destinatário.");
+      return toast("Preencha nome e CPF do destinatário.", "info");
 
     const hasInvalidDimensions = newOrder.products.some(
       (p) => !p.height || !p.width || !p.length
     );
     if (hasInvalidDimensions)
-      return alert("Preencha altura, largura e profundidade de todos os produtos.");
+      return toast("Preencha altura, largura e profundidade de todos os produtos.", "info");
 
     try {
       setSaving(true);
@@ -349,7 +351,7 @@ export default function OrderManager() {
       setCreating(false);
       setNewOrder(initialOrderState);
     } catch (err: any) {
-      alert(err.response?.data?.message || "Erro ao criar pedido.");
+      toast(`${err.response?.data?.message}`, "error");
     } finally {
       setSaving(false);
     }
@@ -361,8 +363,8 @@ export default function OrderManager() {
       await api.delete(`/order/${deleteTarget.id}`);
       setOrders((prev) => prev.filter((o) => o.id !== deleteTarget.id));
       setFiltered((prev) => prev.filter((o) => o.id !== deleteTarget.id));
-    } catch {
-      alert("Erro ao excluir pedido.");
+    } catch(err) {
+      toast(`${err}`, "error");
     } finally {
       setDeleteTarget(null);
     }

@@ -4,6 +4,7 @@ import { GenericPanelLayout } from "../../../components/Layout/company/layoutOpt
 import {
   LuSearch, LuPackage, LuWarehouse, LuBoxes,
 } from "react-icons/lu";
+import { useToast } from "../../../components/Toast/ToastContent";
 
 type InventoryItem = {
   id: number;
@@ -32,6 +33,7 @@ type GroupedResource = {
 };
 
 export default function InventoryManager() {
+  const { toast } = useToast();
   const [inventory, setInventory] = useState<GroupedResource[]>([]);
   const [filtered, setFiltered] = useState<GroupedResource[]>([]);
   const [loading, setLoading] = useState(true);
@@ -70,7 +72,7 @@ export default function InventoryManager() {
       setInventory(grouped);
       setFiltered(grouped);
     } catch (err) {
-      console.error("Erro ao carregar inventário:", err);
+      toast("Erro ao ao carregar inventário.", "error")
     } finally {
       setLoading(false);
     }

@@ -7,6 +7,7 @@ import {
   LuHash,
   LuPackage,
 } from "react-icons/lu";
+import { useToast } from "../../../components/Toast/ToastContent";
 
 type Vehicle = {
   id: number;
@@ -17,6 +18,7 @@ type Vehicle = {
 };
 
 export default function VehicleManager() {
+  const { toast } = useToast();
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [filtered, setFiltered] = useState<Vehicle[]>([]);
   const [loading, setLoading] = useState(true);
@@ -29,7 +31,7 @@ export default function VehicleManager() {
         setVehicles(res.data);
         setFiltered(res.data);
       } catch (err) {
-        console.error(err);
+        toast(`${err}`, "error");
       } finally {
         setLoading(false);
       }

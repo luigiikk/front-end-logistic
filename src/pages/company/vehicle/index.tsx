@@ -10,6 +10,7 @@ import {
   LuTruck,
   LuGauge,
 } from "react-icons/lu";
+import { useToast } from "../../../components/Toast/ToastContent";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -211,6 +212,7 @@ function VehicleModal({
 // ─── Main ─────────────────────────────────────────────────────────────────────
 
 export default function VehicleManager() {
+  const { toast } = useToast();
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [filtered, setFiltered] = useState<Vehicle[]>([]);
   const [loading, setLoading] = useState(true);
@@ -239,7 +241,7 @@ export default function VehicleManager() {
     setVehicles(vehicleList);
     setFiltered(vehicleList);
   } catch (err: any) {
-    console.error("Erro ao carregar veículos:", err.response?.data);
+    toast(`${err}`, "error");
   } finally {
     setLoading(false);
   }
@@ -288,8 +290,8 @@ useEffect(() => {
             v.model.toLowerCase().includes(search.toLowerCase())
         )
       );
-    } catch {
-      alert("Erro ao excluir veículo.");
+    } catch(err) {
+      toast(`${err}`, "error");
     } finally {
       setDeleteTarget(null);
     }
@@ -321,8 +323,7 @@ useEffect(() => {
     await loadVehicles(); // ← recarrega do servidor
     setEditingVehicle(null);
   } catch (err: any) {
-    console.error("Erro detalhado:", err.response?.data);
-    alert("Erro ao atualizar veículo.");
+    toast(`${err}`, "error");
   } finally {
     setSaving(false);
   }
@@ -345,8 +346,8 @@ useEffect(() => {
       setFiltered(vehicleList);
       setCreating(false);
       setNewForm(EMPTY_FORM);
-    } catch {
-      alert("Erro ao cadastrar veículo.");
+    } catch(err) {
+      toast(`${err}`, "error");
     } finally {
       setSaving(false);
     }

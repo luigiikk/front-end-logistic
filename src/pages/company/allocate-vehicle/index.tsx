@@ -9,6 +9,7 @@ import {
   LuPackage,
   LuCircleCheck,
 } from "react-icons/lu";
+import { useToast } from "../../../components/Toast/ToastContent";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -177,6 +178,7 @@ function AllocateModal({ order, vehicles, onConfirm, onClose, saving }: ModalPro
 // ─── Main ─────────────────────────────────────────────────────────────────────
 
 export default function AllocateVehicleManager() {
+  const { toast } = useToast();
   const [orders, setOrders] = useState<Order[]>([]);
   const [filtered, setFiltered] = useState<Order[]>([]);
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
@@ -210,7 +212,7 @@ export default function AllocateVehicleManager() {
       setFiltered(withoutVehicle);
       setVehicles(vehicleList);
     } catch (err) {
-      console.error("Erro ao carregar dados:", err);
+      toast("Erro ao carregar dados", "error");
     } finally {
       setLoading(false);
     }
@@ -237,7 +239,7 @@ export default function AllocateVehicleManager() {
       setSelectedOrder(null);
       await loadData(); // Recarrega — pedido some da lista pois agora tem veículo
     } catch (err: any) {
-      alert(err.response?.data?.message || "Erro ao alocar veículo.");
+      toast("Erro ao alocar veículo.", "error");
     } finally {
       setSaving(false);
     }

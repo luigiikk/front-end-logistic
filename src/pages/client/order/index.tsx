@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { api } from "../../../api/lib/api";
 import { GenericPanelLayout } from "../../../components/Layout/company/layoutOption";
 import { LuSearch, LuTrash2, LuPlus, LuBox, LuUser, LuMapPin } from "react-icons/lu";
+import { useToast } from "../../../components/Toast/ToastContent";
 
 // --- TIPOS ---
 
@@ -65,6 +66,7 @@ const initialOrderState: NewOrderForm = {
 };
 
 export default function OrderManager() {
+  const { toast } = useToast();
   const [orders, setOrders] = useState<Order[]>([]);
   const [filtered, setFiltered] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
@@ -87,7 +89,7 @@ export default function OrderManager() {
       setOrders(res.data);
       setFiltered(res.data);
     } catch (err) {
-      console.error(err);
+      toast("Erro ao carregar pedidos:", "error");
     } finally {
       setLoading(false);
     }
@@ -150,7 +152,7 @@ export default function OrderManager() {
 
   const handleCreateProductWithOrder = async () => {
     try {
-      if (!newOrder.recipient.name || !newOrder.recipient.cpf) return alert("Preencha os dados do destinatário");
+      if (!newOrder.recipient.name || !newOrder.recipient.cpf) return toast("Preencha os dados do destinatário", "info");
 
       // Montando payload conforme interface OrderRegisterCompanyParams
       const payload = {
@@ -180,10 +182,9 @@ export default function OrderManager() {
       await loadOrders();
       setCreating(false);
       setNewOrder(initialOrderState);
-      alert("Pedido e Destinatário criados com sucesso!");
+      toast("Pedido e Destinatário criados com sucesso!", "success");
     } catch (err: any) {
-      console.error(err);
-      alert(err.response?.data?.message || "Erro ao criar pedido");
+      toast("Erro ao criar pedido", "error");
     }
   };
 
@@ -193,7 +194,7 @@ export default function OrderManager() {
       await api.delete(`/order/${orderId}`);
       setOrders(prev => prev.filter(o => o.id !== orderId));
       setFiltered(prev => prev.filter(o => o.id !== orderId));
-    } catch (err) { alert("Erro ao excluir"); }
+    } catch (err) { toast("Erro ao excluir", "error"); }
   };
 
   // --- RENDERIZAÇÃO ---

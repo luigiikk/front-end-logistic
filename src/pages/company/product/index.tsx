@@ -2,6 +2,7 @@ import { useEffect, useState, useMemo, useCallback } from "react";
 import { api } from "../../../api/lib/api";
 import { LuSearch, LuTrash2, LuPackage, LuHash, LuBoxes } from "react-icons/lu";
 import { GenericPanelLayout } from "../../../components/Layout/company/layoutOption";
+import { useToast } from "../../../components/Toast/ToastContent";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -21,6 +22,7 @@ type OrderSummary = {
 // ─── Main ─────────────────────────────────────────────────────────────────────
 
 export default function ProductManager() {
+  const { toast } = useToast();
   const [products, setProducts] = useState<Product[]>([]);
   const [ordersLookup, setOrdersLookup] = useState<Record<number, string>>({});
   const [loading, setLoading] = useState(true);
@@ -44,7 +46,7 @@ export default function ProductManager() {
         setProducts(productsRes.data);
         setOrdersLookup(lookupMap);
       } catch (err) {
-        console.error("Erro ao carregar dados:", err);
+        toast(`${err}`, "error");
       } finally {
         setLoading(false);
       }
@@ -70,7 +72,7 @@ export default function ProductManager() {
       await api.delete(`/product/${deleteTarget.id}`);
       setProducts((prev) => prev.filter((p) => p.id !== deleteTarget.id));
     } catch (err: any) {
-      alert(err.response?.data?.message || "Erro ao excluir produto.");
+      toast(`${err.response?.data?.message}`, "error");
     } finally {
       setDeleteTarget(null);
     }

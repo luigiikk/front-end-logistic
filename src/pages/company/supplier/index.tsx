@@ -11,6 +11,7 @@ import {
   LuMapPin,
   LuInfo,
 } from "react-icons/lu";
+import { useToast } from "../../../components/Toast/ToastContent";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -85,6 +86,7 @@ function Field({
 // ─── Main ─────────────────────────────────────────────────────────────────────
 
 export default function SupplierManager() {
+  const { toast } = useToast();
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
   const [filtered, setFiltered] = useState<Supplier[]>([]);
   const [loading, setLoading] = useState(true);
@@ -104,7 +106,7 @@ export default function SupplierManager() {
       setSuppliers(data);
       setFiltered(data);
     } catch (err) {
-      console.error("Erro ao carregar fornecedores", err);
+      toast(`${err}`, "error");
     } finally {
       setLoading(false);
     }
@@ -133,7 +135,7 @@ export default function SupplierManager() {
 
   const handleSave = async () => {
     if (!formData.name || !formData.CNPJ || !formData.email) {
-      alert("Nome, Email e CNPJ são obrigatórios.");
+      toast("Nome, Email e CNPJ são obrigatórios.", "info");
       return;
     }
 
@@ -164,8 +166,7 @@ export default function SupplierManager() {
       closeModal();
       await loadSuppliers();
     } catch (err: any) {
-      console.error(err);
-      alert(err.response?.data?.message || "Erro ao salvar fornecedor.");
+      toast(`${err}`, "error");
     } finally {
       setSaving(false);
     }
@@ -178,7 +179,7 @@ export default function SupplierManager() {
       setSuppliers((prev) => prev.filter((s) => s.id !== deleteTarget.id));
       setFiltered((prev) => prev.filter((s) => s.id !== deleteTarget.id));
     } catch {
-      alert("Erro ao excluir fornecedor.");
+      toast("Erro ao excluir fornecedor.", "error");
     } finally {
       setDeleteTarget(null);
     }
