@@ -348,7 +348,7 @@ export default function OrderManager() {
       (p) => !p.height || !p.width || !p.length
     );
     if (hasInvalidDimensions)
-      return toast("Preencha altura, largura e profundidade de todos os produtos.", "info");
+      return toast("Preencha altura, largura e comprimento de todos os produtos.", "info");
 
     try {
       setSaving(true);

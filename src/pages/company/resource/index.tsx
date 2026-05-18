@@ -355,7 +355,7 @@ export default function ResourceManager() {
                 <div className="grid grid-cols-3 gap-3">
                   <Field label="Largura" placeholder="0.00" type="number" step="0.01" min={0} value={formData.width} onChange={(e) => setFormData({ ...formData, width: e.target.value })} />
                   <Field label="Altura" placeholder="0.00" type="number" step="0.01" min={0} value={formData.height} onChange={(e) => setFormData({ ...formData, height: e.target.value })} />
-                  <Field label="Profundidade" placeholder="0.00" type="number" step="0.01" min={0} value={formData.length} onChange={(e) => setFormData({ ...formData, length: e.target.value })} />
+                  <Field label="Comprimento" placeholder="0.00" type="number" step="0.01" min={0} value={formData.length} onChange={(e) => setFormData({ ...formData, length: e.target.value })} />
                 </div>
 
                 {/* Preview volume unitário */}
