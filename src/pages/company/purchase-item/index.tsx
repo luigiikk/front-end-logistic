@@ -18,6 +18,7 @@ type PurchaseOrderItem = {
   id: number;
   purchase_order_id: number;
   resource_id: number;
+  warehouse_id: number;
   quantity: number;
   unit_price: number;
   total_price: number;
@@ -108,9 +109,12 @@ export default function PurchaseOrderItemManager() {
     try {
       setSaving(true);
       await api.put(`/purchase-order-items/${editing.id}`, {
-        quantity: Number(editing.quantity),
-        unit_price: Number(editing.unit_price),
-      });
+  quantity: Number(editing.quantity),
+  unit_price: Number(editing.unit_price),
+  purchase_order_id: editing.purchase_order_id, // 👈
+  resource_id: editing.resource_id,             // 👈
+  warehouse_id: editing.warehouse_id,           // 👈
+});
       setEditing(null);
       loadData();
     } catch (err) {
