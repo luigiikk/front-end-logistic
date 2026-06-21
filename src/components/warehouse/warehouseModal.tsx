@@ -1,6 +1,7 @@
 import React from "react";
 import { LuX, LuWarehouse, LuBoxes, LuMapPin } from "react-icons/lu";
 import type { WarehouseForm } from "../../types/warehouse";
+import { InputField, type MaskType } from "../ui/Input/inputField";
 
 type WarehouseModalProps = {
   title: string;
@@ -14,16 +15,16 @@ type WarehouseModalProps = {
 function Field({
   label,
   className = "",
+  maskType,
   ...props
-}: React.InputHTMLAttributes<HTMLInputElement> & { label: string; className?: string }) {
+}: React.InputHTMLAttributes<HTMLInputElement> & { label: string; className?: string; maskType?: MaskType }) {
   return (
-    <div className={`flex flex-col gap-1 ${className}`}>
-      <label className="text-[10px] font-bold text-[#384A6C] uppercase tracking-widest">{label}</label>
-      <input
-        {...props}
-        className="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm text-gray-800 placeholder-gray-300 bg-white focus:outline-none focus:ring-2 focus:ring-[#94C0E0] focus:border-transparent transition-all"
-      />
-    </div>
+    <InputField
+      label={label}
+      maskType={maskType}
+      containerClassName={className}
+      {...(props as any)}
+    />
   );
 }
 
@@ -83,6 +84,7 @@ export function WarehouseModal({
               <Field
                 label="CEP"
                 className="md:col-span-1"
+                maskType="cep"
                 placeholder="00000-000"
                 value={form.zipcode}
                 onChange={(e) => onChange("zipcode", e.target.value)}

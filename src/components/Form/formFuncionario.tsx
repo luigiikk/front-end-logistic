@@ -1,9 +1,10 @@
 import { useState } from "react";
 import { useAuth } from "../../hooks/useAuth";
 import { useNavigate } from "react-router-dom";
+import { InputField } from "../ui/Input/inputField";
 
 export default function FormFuncionario() {
-const [enrollment, setEnrollment] = useState("");
+  const [enrollment, setEnrollment] = useState("");
   const [password, setPassword] = useState("");
 
   const navigate = useNavigate();
@@ -21,27 +22,26 @@ const [enrollment, setEnrollment] = useState("");
 
   return (
     <form onSubmit={onSubmit} className="flex flex-col gap-4">
-      <input
-        type="text"
+      <InputField
+        label="Matrícula"
         placeholder="Digite a sua matrícula"
         value={enrollment}
         onChange={(e) => setEnrollment(e.target.value)}
-        className="border border-gray-400 rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#2f446a]"
         required
       />
-      <input
+      <InputField
+        label="Senha"
         type="password"
         placeholder="Digite sua senha"
         value={password}
         onChange={(e) => setPassword(e.target.value)}
-        className="border border-gray-400 rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#2f446a]"
         required
       />
       {error && <p className="text-red-500 text-sm">{error}</p>}
       <button
         type="submit"
         disabled={loading}
-        className="bg-[#2f446a] text-white py-2 rounded hover:bg-[#24385a]"
+        className="bg-[#2f446a] text-white py-2.5 rounded-xl hover:bg-[#24385a] font-bold text-sm disabled:opacity-50 transition-all active:scale-95 cursor-pointer"
       >
         {loading ? "Entrando..." : "Entrar"}
       </button>

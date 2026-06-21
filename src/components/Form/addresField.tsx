@@ -1,5 +1,5 @@
 import React from "react";
-import { FormInput } from "../ui/Input/formRegisterClient";
+import { InputField } from "../ui/Input/inputField";
 
 interface AddressProps {
   address: {
@@ -22,35 +22,35 @@ export const AddressFields: React.FC<AddressProps> = ({ address, setAddress }) =
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 
-      <FormInput
+      <InputField
         label="País"
         placeholder="Digite o país"
         value={address.country}
         onChange={(e) => handleChange("country", e.target.value)}
       />
 
-      <FormInput
+      <InputField
         label="Estado"
         placeholder="Digite o estado"
         value={address.state}
         onChange={(e) => handleChange("state", e.target.value)}
       />
 
-      <FormInput
+      <InputField
         label="Cidade"
         placeholder="Digite a cidade"
         value={address.city}
         onChange={(e) => handleChange("city", e.target.value)}
       />
 
-      <FormInput
+      <InputField
         label="Rua"
         placeholder="Digite a rua"
         value={address.street}
         onChange={(e) => handleChange("street", e.target.value)}
       />
 
-      <FormInput
+      <InputField
         label="Número"
         type="number"
         placeholder="Digite o número"
@@ -58,14 +58,15 @@ export const AddressFields: React.FC<AddressProps> = ({ address, setAddress }) =
         onChange={(e) => handleChange("number", e.target.value)}
       />
 
-      <FormInput
+      <InputField
         label="CEP"
+        maskType="cep"
         placeholder="Digite o CEP"
         value={address.zip}
         onChange={(e) => handleChange("zip", e.target.value)}
       />
 
-      <FormInput
+      <InputField
         label="Complemento"
         placeholder="Opcional"
         value={address.complement}

@@ -22,6 +22,7 @@ type Panel =
 interface GenericPanelLayoutProps {
   children: ReactNode;
   panel: Panel;
+  hideBackButton?: boolean;
 }
 
 const PANEL_TITLES: Record<Panel, string> = {
@@ -45,9 +46,10 @@ const PANEL_TITLES: Record<Panel, string> = {
 export const GenericPanelLayout: React.FC<GenericPanelLayoutProps> = ({
   children,
   panel,
+  hideBackButton,
 }) => {
   return (
-    <EntityLayout title={`${PANEL_TITLES[panel]} - LogiFast`}>
+    <EntityLayout title={`${PANEL_TITLES[panel]} - LogiFast`} hideBackButton={hideBackButton}>
       {children}
     </EntityLayout>
   );
