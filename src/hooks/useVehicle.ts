@@ -38,7 +38,8 @@ export function useVehicles() {
       setFiltered(vehicleList);
       setStatuses(vehicleStatuses);
     } catch (err: any) {
-      toast(`${err}`, "error");
+      const msg = err.response?.data?.message || `${err}`;
+      toast(msg, "error");
     } finally {
       setLoading(false);
     }

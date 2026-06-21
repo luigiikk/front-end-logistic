@@ -26,6 +26,9 @@ export function useOrders() {
   };
 
   const loadVehicles = async () => {
+    if (window.location.pathname.includes("/employee")) {
+      return;
+    }
     try {
       const res = await api.get("/vehicle?status=Ativo");
       const list: Vehicle[] = Array.isArray(res.data) ? res.data : res.data.data ?? [];

@@ -20,7 +20,9 @@ export function useInvoices() {
       setInvoices(data);
       setFiltered(data);
     } catch (err: any) {
-      toast("Erro ao carregar faturas.", "error");
+      if (err.response?.status !== 409) {
+        toast("Erro ao carregar faturas.", "error");
+      }
     } finally {
       setLoading(false);
     }
