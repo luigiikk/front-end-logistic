@@ -6,6 +6,7 @@ export type PurchaseOrderSummary = {
   status_id: number;
   created_at: string;
   items?: any[];
+  code?: string;
 };
 
 export type ResourceOption = {

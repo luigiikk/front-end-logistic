@@ -146,7 +146,7 @@ export default function PurchaseOrderManager() {
                         <td className="py-4 px-6">
                           <span className="inline-flex items-center gap-1 text-sm font-bold text-[#384A6C]">
                             <LuHash size={12} className="opacity-60" />
-                            {order.id}
+                            {order.code ?? order.id}
                           </span>
                         </td>
                         <td className="py-4 px-6 text-sm text-gray-700 font-medium">{order.supplier?.name ?? "—"}</td>

@@ -110,7 +110,7 @@ export default function PurchaseOrderItemManager() {
                         <td className="py-4 px-6">
                           <span className="inline-flex items-center gap-1 text-xs font-semibold text-[#384A6C] bg-[#384A6C]/10 px-2.5 py-1 rounded-full">
                             <LuHash size={10} />
-                            {item.purchase_order_id}
+                            {`PC-${String(item.purchase_order_id).padStart(5, "0")}`}
                           </span>
                         </td>
 
