@@ -2,6 +2,7 @@ export type PurchaseOrder = {
   id: number;
   total_value: number;
   status_id: number;
+  code?: string;
   status?: {
     name: string;
   };
