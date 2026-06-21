@@ -4,7 +4,7 @@ import {
   LuTrash2, LuPlus, LuPencil, LuShoppingCart, LuHash, LuBoxes,
 } from "react-icons/lu";
 import { usePurchaseOrders } from "../../../hooks/usePurchaseOrder";
-import { type PurchaseOrderSummary, type OrderForm, EMPTY_FORM } from "../../../types/purchaseOrder";
+import { type OrderForm, EMPTY_FORM } from "../../../types/purchaseOrder";
 import { getStatusStyle } from "../../../util/purchaseOrderHelpers";
 import { PurchaseOrderModal } from "../../../components/purchase-order/purchaseOrderModal";
 import { DeletePurchaseOrderModal } from "../../../components/purchase-order/deletePurchaseOrderModal";

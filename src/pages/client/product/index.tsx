@@ -1,9 +1,15 @@
-/* ProductManager.tsx */
 import { useEffect, useState, useMemo, useCallback } from "react";
 import { api } from "../../../api/lib/api";
-import { LuSearch, LuTrash2 } from "react-icons/lu";
+import {
+  LuSearch,
+  LuTrash2,
+  LuPackage,
+  LuHash,
+  LuBoxes,
+} from "react-icons/lu";
 import { GenericPanelLayout } from "../../../components/Layout/company/layoutOption";
 import { useToast } from "../../../components/Toast/ToastContent";
+import { DeleteProductModal } from "../../../components/product/deleteProductModal";
 
 type Product = {
   id: number;
@@ -13,7 +19,6 @@ type Product = {
   order_id: number;
 };
 
-// Tipo apenas para a resposta da API de pedidos, para evitar 'any'
 type OrderSummary = {
   id: number;
   code: string;
@@ -25,28 +30,27 @@ export default function ProductManager() {
   const [ordersLookup, setOrdersLookup] = useState<Record<number, string>>({});
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
+  
+  // Interface State
+  const [deleteTarget, setDeleteTarget] = useState<{ id: number; name: string } | null>(null);
 
   // 1. Carregamento Unificado e Paralelo
   useEffect(() => {
     async function loadInitialData() {
       try {
         setLoading(true);
-        
-        // Dispara as duas requisições ao mesmo tempo
         const [productsRes, ordersRes] = await Promise.all([
           api.get("/product"),
           api.get("/order")
         ]);
 
-        // Processa o Lookup de Pedidos imediatamente
-        const lookupMap = ordersRes.data.reduce((acc: Record<number, string>, order: OrderSummary) => {
+        const lookupMap = (ordersRes.data || []).reduce((acc: Record<number, string>, order: OrderSummary) => {
           acc[order.id] = order.code;
           return acc;
         }, {});
 
-        setProducts(productsRes.data);
+        setProducts(productsRes.data || []);
         setOrdersLookup(lookupMap);
-
       } catch (err) {
         toast("Erro ao carregar dados", "error");
       } finally {
@@ -58,13 +62,14 @@ export default function ProductManager() {
   }, []);
 
   // 2. Filtragem Otimizada (Memoizada)
-  // Só recalcula se produtos, busca ou o lookup mudarem
   const filteredProducts = useMemo(() => {
-    if (!searchTerm) return products;
+    // Filtra apenas produtos que pertencem a ordens do cliente autenticado
+    const subset = products.filter((p) => ordersLookup[p.order_id] !== undefined);
+    if (!searchTerm) return subset;
 
     const lowerTerm = searchTerm.toLowerCase();
 
-    return products.filter((p) => {
+    return subset.filter((p) => {
       const orderCode = ordersLookup[p.order_id] || "";
       return (
         p.name.toLowerCase().includes(lowerTerm) ||
@@ -74,77 +79,116 @@ export default function ProductManager() {
   }, [products, searchTerm, ordersLookup]);
 
   // 3. Delete Otimizado
-  const handleDeleteProduct = useCallback(async (productId: number) => {
-    if (!confirm("Tem certeza que deseja excluir este produto?")) return;
+  const handleDelete = useCallback(async () => {
+    if (!deleteTarget) return;
 
     try {
-      await api.delete(`/product/${productId}`);
-      // Atualiza o estado local removendo o item, sem precisar recarregar tudo da API
-      setProducts((prev) => prev.filter((p) => p.id !== productId));
+      await api.delete(`/product/${deleteTarget.id}`);
+      setProducts((prev) => prev.filter((p) => p.id !== deleteTarget.id));
+      setDeleteTarget(null);
       toast("Produto excluído com sucesso!", "success");
     } catch (err: any) {
       toast("Erro ao excluir produto", "error");
     }
-  }, []);
+  }, [deleteTarget]);
 
   return (
     <GenericPanelLayout panel="produto">
-      <div className="bg-white max-w-5xl w-full rounded-3xl shadow-xl p-10 min-h-[600px]">
-        <h1 className="text-3xl text-center mb-8">Produtos</h1>
+      <div className="w-full max-w-5xl mx-auto space-y-6">
 
-        {/* Barra de busca */}
-        <div className="flex justify-start mb-6">
-          <div className="flex items-center gap-2 border border-black rounded-lg px-4 py-2 w-80 focus-within:ring-1 ring-black">
-            <LuSearch className="text-gray-500" />
+        {/* ── Header ── */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <h1 className="text-2xl font-extrabold text-[#384A6C] tracking-tight">Produtos</h1>
+            <p className="text-sm text-gray-400 mt-0.5">
+              {filteredProducts.length} produto{filteredProducts.length !== 1 ? "s" : ""} encontrado{filteredProducts.length !== 1 ? "s" : ""}
+            </p>
+          </div>
+
+          <div className="flex items-center gap-2 bg-white border border-gray-200 rounded-xl px-4 py-2.5 shadow-sm">
+            <LuSearch size={15} className="text-gray-400 shrink-0" />
             <input
               type="text"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder="Buscar por nome ou código..."
-              className="outline-none w-full"
+              placeholder="Buscar por nome ou código do pedido..."
+              className="outline-none text-sm text-gray-700 placeholder-gray-300 w-64"
             />
           </div>
         </div>
 
-        {/* Lista de produtos */}
-        <div className="border-t border-black">
+        {/* ── Lista de Produtos (Estilo Premium) ── */}
+        <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
           {loading ? (
-            <div className="text-center py-8 text-gray-500 animate-pulse">Carregando dados...</div>
+            <div className="flex flex-col items-center justify-center py-20 gap-3">
+              <svg className="animate-spin h-6 w-6 text-[#94C0E0]" viewBox="0 0 24 24" fill="none">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
+              </svg>
+              <p className="text-sm text-gray-400">Carregando produtos...</p>
+            </div>
           ) : filteredProducts.length === 0 ? (
-            <div className="text-center py-8 text-gray-500">
-              {searchTerm ? "Nenhum produto encontrado para a busca." : "Nenhum produto cadastrado."}
+            <div className="flex flex-col items-center justify-center py-20 gap-2 text-gray-400">
+              <LuPackage size={32} className="opacity-30" />
+              <p className="text-sm font-medium">
+                {searchTerm ? "Nenhum produto encontrado para a busca." : "Nenhum produto cadastrado."}
+              </p>
             </div>
           ) : (
-            filteredProducts.map((p) => (
-              <div
-                key={p.id}
-                className="flex justify-between border-b border-black py-4 items-center px-4 hover:bg-gray-50 transition-colors"
-              >
-                <div>
-                  <p className="font-semibold text-lg">{p.name}</p>
-                  <p className="text-sm text-gray-600">{p.description}</p>
-                  <p className="text-sm text-gray-500 mt-1">
-                    <span className="bg-gray-200 px-2 py-0.5 rounded text-xs mr-2">
-                      Qtd: {p.quantity}
-                    </span>
-                    <span className="text-xs">
-                      Pedido: <b>{ordersLookup[p.order_id] ?? "N/A"}</b>
-                    </span>
-                  </p>
-                </div>
-                
-                <button
-                  onClick={() => handleDeleteProduct(p.id)}
-                  className="text-red-500 hover:text-red-700 hover:bg-red-50 p-2 rounded-full transition-all"
-                  title="Excluir Produto"
+            <ul className="divide-y divide-gray-50">
+              {filteredProducts.map((p) => (
+                <li
+                  key={p.id}
+                  className="flex items-center justify-between px-6 py-4 hover:bg-[#EEF5FB]/60 transition-colors"
                 >
-                  <LuTrash2 size={20} />
-                </button>
-              </div>
-            ))
+                  <div className="flex items-center gap-4">
+                    <div className="w-10 h-10 rounded-full bg-[#384A6C]/10 flex items-center justify-center text-[#384A6C] shrink-0">
+                      <LuPackage size={18} />
+                    </div>
+                    <div>
+                      <p className="font-semibold text-gray-800 text-sm">{p.name}</p>
+                      {p.description && (
+                        <p className="text-xs text-gray-400 mt-0.5">{p.description}</p>
+                      )}
+                      <div className="flex items-center gap-3 text-xs text-gray-400 mt-1 flex-wrap">
+                        <span className="flex items-center gap-1">
+                          <LuBoxes size={11} />
+                          Qtd:{" "}
+                          <span className="font-semibold text-gray-600">{p.quantity}</span>
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <LuHash size={11} />
+                          Pedido:{" "}
+                          <span className="font-semibold text-gray-600">
+                            {ordersLookup[p.order_id] ?? "N/A"}
+                          </span>
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <button
+                    onClick={() => setDeleteTarget({ id: p.id, name: p.name })}
+                    className="p-2 rounded-xl text-red-400 hover:bg-red-50 transition shrink-0 ml-4 cursor-pointer"
+                    title="Excluir produto"
+                  >
+                    <LuTrash2 size={16} />
+                  </button>
+                </li>
+              ))}
+            </ul>
           )}
         </div>
       </div>
+
+      {/* Modais */}
+      {deleteTarget && (
+        <DeleteProductModal
+          name={deleteTarget.name}
+          onCancel={() => setDeleteTarget(null)}
+          onConfirm={handleDelete}
+        />
+      )}
     </GenericPanelLayout>
   );
 }

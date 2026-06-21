@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { api } from "../../../api/lib/api";
-import { MapPinIcon, DocumentTextIcon, MagnifyingGlassIcon, XMarkIcon } from "@heroicons/react/24/outline";
+import { MapPinIcon, MagnifyingGlassIcon, XMarkIcon } from "@heroicons/react/24/outline";
 import { CheckCircleIcon, ClockIcon, TruckIcon } from "@heroicons/react/24/solid";
 import { useToast } from "../../../components/Toast/ToastContent";
 

@@ -2,7 +2,7 @@ import { Route } from "react-router-dom";
 import DashboardLayout from "../components/Layout/DashboardLayout";
 import OrderManager from "../pages/client/order";
 import ClientDashboard from "../pages/client/Dashboard";
-import ProductManager from "../pages/company/product";
+import ProductManager from "../pages/client/product";
 
 
 const clientNavLinks = [

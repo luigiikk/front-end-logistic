@@ -8,7 +8,6 @@ import {
   LuBoxes,
 } from "react-icons/lu";
 import { usePurchaseItems } from "../../../hooks/usePurchaseItem";
-import { type PurchaseOrderItem } from "../../../types/purchaseItem";
 import { DeletePurchaseItemModal } from "../../../components/purchase-item/deletePurchaseItemModal";
 
 export default function PurchaseOrderItemManager() {

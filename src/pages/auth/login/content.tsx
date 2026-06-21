@@ -50,21 +50,22 @@ const TABS: UserTab[] = [
     type: "client",
     label: "Cliente",
     icon: IdentificationIcon,
-    placeholder: "000.000.000-00",
+    placeholder: "00.000.000/0001-00",
     mask: (v: string) =>
       v
         .replace(/\D/g, "")
-        .slice(0, 11)
+        .slice(0, 14)
+        .replace(/(\d{2})(\d)/, "$1.$2")
         .replace(/(\d{3})(\d)/, "$1.$2")
-        .replace(/(\d{3})(\d)/, "$1.$2")
-        .replace(/(\d{3})(\d{1,2})$/, "$1-$2"),
+        .replace(/(\d{3})(\d)/, "$1/$2")
+        .replace(/(\d{4})(\d{1,2})$/, "$1-$2"),
   },
 ];
 
 const NAVIGATE_MAP: Record<UserType, string> = {
   employee: "/employee",
   company: "/company",
-  client: "/",
+  client: "/client",
 };
 
 // ─── Input reutilizável ──────────────────────────────────────────────────────
@@ -105,7 +106,7 @@ function LoginForm({ tab }: { tab: UserTab }) {
   const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
   const navigate = useNavigate();
-  const { handleAuth, error, loading } = useAuth<any>(tab.type);
+  const { handleAuth, loading } = useAuth<any>(tab.type);
 
   const handleIdentifierChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = tab.mask ? tab.mask(e.target.value) : e.target.value;
@@ -128,7 +129,7 @@ function LoginForm({ tab }: { tab: UserTab }) {
   return (
     <form onSubmit={onSubmit} className="flex flex-col gap-4">
       <Field
-        label={tab.type === "employee" ? "Matrícula" : tab.type === "company" ? "CNPJ" : "CPF"}
+        label={tab.type === "employee" ? "Matrícula" : "CNPJ"}
         icon={tab.icon}
         placeholder={tab.placeholder}
         value={identifier}

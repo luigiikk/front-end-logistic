@@ -1,67 +1,37 @@
-import { useEffect, useState } from "react";
-import { api } from "../../../api/lib/api";
 import { GenericPanelLayout } from "../../../components/Layout/company/layoutOption";
 import {
   LuSearch,
   LuFileText,
-  LuHash,
   LuCalendar,
   LuDollarSign,
+  LuHash,
+  LuLink,
+  LuExternalLink,
 } from "react-icons/lu";
-import { useToast } from "../../../components/Toast/ToastContent";
-
-type Invoice = {
-  id: number;
-  order_id: number;
-  amount: number;
-  status: string;
-  due_date: string;
-};
+import { useInvoices } from "../../../hooks/useInvoice";
+import { getStatus, formatDate } from "../../../util/invoiceHelpers";
 
 export default function InvoiceManager() {
-  const { toast } = useToast();
-  const [invoices, setInvoices] = useState<Invoice[]>([]);
-  const [filtered, setFiltered] = useState<Invoice[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState("");
-
-  useEffect(() => {
-    async function loadData() {
-      try {
-        const res = await api.get("/invoice");
-        setInvoices(res.data);
-        setFiltered(res.data);
-      } catch (err) {
-        toast(`${err}`, "error");
-      } finally {
-        setLoading(false);
-      }
-    }
-    loadData();
-  }, []);
-
-  const handleSearch = (value: string) => {
-    setSearchTerm(value);
-    setFiltered(
-      invoices.filter(
-        (inv) =>
-          String(inv.id).includes(value) ||
-          String(inv.order_id).includes(value) ||
-          inv.status.toLowerCase().includes(value.toLowerCase())
-      )
-    );
-  };
+  const {
+    invoices,
+    loading,
+    searchTerm,
+    handleSearch,
+  } = useInvoices();
 
   return (
     // @ts-ignore
     <GenericPanelLayout panel="invoice">
       <div className="w-full max-w-5xl mx-auto space-y-6">
 
+        {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-extrabold text-[#384A6C] tracking-tight">Faturas</h1>
+            <h1 className="text-2xl font-extrabold text-[#384A6C] tracking-tight flex items-center gap-2">
+              <LuFileText size={24} className="text-[#384A6C]" /> Faturas
+            </h1>
             <p className="text-sm text-gray-400 mt-0.5">
-              {filtered.length} fatura{filtered.length !== 1 ? "s" : ""} encontrada{filtered.length !== 1 ? "s" : ""}
+              Consulta de notas fiscais e comprovantes de faturamento
             </p>
           </div>
 
@@ -71,64 +41,110 @@ export default function InvoiceManager() {
               type="text"
               value={searchTerm}
               onChange={(e) => handleSearch(e.target.value)}
-              placeholder="Buscar por ID ou status..."
+              placeholder="Buscar por ID, nota, pedido ou status..."
               className="outline-none text-sm text-gray-700 placeholder-gray-300 w-64"
             />
           </div>
         </div>
 
-        <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
-          {loading ? (
-            <div className="flex flex-col items-center justify-center py-20 gap-3">
-              <div className="animate-spin h-6 w-6 border-2 border-[#94C0E0] border-t-transparent rounded-full" />
-              <p className="text-sm text-gray-400">Carregando faturas...</p>
-            </div>
-          ) : filtered.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-20 gap-2 text-gray-400">
-              <LuFileText size={32} className="opacity-30" />
-              <p className="text-sm font-medium">Nenhuma fatura encontrada.</p>
-            </div>
-          ) : (
-            <ul className="divide-y divide-gray-50">
-              {filtered.map((inv) => (
-                <li
+        {/* Content */}
+        {loading ? (
+          <div className="bg-white rounded-3xl border border-gray-100 shadow-sm flex flex-col items-center justify-center py-20 gap-3">
+            <div className="animate-spin h-6 w-6 border-2 border-[#94C0E0] border-t-transparent rounded-full" />
+            <p className="text-sm text-gray-400">Carregando faturas...</p>
+          </div>
+        ) : invoices.length === 0 ? (
+          <div className="bg-white rounded-3xl border border-gray-100 shadow-sm flex flex-col items-center justify-center py-20 gap-2 text-gray-400">
+            <LuFileText size={32} className="opacity-30" />
+            <p className="text-sm font-medium">Nenhuma fatura encontrada.</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {invoices.map((inv) => {
+              const status = getStatus(inv.purchase_order?.status ?? inv.purchase_order?.status_id);
+              
+              return (
+                <div
                   key={inv.id}
-                  className="flex items-center justify-between px-6 py-4 hover:bg-[#EEF5FB]/60 transition-colors"
+                  className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm hover:shadow-md transition-all duration-200 flex flex-col justify-between space-y-4"
                 >
-                  <div className="flex items-center gap-4">
-                    <div className="w-10 h-10 rounded-full bg-[#384A6C]/10 flex items-center justify-center text-[#384A6C] shrink-0">
-                      <LuFileText size={18} />
+                  {/* Top Header Row */}
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex items-center gap-3">
+                      <div className="w-11 h-11 rounded-xl bg-[#384A6C]/10 flex items-center justify-center text-[#384A6C]">
+                        <LuFileText size={20} />
+                      </div>
+                      <div>
+                        <h3 className="font-bold text-gray-800 text-sm">Fatura #{inv.id}</h3>
+                        {inv.invoice_number ? (
+                          <div className="flex items-center gap-0.5 text-xs text-gray-400 mt-0.5">
+                            <LuHash size={11} />
+                            <span>Nota: {inv.invoice_number}</span>
+                          </div>
+                        ) : (
+                          <div className="text-xs text-gray-300 italic mt-0.5">Sem número de nota</div>
+                        )}
+                      </div>
                     </div>
+
+                    <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border ${status.cls}`}>
+                      {status.label}
+                    </span>
+                  </div>
+
+                  {/* Pricing / Order relation */}
+                  <div className="bg-gray-50 rounded-xl p-3 flex justify-between items-center text-xs">
                     <div>
-                      <div className="flex items-center gap-2">
-                        <p className="font-semibold text-gray-800 text-sm">Fatura #{inv.id}</p>
-                        <span className="text-[10px] bg-gray-100 text-gray-500 px-2 py-0.5 rounded font-bold uppercase">
-                          Pedido #{inv.order_id}
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-4 text-xs text-gray-400 mt-1 flex-wrap">
-                        <span className="flex items-center gap-1">
-                          <LuDollarSign size={11} /> <b>Valor:</b> R$ {Number(inv.amount).toFixed(2)}
-                        </span>
-                        <span className="flex items-center gap-1">
-                          <LuCalendar size={11} /> <b>Venc:</b> {inv.due_date}
-                        </span>
-                      </div>
+                      <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Valor total</p>
+                      <p className="text-base font-extrabold text-gray-800 flex items-center mt-0.5">
+                        <LuDollarSign size={15} className="text-[#384A6C] -ml-0.5 shrink-0" />
+                        {Number(inv.purchase_order?.total_value || 0).toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                      </p>
+                    </div>
+
+                    <div className="text-right">
+                      <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Pedido Relacionado</p>
+                      <span className="inline-flex text-[10px] bg-white text-gray-600 border border-gray-200 px-2 py-0.5 rounded font-extrabold uppercase mt-1">
+                        #{inv.purchase_order_id}
+                      </span>
                     </div>
                   </div>
 
-                  <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border
-                    ${inv.status === "Pago"
-                      ? "bg-green-50 text-green-600 border-green-200"
-                      : "bg-[#EEF5FB] text-[#384A6C] border-[#94C0E0]/30"
-                    }`}>
-                    {inv.status}
-                  </span>
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
+                  {/* Dates Row */}
+                  <div className="flex items-center justify-between text-xs border-t border-gray-50 pt-3">
+                    <div className="space-y-1.5 flex-1">
+                      <div className="flex items-center gap-1.5 text-gray-500">
+                        <LuCalendar size={12} className="text-gray-400" />
+                        <span>Emissão: <b>{formatDate(inv.issue_date)}</b></span>
+                      </div>
+                      
+                      {inv.due_date && (
+                        <div className="flex items-center gap-1.5 text-red-500 font-medium">
+                          <LuCalendar size={12} className="text-red-400" />
+                          <span>Vencimento: <b>{formatDate(inv.due_date)}</b></span>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* View file link if exists */}
+                    {inv.link_file && (
+                      <a
+                        href={inv.link_file}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-bold text-[#384A6C] bg-[#384A6C]/5 hover:bg-[#384A6C]/10 border border-[#384A6C]/10 rounded-xl transition-colors select-none shrink-0"
+                      >
+                        <LuLink size={12} />
+                        Ver arquivo
+                        <LuExternalLink size={10} />
+                      </a>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
       </div>
     </GenericPanelLayout>
   );

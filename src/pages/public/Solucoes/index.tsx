@@ -1,4 +1,3 @@
-import React from "react";
 
 import trucksImage from "../../../Img/caminhoesSolucoes.png";
 
