@@ -1,7 +1,7 @@
-import React from "react";
 import { LuX, LuUser, LuMail, LuPhone, LuMapPin, LuBriefcase } from "react-icons/lu";
 import type { EmployeeForm, Role } from "../../types/employee";
-import { maskPhone, maskZip } from "../../util/employeeHelpers";
+import { InputField } from "../ui/Input/inputField";
+import { SelectField } from "../ui/selectField";
 
 type CreateModalProps = {
   data: EmployeeForm;
@@ -11,71 +11,6 @@ type CreateModalProps = {
   onClose: () => void;
   loading: boolean;
 };
-
-function Field({
-  label,
-  icon: Icon,
-  className = "",
-  ...props
-}: React.InputHTMLAttributes<HTMLInputElement> & {
-  label: string;
-  icon?: React.ElementType;
-  className?: string;
-}) {
-  return (
-    <div className={`flex flex-col gap-1 ${className}`}>
-      <label className="text-[10px] font-bold text-[#384A6C] uppercase tracking-widest">
-        {label}
-      </label>
-      <div className="relative">
-        {Icon && (
-          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[#94C0E0]">
-            <Icon size={14} />
-          </span>
-        )}
-        <input
-          {...props}
-          className={`w-full ${Icon ? "pl-8" : "pl-3"} pr-3 py-2 rounded-xl border border-gray-200 text-sm text-gray-800 placeholder-gray-300 bg-white
-            focus:outline-none focus:ring-2 focus:ring-[#94C0E0] focus:border-transparent transition-all`}
-        />
-      </div>
-    </div>
-  );
-}
-
-function SelectField({
-  label,
-  icon: Icon,
-  className = "",
-  children,
-  ...props
-}: React.SelectHTMLAttributes<HTMLSelectElement> & {
-  label: string;
-  icon?: React.ElementType;
-  className?: string;
-}) {
-  return (
-    <div className={`flex flex-col gap-1 ${className}`}>
-      <label className="text-[10px] font-bold text-[#384A6C] uppercase tracking-widest">
-        {label}
-      </label>
-      <div className="relative">
-        {Icon && (
-          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[#94C0E0] pointer-events-none">
-            <Icon size={14} />
-          </span>
-        )}
-        <select
-          {...props}
-          className={`w-full ${Icon ? "pl-8" : "pl-3"} pr-3 py-2 rounded-xl border border-gray-200 text-sm text-gray-800 bg-white appearance-none
-            focus:outline-none focus:ring-2 focus:ring-[#94C0E0] focus:border-transparent transition-all`}
-        >
-          {children}
-        </select>
-      </div>
-    </div>
-  );
-}
 
 export function CreateEmployeeModal({
   data,
@@ -99,15 +34,15 @@ export function CreateEmployeeModal({
           <div>
             <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">Dados pessoais</p>
             <div className="grid grid-cols-2 gap-3">
-              <Field
+              <InputField
                 label="Nome"
                 icon={LuUser}
-                className="col-span-2"
+                containerClassName="col-span-2"
                 placeholder="Nome completo"
                 value={data.name}
                 onChange={(e) => onChange({ ...data, name: e.target.value })}
               />
-              <Field
+              <InputField
                 label="E-mail"
                 icon={LuMail}
                 type="email"
@@ -115,14 +50,15 @@ export function CreateEmployeeModal({
                 value={data.email}
                 onChange={(e) => onChange({ ...data, email: e.target.value })}
               />
-              <Field
+              <InputField
                 label="Telefone"
                 icon={LuPhone}
+                maskType="phone"
                 placeholder="(00) 00000-0000"
-                value={maskPhone(data.phone_number)}
-                onChange={(e) => onChange({ ...data, phone_number: maskPhone(e.target.value) })}
+                value={data.phone_number}
+                onChange={(e) => onChange({ ...data, phone_number: e.target.value })}
               />
-              <Field
+              <InputField
                 label="Senha"
                 type="password"
                 placeholder="••••••••"
@@ -148,52 +84,53 @@ export function CreateEmployeeModal({
               <LuMapPin size={12} /> Endereço
             </p>
             <div className="grid grid-cols-6 gap-3">
-              <Field
+              <InputField
                 label="Rua"
-                className="col-span-4"
+                containerClassName="col-span-4"
                 placeholder="Nome da rua"
                 value={data.street}
                 onChange={(e) => onChange({ ...data, street: e.target.value })}
               />
-              <Field
+              <InputField
                 label="Número"
-                className="col-span-2"
+                containerClassName="col-span-2"
                 type="number"
                 placeholder="0"
                 value={data.number}
                 onChange={(e) => onChange({ ...data, number: e.target.value })}
               />
-              <Field
+              <InputField
                 label="Complemento"
-                className="col-span-3"
+                containerClassName="col-span-3"
                 placeholder="Apto, sala..."
                 value={data.complement}
                 onChange={(e) => onChange({ ...data, complement: e.target.value })}
               />
-              <Field
+              <InputField
                 label="CEP"
-                className="col-span-3"
+                containerClassName="col-span-3"
+                maskType="cep"
                 placeholder="00000-000"
-                value={maskZip(data.zip_code)}
-                onChange={(e) => onChange({ ...data, zip_code: maskZip(e.target.value) })}
+                value={data.zip_code}
+                onChange={(e) => onChange({ ...data, zip_code: e.target.value })}
               />
-              <Field
+              <InputField
                 label="Cidade"
-                className="col-span-2"
+                containerClassName="col-span-2"
                 placeholder="Cidade"
                 value={data.city}
                 onChange={(e) => onChange({ ...data, city: e.target.value })}
               />
-              <Field
+              <InputField
                 label="Estado"
-                className="col-span-2"
+                containerClassName="col-span-2"
                 placeholder="UF"
                 value={data.state}
                 onChange={(e) => onChange({ ...data, state: e.target.value })}
               />
-              <Field
+              <InputField
                 label="País"
-                className="col-span-2"
+                containerClassName="col-span-2"
                 placeholder="Brasil"
                 value={data.country}
                 onChange={(e) => onChange({ ...data, country: e.target.value })}

@@ -1,7 +1,6 @@
-import React from "react";
 import { LuX, LuUser, LuMail, LuPhone, LuBuilding2, LuMapPin } from "react-icons/lu";
 import type { Client, ClientForm } from "../../types/client";
-import { maskPhone, maskCNPJ, maskZip } from "../../util/clientHelpers";
+import { InputField } from "../ui/Input/inputField";
 
 type ClientModalProps = {
   title: string;
@@ -13,37 +12,6 @@ type ClientModalProps = {
   confirmClass: string;
   loading?: boolean;
 };
-
-function Field({
-  label,
-  icon: Icon,
-  className = "",
-  ...props
-}: React.InputHTMLAttributes<HTMLInputElement> & {
-  label: string;
-  icon?: React.ElementType;
-  className?: string;
-}) {
-  return (
-    <div className={`flex flex-col gap-1 ${className}`}>
-      <label className="text-[10px] font-bold text-[#384A6C] uppercase tracking-widest">
-        {label}
-      </label>
-      <div className="relative">
-        {Icon && (
-          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[#94C0E0]">
-            <Icon size={14} />
-          </span>
-        )}
-        <input
-          {...props}
-          className={`w-full ${Icon ? "pl-8" : "pl-3"} pr-3 py-2 rounded-xl border border-gray-200 text-sm text-gray-800 placeholder-gray-300 bg-white
-            focus:outline-none focus:ring-2 focus:ring-[#94C0E0] focus:border-transparent transition-all`}
-        />
-      </div>
-    </div>
-  );
-}
 
 export function ClientModal({
   title,
@@ -79,15 +47,15 @@ export function ClientModal({
               Dados principais
             </p>
             <div className="grid grid-cols-2 gap-3">
-              <Field
+              <InputField
                 label="Nome"
                 icon={LuUser}
-                className="col-span-2"
+                containerClassName="col-span-2"
                 placeholder="Nome completo"
                 value={d.name}
                 onChange={(e) => onChange("name", e.target.value)}
               />
-              <Field
+              <InputField
                 label="E-mail"
                 icon={LuMail}
                 type="email"
@@ -95,23 +63,23 @@ export function ClientModal({
                 value={d.email}
                 onChange={(e) => onChange("email", e.target.value)}
               />
-              <Field
+              <InputField
                 label="Telefone"
                 icon={LuPhone}
+                maskType="phone"
                 placeholder="(00) 00000-0000"
-                value={maskPhone(String(d.phone_number ?? ""))}
-                onChange={(e) =>
-                  onChange("phone_number", maskPhone(e.target.value))
-                }
+                value={d.phone_number ?? ""}
+                onChange={(e) => onChange("phone_number", e.target.value)}
               />
-              <Field
+              <InputField
                 label="CNPJ"
                 icon={LuBuilding2}
+                maskType="cnpj"
                 placeholder="00.000.000/0001-00"
-                value={maskCNPJ(String(d.CNPJ ?? ""))}
-                onChange={(e) => onChange("CNPJ", maskCNPJ(e.target.value))}
+                value={d.CNPJ ?? ""}
+                onChange={(e) => onChange("CNPJ", e.target.value)}
               />
-              <Field
+              <InputField
                 label="Senha"
                 type="password"
                 placeholder="••••••••"
@@ -127,16 +95,16 @@ export function ClientModal({
               <LuMapPin size={12} /> Endereço
             </p>
             <div className="grid grid-cols-6 gap-3">
-              <Field
+              <InputField
                 label="Rua"
-                className="col-span-4"
+                containerClassName="col-span-4"
                 placeholder="Nome da rua"
                 value={d.street ?? ""}
                 onChange={(e) => onChange("street", e.target.value)}
               />
-              <Field
+              <InputField
                 label="Número"
-                className="col-span-2"
+                containerClassName="col-span-2"
                 type="number"
                 placeholder="0"
                 value={d.number ?? ""}
@@ -147,37 +115,38 @@ export function ClientModal({
                   )
                 }
               />
-              <Field
+              <InputField
                 label="Complemento"
-                className="col-span-3"
+                containerClassName="col-span-3"
                 placeholder="Apto, sala..."
                 value={d.complement ?? ""}
                 onChange={(e) => onChange("complement", e.target.value)}
               />
-              <Field
+              <InputField
                 label="CEP"
-                className="col-span-3"
+                containerClassName="col-span-3"
+                maskType="cep"
                 placeholder="00000-000"
-                value={maskZip(String(d.zipcode ?? ""))}
-                onChange={(e) => onChange("zipcode", maskZip(e.target.value))}
+                value={d.zipcode ?? ""}
+                onChange={(e) => onChange("zipcode", e.target.value)}
               />
-              <Field
+              <InputField
                 label="Cidade"
-                className="col-span-2"
+                containerClassName="col-span-2"
                 placeholder="Cidade"
                 value={d.city ?? ""}
                 onChange={(e) => onChange("city", e.target.value)}
               />
-              <Field
+              <InputField
                 label="Estado"
-                className="col-span-2"
+                containerClassName="col-span-2"
                 placeholder="UF"
                 value={d.state ?? ""}
                 onChange={(e) => onChange("state", e.target.value)}
               />
-              <Field
+              <InputField
                 label="País"
-                className="col-span-2"
+                containerClassName="col-span-2"
                 placeholder="Brasil"
                 value={d.country ?? ""}
                 onChange={(e) => onChange("country", e.target.value)}

@@ -13,7 +13,7 @@ export default function FormEmpresa() {
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     try {
-      const data = await handleAuth(CNPJ, password);
+      await handleAuth(CNPJ, password);
       navigate("/company")
     } catch {}
   }

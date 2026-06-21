@@ -11,8 +11,10 @@ import {
   LuRuler,
 } from "react-icons/lu";
 import type { OrderForm, Vehicle, Product } from "../../types/order";
-import { maskCPF, maskZip, calcProductsVolume } from "../../util/orderHelpers";
+import { calcProductsVolume } from "../../util/orderHelpers";
 import { EMPTY_PRODUCT } from "../../types/order";
+import { InputField } from "../ui/Input/inputField";
+import { SelectField } from "../ui/selectField";
 
 type OrderModalProps = {
   form: OrderForm;
@@ -23,53 +25,6 @@ type OrderModalProps = {
   loading: boolean;
 };
 
-function Field({
-  label,
-  className = "",
-  ...props
-}: React.InputHTMLAttributes<HTMLInputElement> & {
-  label: string;
-  className?: string;
-}) {
-  return (
-    <div className={`flex flex-col gap-1 ${className}`}>
-      <label className="text-[10px] font-bold text-[#384A6C] uppercase tracking-widest">
-        {label}
-      </label>
-      <input
-        {...props}
-        className="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm text-gray-800 placeholder-gray-300 bg-white
-          focus:outline-none focus:ring-2 focus:ring-[#94C0E0] focus:border-transparent transition-all"
-      />
-    </div>
-  );
-}
-
-function SelectField({
-  label,
-  className = "",
-  children,
-  ...props
-}: React.SelectHTMLAttributes<HTMLSelectElement> & {
-  label: string;
-  className?: string;
-}) {
-  return (
-    <div className={`flex flex-col gap-1 ${className}`}>
-      <label className="text-[10px] font-bold text-[#384A6C] uppercase tracking-widest">
-        {label}
-      </label>
-      <select
-        {...props}
-        className="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm text-gray-800 bg-white appearance-none
-          focus:outline-none focus:ring-2 focus:ring-[#94C0E0] focus:border-transparent transition-all"
-      >
-        {children}
-      </select>
-    </div>
-  );
-}
-
 function SectionTitle({
   icon: Icon,
   label,
@@ -78,11 +33,9 @@ function SectionTitle({
   label: string;
 }) {
   return (
-    <div className="flex items-center gap-2 mb-4">
-      <div className="w-7 h-7 rounded-lg bg-[#384A6C]/10 flex items-center justify-center text-[#384A6C]">
-        <Icon size={14} />
-      </div>
-      <p className="text-xs font-bold text-[#384A6C] uppercase tracking-widest">{label}</p>
+    <div className="flex items-center gap-2 border-b border-gray-150 pb-2 mb-4 text-[#384A6C] font-extrabold text-xs uppercase tracking-wider">
+      <Icon size={14} className="text-[#384A6C]" />
+      <span>{label}</span>
     </div>
   );
 }
@@ -96,26 +49,26 @@ export function OrderModal({
   loading,
 }: OrderModalProps) {
   const currentProductsVolume = calcProductsVolume(form.products);
-  const selectedVehicle = vehicles.find((v) => v.id === Number(form.vehicle_id));
+  const selectedVehicle = vehicles.find((v) => v.id === form.vehicle_id);
 
-  const updateRecipient = (field: keyof OrderForm["recipient"], value: string) => {
+  const updateRecipient = (key: string, val: string) => {
     onChange({
       ...form,
       recipient: {
         ...form.recipient,
-        [field]: value,
+        [key]: val,
       },
     });
   };
 
-  const updateAddress = (field: keyof OrderForm["recipient"]["address"], value: string) => {
+  const updateAddress = (key: string, val: string) => {
     onChange({
       ...form,
       recipient: {
         ...form.recipient,
         address: {
           ...form.recipient.address,
-          [field]: value,
+          [key]: val,
         },
       },
     });
@@ -129,29 +82,35 @@ export function OrderModal({
   };
 
   const handleRemoveProduct = (index: number) => {
-    onChange({
-      ...form,
-      products: form.products.filter((_, i) => i !== index),
-    });
+    const next = form.products.filter((_, idx) => idx !== index);
+    onChange({ ...form, products: next });
   };
 
-  const updateProduct = (index: number, field: keyof Product, value: any) => {
-    const updated = [...form.products];
-    (updated[index] as any)[field] = value;
-    onChange({
-      ...form,
-      products: updated,
+  const updateProduct = (
+    index: number,
+    key: keyof Product,
+    val: string | number
+  ) => {
+    const next = form.products.map((p, idx) => {
+      if (idx !== index) return p;
+      return { ...p, [key]: val };
     });
+    onChange({ ...form, products: next });
   };
 
   return (
     <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex justify-center items-center z-50 p-4">
-      <div className="bg-white w-full max-w-4xl rounded-3xl shadow-2xl flex flex-col max-h-[90vh] overflow-hidden">
+      <div className="bg-white w-full max-w-4xl rounded-3xl shadow-2xl max-h-[90vh] overflow-hidden flex flex-col">
         {/* Header */}
-        <div className="flex items-center justify-between px-8 pt-7 pb-4 border-b border-gray-100">
-          <h2 className="text-xl font-extrabold text-[#384A6C] tracking-tight">
-            Novo Pedido
-          </h2>
+        <div className="flex items-center justify-between px-8 pt-7 pb-4 border-b border-gray-100 shrink-0">
+          <div>
+            <h2 className="text-xl font-extrabold text-[#384A6C] tracking-tight">
+              Criar Novo Pedido
+            </h2>
+            <p className="text-xs text-gray-400 mt-0.5">
+              Cadastre um destinatário e os respectivos itens de transporte.
+            </p>
+          </div>
           <button
             onClick={onClose}
             className="text-gray-400 hover:text-gray-600 transition p-1 rounded-lg hover:bg-gray-100"
@@ -161,7 +120,7 @@ export function OrderModal({
         </div>
 
         {/* Body */}
-        <div className="px-8 py-6 overflow-y-auto space-y-8">
+        <div className="px-8 py-6 space-y-6 overflow-y-auto flex-1">
           {/* Veículo — opcional */}
           <div>
             <SectionTitle
@@ -195,7 +154,7 @@ export function OrderModal({
             {/* Feedback de volume em tempo real */}
             {selectedVehicle && (
               <div
-                className={`mt-2 flex items-center gap-2 text-xs font-semibold px-3 py-2 rounded-xl border ${
+                className={`mt-3 flex items-center gap-1.5 px-4 py-2.5 rounded-xl border text-xs font-bold ${
                   currentProductsVolume > selectedVehicle.available_volume
                     ? "bg-red-50 text-red-600 border-red-200"
                     : "bg-green-50 text-green-700 border-green-200"
@@ -216,21 +175,22 @@ export function OrderModal({
             <div className="bg-[#EEF5FB] rounded-2xl p-5 border border-[#94C0E0]/30">
               <SectionTitle icon={LuUser} label="Destinatário" />
               <div className="space-y-3">
-                <Field
+                <InputField
                   label="Nome completo *"
                   placeholder="Nome do destinatário"
                   value={form.recipient.name}
                   onChange={(e) => updateRecipient("name", e.target.value)}
                 />
-                <Field
-                  label="CPF *"
-                  placeholder="000.000.000-00"
-                  value={maskCPF(form.recipient.cpf)}
+                <InputField
+                  label="CNPJ *"
+                  placeholder="00.000.000/0001-00"
+                  maskType="cnpj"
+                  value={form.recipient.cpf}
                   onChange={(e) =>
-                    updateRecipient("cpf", maskCPF(e.target.value))
+                    updateRecipient("cpf", e.target.value)
                   }
                 />
-                <Field
+                <InputField
                   label="E-mail"
                   type="email"
                   placeholder="destinatario@email.com"
@@ -244,40 +204,41 @@ export function OrderModal({
             <div className="bg-[#EEF5FB] rounded-2xl p-5 border border-[#94C0E0]/30">
               <SectionTitle icon={LuMapPin} label="Endereço de entrega" />
               <div className="grid grid-cols-6 gap-3">
-                <Field
+                <InputField
                   label="Rua"
-                  className="col-span-4"
+                  containerClassName="col-span-4"
                   placeholder="Nome da rua"
                   value={form.recipient.address.street}
                   onChange={(e) => updateAddress("street", e.target.value)}
                 />
-                <Field
+                <InputField
                   label="Número"
-                  className="col-span-2"
+                  containerClassName="col-span-2"
                   type="number"
                   placeholder="0"
                   value={form.recipient.address.number}
                   onChange={(e) => updateAddress("number", e.target.value)}
                 />
-                <Field
+                <InputField
                   label="CEP"
-                  className="col-span-3"
+                  containerClassName="col-span-3"
+                  maskType="cep"
                   placeholder="00000-000"
-                  value={maskZip(form.recipient.address.zipcode)}
+                  value={form.recipient.address.zipcode}
                   onChange={(e) =>
-                    updateAddress("zipcode", maskZip(e.target.value))
+                    updateAddress("zipcode", e.target.value)
                   }
                 />
-                <Field
+                <InputField
                   label="Cidade"
-                  className="col-span-2"
+                  containerClassName="col-span-2"
                   placeholder="Cidade"
                   value={form.recipient.address.city}
                   onChange={(e) => updateAddress("city", e.target.value)}
                 />
-                <Field
+                <InputField
                   label="UF"
-                  className="col-span-1"
+                  containerClassName="col-span-1"
                   placeholder="SP"
                   maxLength={2}
                   value={form.recipient.address.state}
@@ -285,9 +246,9 @@ export function OrderModal({
                     updateAddress("state", e.target.value.toUpperCase())
                   }
                 />
-                <Field
+                <InputField
                   label="Complemento"
-                  className="col-span-6"
+                  containerClassName="col-span-6"
                   placeholder="Apto, bloco..."
                   value={form.recipient.address.complement}
                   onChange={(e) =>
@@ -309,27 +270,27 @@ export function OrderModal({
                 >
                   {/* Linha 1: nome, descrição, qtd */}
                   <div className="flex gap-3 items-end">
-                    <Field
+                    <InputField
                       label="Produto"
-                      className="flex-1"
+                      containerClassName="flex-1"
                       placeholder="Nome do item"
                       value={p.name}
                       onChange={(e) =>
                         updateProduct(index, "name", e.target.value)
                       }
                     />
-                    <Field
+                    <InputField
                       label="Descrição"
-                      className="flex-1"
+                      containerClassName="flex-1"
                       placeholder="Breve descrição"
                       value={p.description}
                       onChange={(e) =>
                         updateProduct(index, "description", e.target.value)
                       }
                     />
-                    <Field
+                    <InputField
                       label="Qtd"
-                      className="w-20"
+                      containerClassName="w-20"
                       type="number"
                       min={1}
                       value={p.quantity}
@@ -344,7 +305,7 @@ export function OrderModal({
                     {index > 0 && (
                       <button
                         onClick={() => handleRemoveProduct(index)}
-                        className="p-2 rounded-xl text-red-400 hover:bg-red-50 transition shrink-0 mb-0.5"
+                        className="p-2 rounded-xl text-red-400 hover:bg-red-50 transition shrink-0 mb-0.5 cursor-pointer"
                       >
                         <LuTrash2 size={16} />
                       </button>
@@ -356,9 +317,9 @@ export function OrderModal({
                     <div className="flex items-center gap-1 text-[10px] font-bold text-[#384A6C] uppercase tracking-widest shrink-0 pb-2.5">
                       <LuRuler size={12} /> Dimensões (m)
                     </div>
-                    <Field
+                    <InputField
                       label="Altura"
-                      className="flex-1"
+                      containerClassName="flex-1"
                       type="number"
                       min={0}
                       step={0.01}
@@ -372,9 +333,9 @@ export function OrderModal({
                         )
                       }
                     />
-                    <Field
+                    <InputField
                       label="Largura"
-                      className="flex-1"
+                      containerClassName="flex-1"
                       type="number"
                       min={0}
                       step={0.01}
@@ -388,9 +349,9 @@ export function OrderModal({
                         )
                       }
                     />
-                    <Field
+                    <InputField
                       label="Profund."
-                      className="flex-1"
+                      containerClassName="flex-1"
                       type="number"
                       min={0}
                       step={0.01}
@@ -405,16 +366,16 @@ export function OrderModal({
                       }
                     />
                     {/* Volume calculado do item */}
-                    <div className="flex flex-col gap-1 shrink-0">
+                    <div className="flex flex-col gap-1 shrink-0 pb-0.5">
                       <span className="text-[10px] font-bold text-[#384A6C] uppercase tracking-widest">
                         Volume
                       </span>
                       <span className="px-3 py-2 rounded-xl border border-gray-200 bg-white text-sm text-gray-500 w-24 text-center">
                         {(
-                          p.height *
-                          p.width *
-                          p.length *
-                          p.quantity
+                          (p.height || 0) *
+                          (p.width || 0) *
+                          (p.length || 0) *
+                          (p.quantity || 1)
                         ).toFixed(2)}{" "}
                         m³
                       </span>
@@ -434,7 +395,7 @@ export function OrderModal({
 
             <button
               onClick={handleAddProduct}
-              className="mt-3 flex items-center gap-1.5 text-sm text-[#384A6C] font-bold hover:underline underline-offset-4"
+              className="mt-3 flex items-center gap-1.5 text-sm text-[#384A6C] font-bold hover:underline underline-offset-4 cursor-pointer"
             >
               <LuPlus size={15} /> Adicionar item
             </button>
@@ -442,17 +403,17 @@ export function OrderModal({
         </div>
 
         {/* Footer */}
-        <div className="flex justify-end gap-3 px-8 py-5 border-t border-gray-100">
+        <div className="flex justify-end gap-3 px-8 py-5 border-t border-gray-100 shrink-0">
           <button
             onClick={onClose}
-            className="px-5 py-2.5 rounded-xl border border-gray-200 text-sm font-semibold text-gray-500 hover:bg-gray-50 transition"
+            className="px-5 py-2.5 rounded-xl border border-gray-200 text-sm font-semibold text-gray-500 hover:bg-gray-50 transition cursor-pointer"
           >
             Cancelar
           </button>
           <button
             onClick={onConfirm}
             disabled={loading}
-            className="px-6 py-2.5 rounded-xl text-sm font-bold text-white bg-[#384A6C] hover:bg-[#2f3e5c] active:scale-95 transition-all disabled:opacity-60"
+            className="px-6 py-2.5 rounded-xl text-sm font-bold text-white bg-[#384A6C] hover:bg-[#2f3e5c] active:scale-95 transition-all disabled:opacity-60 cursor-pointer"
           >
             {loading ? "Criando..." : "Confirmar pedido"}
           </button>
