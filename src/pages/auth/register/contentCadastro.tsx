@@ -39,56 +39,33 @@ type Address = {
 
 const STEPS = ["Dados da empresa", "Endereço"] as const;
 
-function maskCNPJ(v: string) {
-  return v
-    .replace(/\D/g, "")
-    .slice(0, 14)
-    .replace(/(\d{2})(\d)/, "$1.$2")
-    .replace(/(\d{3})(\d)/, "$1.$2")
-    .replace(/(\d{3})(\d)/, "$1/$2")
-    .replace(/(\d{4})(\d{1,2})$/, "$1-$2");
-}
-
-function maskPhone(v: string) {
-  return v
-    .replace(/\D/g, "")
-    .slice(0, 11)
-    .replace(/(\d{2})(\d)/, "($1) $2")
-    .replace(/(\d{5})(\d{1,4})$/, "$1-$2");
-}
+import { InputField, type MaskType } from "../../../components/ui/Input/inputField";
 
 // ─── Input Component ─────────────────────────────────────────────────────────
 
 function Field({
   label,
-  icon: Icon,
+  icon,
   error,
+  maskType,
+  className = "",
   ...props
 }: React.InputHTMLAttributes<HTMLInputElement> & {
   label: string;
-  icon?: React.ElementType;
+  icon?: any;
   error?: string;
+  maskType?: MaskType;
+  className?: string;
 }) {
   return (
-    <div className="flex flex-col gap-1">
-      <label className="text-xs font-semibold text-[#384A6C] uppercase tracking-widest">
-        {label}
-      </label>
-      <div className="relative">
-        {Icon && (
-          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[#94C0E0]">
-            <Icon className="h-4 w-4" />
-          </span>
-        )}
-        <input
-          {...props}
-          className={`w-full ${Icon ? "pl-9" : "pl-4"} pr-4 py-2.5 rounded-xl border text-sm text-gray-800 placeholder-gray-300 bg-white
-            focus:outline-none focus:ring-2 focus:ring-[#94C0E0] focus:border-transparent transition-all
-            ${error ? "border-red-400" : "border-gray-200"}`}
-        />
-      </div>
-      {error && <p className="text-xs text-red-500">{error}</p>}
-    </div>
+    <InputField
+      label={label}
+      icon={icon}
+      error={error}
+      maskType={maskType}
+      className={className}
+      {...(props as any)}
+    />
   );
 }
 
@@ -143,10 +120,7 @@ export default function ContentCadastro() {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    let masked = value;
-    if (name === "cnpj") masked = maskCNPJ(value);
-    if (name === "telefone") masked = maskPhone(value);
-    setFormData((prev) => ({ ...prev, [name]: masked }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
     setErrors((prev) => ({ ...prev, [name]: undefined }));
   };
 
@@ -307,6 +281,7 @@ export default function ContentCadastro() {
                         <Field
                           label="CNPJ"
                           name="cnpj"
+                          maskType="cnpj"
                           icon={BuildingOffice2Icon}
                           placeholder="00.000.000/0001-00"
                           value={formData.cnpj}
@@ -316,6 +291,7 @@ export default function ContentCadastro() {
                         <Field
                           label="Telefone"
                           name="telefone"
+                          maskType="phone"
                           icon={PhoneIcon}
                           placeholder="(00) 00000-0000"
                           value={formData.telefone}

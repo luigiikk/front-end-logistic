@@ -5,7 +5,6 @@ import {
   LuFileText,
   LuLink,
   LuCalendar,
-  LuHash,
   LuPencil,
   LuTrash2,
 } from "react-icons/lu";
@@ -111,13 +110,8 @@ export default function InvoiceManager() {
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 flex-wrap">
                           <p className="font-semibold text-gray-800 text-sm">
-                            Fatura #{inv.id}
+                            #{inv.invoice_number ?? inv.id}
                           </p>
-                          {inv.invoice_number && (
-                            <span className="text-xs text-gray-400 flex items-center gap-0.5">
-                              <LuHash size={10} /> Nota {inv.invoice_number}
-                            </span>
-                          )}
                           <span className={`inline-flex text-xs font-semibold px-2.5 py-0.5 rounded-full border ${status.cls}`}>
                             {status.label}
                           </span>
@@ -127,7 +121,7 @@ export default function InvoiceManager() {
                           <span>
                             Pedido{" "}
                             <span className="font-semibold text-gray-600">
-                              #{inv.purchase_order_id}
+                              {inv.purchase_order.code ?? `#${inv.purchase_order_id}`}
                             </span>
                           </span>
                           <span className="font-semibold text-[#384A6C]">
