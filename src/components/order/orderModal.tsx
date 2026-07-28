@@ -182,9 +182,9 @@ export function OrderModal({
                   onChange={(e) => updateRecipient("name", e.target.value)}
                 />
                 <InputField
-                  label="CNPJ *"
-                  placeholder="00.000.000/0001-00"
-                  maskType="cnpj"
+                  label="CPF *"
+                  placeholder="000.000.000-00"
+                  maskType="cpf"
                   value={form.recipient.cpf}
                   onChange={(e) =>
                     updateRecipient("cpf", e.target.value)
@@ -350,7 +350,7 @@ export function OrderModal({
                       }
                     />
                     <InputField
-                      label="Profund."
+                      label="Comprimento"
                       containerClassName="flex-1"
                       type="number"
                       min={0}

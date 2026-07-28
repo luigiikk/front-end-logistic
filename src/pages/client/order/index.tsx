@@ -25,7 +25,7 @@ type Order = {
 type NewOrderForm = {
   recipient: {
     name: string;
-    cpf: string; // Corresponde ao CNPJ do destinatário
+    cpf: string; // CPF do destinatário
     email: string;
     address: {
       street: string;
@@ -138,7 +138,7 @@ export default function OrderManager() {
       const payload = {
         recipient: {
           name: newOrder.recipient.name,
-          cpf: newOrder.recipient.cpf.replace(/\D/g, ""), // Limpa o CNPJ no submit
+          cpf: newOrder.recipient.cpf.replace(/\D/g, ""), // Limpa o CPF no submit
           email: newOrder.recipient.email,
           address: {
             street: newOrder.recipient.address.street,
@@ -281,10 +281,10 @@ export default function OrderManager() {
                     onChange={(e) => updateRecipient("name", e.target.value)}
                   />
                   <InputField
-                    label="CNPJ do Destinatário *"
+                    label="CPF do Destinatário *"
                     icon={LuFileText}
-                    maskType="cnpj"
-                    placeholder="00.000.000/0001-00"
+                    maskType="cpf"
+                    placeholder="000.000.000-00"
                     value={newOrder.recipient.cpf}
                     onChange={(e) => updateRecipient("cpf", e.target.value)}
                   />
